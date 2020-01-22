@@ -1,4 +1,7 @@
 from data_types import Excel, Db, Text
+from label_map import Labels
+
+from datetime import datetime
 
 
 class IO(object):
@@ -8,10 +11,11 @@ class IO(object):
 
         db_db_flavor:
     """
-    def __init__(path, db_flavor = 'sqlite'):
+    def __init__(path):
         # determine the file type
         # *mig extract the substring after
         # the last `.` in the path string
+        self.input_path = path
 
         # extns = ...
         self.input_type = ''
@@ -20,17 +24,20 @@ class IO(object):
             self.input_type += 'excel'
 
         elif extns=='db':
-            self.input_type += 'db'
+            self.input_type += 'database'
 
             # *mig add more file extension checks
             # as needed
 
         elif extns=='csv':
-            self.input_type += 'excel'
+            self.input_type += 'text'
 
         else:
             msg = 'Passed an unsupported input file type {}.'
             log.error(msg.format(extns))
+
+        # set labels
+        self.la = Labels().set_labels()
 
 
     def load(create_db = True):
@@ -39,6 +46,7 @@ class IO(object):
 
         Recognizes any special table names, such
         as:
+
             - `run_parameters`, that specifies the output
             path, alongside to some further analysis related
             specifiers.
@@ -56,20 +64,63 @@ class IO(object):
 
             tables_to_query:
         """
+        if self.input_type == 'excel':
+            # load all tables found in the
+            # file as a dict of dataframes
+            dict_of_dfs = Excel(
+                self.input_path).load()
+
+        elif self.input_type == 'text':
+            dict_of_dfs = dict()
+            dict_of_dfs[
+                self.la['extra_files']] = pd.read_csv(self.input_path)
+
+        elif self.input_file == 'database':
+            # *mig update to be able to handle various
+            # db flavors
+            pass
+
+        # are there any further input files?
+        # if that is the case, the file paths and further info
+        # should be placed in an `inputs_from_files` table
+        if self.la['extra_files'] in
 
 
-        # *mig extract outpath from
-        # `run_parameters`
-        # if not found, set to None
-        outpath =
 
         if create_db = True:
-            self.create(
-                create_db=create_db,
-                outpath=outpath
-                db_flavor=db_flavor)
+            # initial value
+            outpath = None
 
-        return dict_of_dfs, tables_to_query
+            # look for `run_parameters` table
+            # to extract the outpath
+            if self.la['run_pars'] in dict_of_dfs.keys():
+
+                outpath_base = dict_of_dfs[
+                    self.la['run_pars']].loc[0, self.la['outpath']]
+
+                version = dict_of_dfs[
+                    self.la['run_pars']].loc[0, self.la['version']]
+
+                run_tag = version + '_' + \
+                    datetime.now().strftime('%Y_%m_%d-%Hh_%Mm')
+
+                outpath = os.path.join(outpath, run_tag)
+
+            try:
+                self.create(
+                    create_db=create_db,
+                    outpath=outpath
+                    db_flavor=db_flavor)
+            except:
+                # *mig add error message
+                pass
+
+            res = dict()
+            res['tables'] = dict_of_dfs
+            res['query_only'] = tables_to_query
+            res['outpath'] = outpath
+
+        return res
 
 
     def create_db(dict_of_dfs, outpath=None, db_flavor='sqlite'):
@@ -88,6 +139,11 @@ class IO(object):
 
             True to indicate the code succeeded
         """
+        # *mig get db extension based on the db_flavor
+        # for example
+        if db_flavor=='sqlite':
+            self.db_out_type = 'db'
+
         if outpath is None:
             # *mig create an `output` folder
             # under CWD
