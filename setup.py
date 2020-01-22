@@ -30,7 +30,9 @@ setup(
 
     keywords='i/o lcc nia shipments aps standards',
 
-    packages=find_packages(exclude=['adapter/tests', 'adapter/comm/tests']),
+    packages=find_packages(exclude=['*.tests', '*.tests']),
 
-    install_requires=[],
+    install_requires=['pandas>=0.24.1',
+            'xlwings>=0.15.2',
+            ],
     )
