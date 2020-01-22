@@ -85,7 +85,7 @@ class IO(object):
         # if that is the case, the file paths and further info
         # should be placed in an `inputs_from_files` table
         if self.la['extra_files'] in dict_of_dfs.keys():
-            # *mig look for
+            # *mig
 
 
 
@@ -166,12 +166,3 @@ class IO(object):
                 if_exists='append')
 
         return True
-
-
-    def read():
-        """
-        """
-        # figure out how to open the file
-        # provided in the path based on the
-        # data type (file extension)
-        pass
