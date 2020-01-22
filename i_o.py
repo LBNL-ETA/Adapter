@@ -1,4 +1,4 @@
-from data_types import Excel, Db, Text
+from to_python import Excel, Db
 from label_map import Labels
 
 from datetime import datetime
@@ -76,14 +76,16 @@ class IO(object):
                 self.la['extra_files']] = pd.read_csv(self.input_path)
 
         elif self.input_file == 'database':
-            # *mig update to be able to handle various
-            # db flavors
-            pass
+            # load all tables found in the
+            # file as a dict of dataframes
+            dict_of_dfs = Db(
+                self.input_path).load()
 
         # are there any further input files?
         # if that is the case, the file paths and further info
         # should be placed in an `inputs_from_files` table
-        if self.la['extra_files'] in
+        if self.la['extra_files'] in dict_of_dfs.keys():
+            # *mig look for
 
 
 

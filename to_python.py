@@ -87,12 +87,29 @@ class Db(object):
     """
     def __init__(file_path):
         self.db = Sql(file_path)
+        self.inpath = file_path
 
     def load(table_names = None):
         """
         """
-        pass
+        try:
+            dict_of_dfs = self.db.tables2dict(
+                close = True)
 
+        # *mig similarly to Excel, make sure that
+        # only the provided list of table_names, if
+        # it got provided, gets read in. I would
+        # simply eliminate any tables that got
+        # read in in the previous step and also make
+        # sure that all the listed tables are in the
+        # dict_of_dfs
+
+        except:
+            msg = 'Failed to read input tables from {}.'
+            log.error(msg.format(self.inpath))
+            raise ValueError
+
+        return dict_of_dfs
 
 
 class Toolbox(object):
