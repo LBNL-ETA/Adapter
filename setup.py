@@ -30,7 +30,7 @@ setup(
 
     keywords='i/o lcc nia shipments aps standards',
 
-    packages=find_packages(exclude=['prodspec_lcc/tests']),
+    packages=find_packages(exclude=['adapter/tests', 'adapter/comm/tests']),
 
     install_requires=[],
     )
