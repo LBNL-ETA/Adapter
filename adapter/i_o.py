@@ -1,12 +1,17 @@
-from to_python import Excel, Db
-from label_map import Labels
+import os
+
+from adapter.to_python import Excel, Db
+from adapter.label_map import Labels
 
 from datetime import datetime
 import re
+import sqlite3
 
 import logging
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
+
+from pdb import set_trace as bp
 
 class IO(object):
     """
@@ -15,7 +20,7 @@ class IO(object):
 
         db_db_flavor:
     """
-    def __init__(path):
+    def __init__(self, path):
 
         self.input_path = path
 
@@ -52,7 +57,7 @@ class IO(object):
         return file_type
 
 
-    def load(self, create_db = True):
+    def load(self, create_db=True, db_flavor='sqlite', close_db=True):
         """Loads tables from the input file
         as a dictinary of python dataframes.
 
@@ -73,8 +78,6 @@ class IO(object):
         Returns:
 
             dict_of_dfs:
-
-            tables_to_query:
         """
         dict_of_dfs = self.get_tables(self.input_type)
 
@@ -106,38 +109,54 @@ class IO(object):
                     load_or_query=qry_flags)
                     )
 
-        if create_db = True:
-            # initial value
-            outpath = None
+        else:
+            qry_flags = None
 
-            # look for `run_parameters` table
-            # to extract the outpath
-            if self.la['run_pars'] in dict_of_dfs.keys():
+        # define output path for the analysis run
 
-                outpath_base = dict_of_dfs[
-                    self.la['run_pars']].loc[0, self.la['outpath']]
+        # look for `run_parameters` table to extract the outpath
+        if self.la['run_pars'] in dict_of_dfs.keys():
 
-                version = dict_of_dfs[
-                    self.la['run_pars']].loc[0, self.la['version']]
+            outpath_base = os.path.join(os.getcwd(), dict_of_dfs[
+                self.la['run_pars']].loc[0, self.la['outpath']])
 
-                run_tag = version + '_' + \
-                    datetime.now().strftime('%Y_%m_%d-%Hh_%Mm')
+            version = dict_of_dfs[
+                self.la['run_pars']].loc[0, self.la['version']]
 
-                outpath = os.path.join(outpath, run_tag)
+        # otherwise declare current folder + /output as the output
+        # path
+        else:
+            outpath_base = os.path.join(os.getcwd(), 'output')
+            version = ''
+
+        run_tag = version + '_' + \
+            datetime.now().strftime('%Y_%m_%d-%Hh_%Mm')
+
+        outpath = os.path.join(outpath_base, run_tag)
+
+
+        if create_db==True:
 
             try:
-                self.create(
-                    create_db=create_db,
-                    outpath=outpath
-                    db_flavor=db_flavor)
+                db_res = self.create_db(
+                            dict_of_dfs,
+                            outpath=outpath,
+                            run_tag=run_tag,
+                            flavor=db_flavor,
+                            close=close_db)
             except:
-                # *mig add error message
-                pass
+                msg = 'Not able to create a db of tables '\
+                       'that were read in from {}.'
 
-            res = dict()
-            res['tables'] = dict_of_dfs
-            res['query_only'] = tables_to_query
-            res['outpath'] = outpath
+                log.error(msg.format(self.input_path))
+
+        res = dict()
+        res['tables'] = dict_of_dfs
+        res['query_only'] = qry_flags
+        res['outpath'] = outpath
+
+        if create_db==True:
+            res.update(db_res)
 
         return res
 
@@ -221,7 +240,11 @@ class IO(object):
 
 
     def create_db(self,
-        dict_of_dfs, outpath=None, db_flavor='sqlite'):
+                  dict_of_dfs,
+                  outpath=None,
+                  run_tag='',
+                  flavor='sqlite',
+                  close=True):
         """Creates a database with all the input
         tables that were read in
 
@@ -237,29 +260,44 @@ class IO(object):
 
             True to indicate the code succeeded
         """
-        # *mig account for run paramters, make sure to pass
-        # the path so that results can be dropped in
-        # *as or *lz add db types
-        if db_flavor=='sqlite':
-            self.db_out_type = 'db'
+        # *lz add further db flavors
+
+        if flavor=='sqlite':
+            db_out_type = '.db'
 
         if outpath is None:
-            # *mig create an `output` folder
-            # under CWD
+            # create an `output` folder under CWD
             outpath = os.path.join(os.getcwd(), 'output')
 
         if not os.path.exists(outpath):
             os.makedirs(outpath)
 
         # create an sql database within the output folder and connect
+        db_path = os.path.join(outpath, run_tag + db_out_type)
+
         db_con = sqlite3.connect(outpath + \
-            '//results_' + run_tag + '.db')
+            '\\' + run_tag + db_out_type)
 
         # write all input tables in the db
-        for table_name in self.inputs.keys():
-            self.inputs[table_name].to_sql(
-                name=table_name,
-                con=db_con,
-                if_exists='append')
+        for table_name in dict_of_dfs.keys():
+            try:
+                dict_of_dfs[table_name].to_sql(
+                    name=table_name,
+                    con=db_con,
+                    if_exists='append')
+            except:
+                msg='An error occured when writting {} table '\
+                    'to a db {}.'
+                log.error(msg.format(table_name, db_path))
+                raise ValueError
 
-        return True
+            msg = 'Wrote tables in a database: {}.'
+            log.info(msg.format(db_path))
+
+        if close:
+            db_con.close()
+
+        res = {'db_path' : db_path,
+               'db_con' : db_con}
+
+        return res

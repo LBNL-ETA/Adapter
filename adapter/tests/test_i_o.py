@@ -1,4 +1,6 @@
 import unittest
+import os
+
 from adapter.i_o import IO
 
 import logging
@@ -8,17 +10,23 @@ from pdb import set_trace as bp
 
 class IOTests(unittest.TestCase):
 
-    @classmethod
-    def setUp(self):
-        """
-        """
-        self.i_o = IO(
-        r'adapter/tests/test.xlsx')
-
     def test_load_from_excel(self):
+        """Tests the typical LCC analysis case
+        where all input tables are saved as
+        named tables in an excel input sheet.
         """
-        """
-        pass
+        path = os.path.join(os.getcwd(),
+            r'adapter/tests/test.xlsx')
+        i_o = IO(path)
+
+        res = i_o.load()
+
+        self.assertTrue(res['query_only'] is None)
+        self.assertTrue('db_path' in res.keys())
+
+        res_no_db = i_o.load(create_db=False)
+        self.assertFalse('db_path' in res_no_db.keys())
+
 
     def test_load_from_excel_w_input_from_files(self):
         """
