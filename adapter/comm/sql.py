@@ -24,11 +24,13 @@ class Sql(object):
         # recognize or create the connection object
         # *mig enable this for other db flavors, such
         # as sql db and postgres
-        bp()
+
         if type(path_OR_dbconn) == str:
             try:
+                # for aboslute or mounted paths
                 self.db = sqlite3.connect(path_OR_dbconn)
             except:
+                # for paths relative to run path
                 path = os.getcwd() +'\\'+ path_OR_dbconn
                 self.db = sqlite3.connect(path)
 
@@ -47,7 +49,7 @@ class Sql(object):
         Parameters:
 
             close: boolean, default=True
-                If True, closes the connection to db
+                If True, closes the connection      to db
 
         Returns:
 

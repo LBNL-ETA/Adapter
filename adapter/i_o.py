@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import pandas as pd
 
 from adapter.to_python import Excel, Db
 from adapter.label_map import Labels
@@ -94,15 +95,14 @@ class IO(object):
             for inx in extra_files.index:
 
                 file_path = extra_files.loc[
-                inx, self.la['inpath']]
+                inx, self.la['inpath']].strip()
 
                 table_names =  extra_files.loc[
                     inx, self.la['tbl_nam']]
-                bp()
 
-                if table_names!='':
+                if table_names is not None:
                     table_names = re.split(
-                      '/.', table_names)
+                      ',', table_names)
                     table_names = [
                     i.strip() for i in table_names]
 
@@ -112,7 +112,7 @@ class IO(object):
                 qry_flags[file_path] = extra_files.loc[
                     inx, self.la['query']]
 
-                if qry_flags != '':
+                if qry_flags[file_path] is not None:
                     qry_flags[file_path] = re.split(
                         ',', qry_flags[file_path])
                     qry_flags[file_path] = [
@@ -120,7 +120,8 @@ class IO(object):
 
                 # get those tables
                 dict_of_dfs.update(self.get_tables(
-                    file_path, table_names=table_names,
+                    file_path,
+                    table_names=table_names,
                     load_or_query=qry_flags[file_path])
                     )
 
@@ -166,8 +167,8 @@ class IO(object):
                 log.error(msg.format(self.input_path))
 
         res = dict()
-        res['tables'] = dict_of_dfs
-        res['query_only'] = qry_flags
+        res['tables_as_dict_of_dfs'] = dict_of_dfs
+        res['tables_to_query'] = qry_flags
         res['outpath'] = outpath
 
         if create_db==True:
@@ -219,6 +220,7 @@ class IO(object):
                 # @as : related to database connctions
                 inx = [i=='Y' for i in load_or_query]
                 # load only those tables
+
                 table_names_to_load = np.array(
                     table_names)[inx].tolist()
                 # others should be just connected to
@@ -243,18 +245,16 @@ class IO(object):
         elif file_type == 'text':
             dict_of_dfs = dict()
 
-            filename_to_tablename = re.split('\\', file_path)[-1]
+            filename_to_tablename = re.split('\/', file_path)[-1]
             filename_to_tablename = re.split('\.', filename_to_tablename)[0]
 
-            dict_of_dfs[
-                self.la['extra_files']] = pd.read_csv(
-                file_type
-                )
+            dict_of_dfs[filename_to_tablename] = pd.read_csv(
+                file_path)
 
         elif file_type == 'database':
             # load all tables found in the
             # file as a dict of dataframes
-            bp()
+
             dict_of_dfs = Db(
                 file_path).load(
                 table_names=table_names_to_load

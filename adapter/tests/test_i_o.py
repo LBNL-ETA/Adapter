@@ -37,9 +37,11 @@ class IOTests(unittest.TestCase):
             r'adapter/tests/test_w_inputs_from_files_table.xlsx')
         i_o = IO(path)
 
-        i_o.load()
+        res = i_o.load()
 
-        bp()
+        self.assertEqual(len(res['tables_as_dict_of_dfs'].keys()), 8)
+        self.assertEqual(len(res['tables_to_query'].keys()), 3)
+
 
     def test_load_from_csv_inputs_from_files(self):
         """
