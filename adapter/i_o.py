@@ -16,34 +16,40 @@ class IO(object):
         db_db_flavor:
     """
     def __init__(path):
-        # determine the file type
-        # *mig extract the substring after
-        # the last `.` in the path string
+
         self.input_path = path
 
+        self.input_type = self.get_file_type(path)
+
+        # set labels
+        self.la = Labels().set_labels()
+
+
+    def get_file_type(self, path):
+        """Extracts the file type from the fullpath.
+        """
         extns = re.split('\.', path)[-1]
 
         # extns = ...
-        self.input_type = ''
+        file_type = ''
 
         if extns=='xlsx':
-            self.input_type += 'excel'
+            file_type += 'excel'
 
         elif extns=='db':
-            self.input_type += 'database'
+            file_type += 'database'
 
             # *mig add more file extension checks
             # as needed
 
         elif extns=='csv':
-            self.input_type += 'text'
+            file_type += 'text'
 
         else:
             msg = 'Passed an unsupported input file type: {}.'
             log.error(msg.format(extns))
 
-        # set labels
-        self.la = Labels().set_labels()
+        return file_type
 
 
     def load(self, create_db = True):
