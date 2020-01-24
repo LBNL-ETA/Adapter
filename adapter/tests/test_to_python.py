@@ -4,6 +4,8 @@ from adapter.to_python import Excel, Db
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
+from pdb import set_trace as bp
+
 class ExcelTests(unittest.TestCase):
 
     @classmethod
@@ -37,3 +39,31 @@ class ExcelTests(unittest.TestCase):
         # ranges to the same input file, then
         # you can simply extend the lists of
         # expected input table names.
+
+
+class DbTests(unittest.TestCase):
+
+    @classmethod
+    def setUp(self):
+        """
+        """
+        self.db_loader = Db(
+        r'adapter/tests/test.db')
+
+
+    def test_load(self):
+        """Tests loading tables
+        from databases.
+        """
+        all_tables = self.db_loader.load()
+
+        self.assertTrue(
+        set(all_tables.keys())=={
+        'table2','table3','table1'})
+
+        some_tables = self.db_loader.load(
+            table_names = ['table1','table2'])
+
+        self.assertTrue(
+        set(some_tables.keys())=={
+        'table1','table2'})

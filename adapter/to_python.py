@@ -73,7 +73,7 @@ class Excel(object):
         if len(all_input_tables.keys()) > 0:
             if type(table_names)==list:
                 for table_name in table_names:
-                    if table_name not in all_input_tables:
+                    if table_name not in all_input_tables.keys():
                         msg = '{} not found in the input file {}.'
                         log.error(msg.format(
                             table_name, self.file_path))
@@ -126,29 +126,42 @@ class Excel(object):
 class Db(object):
     """
     """
-    def __init__(file_path):
+    def __init__(self, file_path):
         self.db = Sql(file_path)
         self.inpath = file_path
 
-    def load(table_names = None):
+    def load(self, table_names = None):
         """
         """
-        try:
-            dict_of_dfs = self.db.tables2dict(
-                close = True)
+        # try:
+        all_dict_of_dfs = self.db.tables2dict(
+            close = True)
 
-        # *mig similarly to Excel, make sure that
-        # only the provided list of table_names, if
-        # it got provided, gets read in. I would
-        # simply eliminate any tables that got
-        # read in in the previous step and also make
-        # sure that all the listed tables are in the
-        # dict_of_dfs
+        dict_of_dfs = dict()
 
-        except:
-            msg = 'Failed to read input tables from {}.'
-            log.error(msg.format(self.inpath))
-            raise ValueError
+        if len(all_dict_of_dfs.keys()) > 0:
+
+            if type(table_names)==list:
+
+                for table_name in table_names:
+
+                    if table_name not in\
+                        all_dict_of_dfs.keys():
+                        msg = '{} not found in the input file {}.'
+                        log.error(msg.format(
+                            table_name, self.file_path))
+                        raise ValueError
+
+                    else:
+                        dict_of_dfs[table_name] = \
+                        all_dict_of_dfs[table_name]
+            else:
+                dict_of_dfs = all_dict_of_dfs
+
+        # except:
+        #     msg = 'Failed to read input tables from {}.'
+        #     log.error(msg.format(self.inpath))
+        #     raise ValueError
 
         return dict_of_dfs
 
