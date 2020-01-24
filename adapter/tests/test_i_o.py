@@ -40,7 +40,6 @@ class IOTests(unittest.TestCase):
         res = i_o.load()
 
         self.assertEqual(len(res['tables_as_dict_of_dfs'].keys()), 8)
-        self.assertEqual(len(res['tables_to_query'].keys()), 3)
 
 
     def test_load_from_csv_inputs_from_files(self):
@@ -52,7 +51,9 @@ class IOTests(unittest.TestCase):
 
         res = i_o.load()
 
-        bp()
+        self.assertEqual(len(res['tables_as_dict_of_dfs'].keys()), 5)
+        self.assertEqual(len(res.keys()), 4)
+
 
     def test_load_from_excel_no_run_parameters(self):
         """

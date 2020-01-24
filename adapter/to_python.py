@@ -1,3 +1,5 @@
+import numpy as np
+
 from adapter.comm.xlwings_tools import Book, xl2pd, pd2xl
 from adapter.comm.sql import Sql
 import re
@@ -82,9 +84,12 @@ class Excel(object):
             elif table_names is None:
                 table_names = all_input_tables.keys()
 
+            elif table_names is np.nan:
+                table_names = all_input_tables.keys()
+
             else:
                 msg = 'Unsupported type ({}) passed for table names, {}.'
-                msg.error(msg.format(type(table_names), table_names))
+                log.error(msg.format(type(table_names), table_names))
                 raise ValueError
 
             try:

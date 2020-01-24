@@ -102,7 +102,8 @@ class IO(object):
                 table_names =  extra_files.loc[
                     inx, self.la['tbl_nam']]
 
-                if table_names is not None:
+                if (table_names is not None) and\
+                    (table_names is not np.nan):
                     table_names = re.split(
                       ',', table_names)
                     table_names = [
@@ -114,7 +115,8 @@ class IO(object):
                 qry_flags[file_path] = extra_files.loc[
                     inx, self.la['query']]
 
-                if qry_flags[file_path] is not None:
+                if (qry_flags[file_path] is not None) and\
+                    (table_names is not np.nan):
                     qry_flags[file_path] = re.split(
                         ',', qry_flags[file_path])
                     qry_flags[file_path] = [
@@ -165,22 +167,24 @@ class IO(object):
 
         if create_db==True:
 
-            # try:
-            db_res = self.create_db(
-                        dict_of_dfs,
-                        outpath=outpath,
-                        run_tag=run_tag,
-                        flavor=db_flavor,
-                        close=close_db)
-            # except:
-            #     msg = 'Not able to create a db of tables '\
-            #            'that were read in from {}.'
-            #
-            #     log.error(msg.format(self.input_path))
+            try:
+                db_res = self.create_db(
+                            dict_of_dfs,
+                            outpath=outpath,
+                            run_tag=run_tag,
+                            flavor=db_flavor,
+                            close=close_db)
+            except:
+                msg = 'Not able to create a db of tables '\
+                       'that were read in from {}.'
+
+                log.error(msg.format(self.input_path))
 
         res = dict()
         res['tables_as_dict_of_dfs'] = dict_of_dfs
-        res['tables_to_query'] = qry_flags
+        # @as populate with tables or the connections, as you
+        # find practical
+        # res['tables_to_query'] =
         res['outpath'] = outpath
 
         if create_db==True:
@@ -217,7 +221,8 @@ class IO(object):
         if load_or_query == 'Y':
             load_or_query = ['Y']
 
-        if load_or_query is not None:
+        if (load_or_query is not None) and \
+           (load_or_query is not np.nan):
 
             if table_names is None:
                 if len(load_or_query) !=1:
