@@ -8,6 +8,7 @@ from adapter.label_map import Labels
 from datetime import datetime
 import re
 import sqlite3
+from shutil import copyfile
 
 import logging
 log = logging.getLogger(__name__)
@@ -59,7 +60,8 @@ class IO(object):
         return file_type
 
 
-    def load(self, create_db=True, db_flavor='sqlite', close_db=True):
+    def load(self, create_db=True, db_flavor='sqlite', close_db=True,
+            save_input = True):
         """Loads tables from the input file
         as a dictinary of python dataframes.
 
@@ -118,7 +120,6 @@ class IO(object):
                     qry_flags[file_path] = [
                     i.strip() for i in qry_flags[file_path]]
 
-                # get those tables
                 dict_of_dfs.update(self.get_tables(
                     file_path,
                     table_names=table_names,
@@ -131,6 +132,8 @@ class IO(object):
         # define output path for the analysis run
 
         # look for `run_parameters` table to extract the outpath
+        # note that `run_parameters` table should occur only in one
+        # of the input files
         if self.la['run_pars'] in dict_of_dfs.keys():
 
             outpath_base = os.path.join(os.getcwd(), dict_of_dfs[
@@ -138,6 +141,8 @@ class IO(object):
 
             version = dict_of_dfs[
                 self.la['run_pars']].loc[0, self.la['version']]
+
+            self.version = version
 
         # otherwise declare current folder + /output as the output
         # path
@@ -150,21 +155,24 @@ class IO(object):
 
         outpath = os.path.join(outpath_base, run_tag)
 
+        if save_input:
+            # self.input_path
+            copyfile(self.input_path, outpath)
 
         if create_db==True:
 
-            try:
-                db_res = self.create_db(
-                            dict_of_dfs,
-                            outpath=outpath,
-                            run_tag=run_tag,
-                            flavor=db_flavor,
-                            close=close_db)
-            except:
-                msg = 'Not able to create a db of tables '\
-                       'that were read in from {}.'
-
-                log.error(msg.format(self.input_path))
+            # try:
+            db_res = self.create_db(
+                        dict_of_dfs,
+                        outpath=outpath,
+                        run_tag=run_tag,
+                        flavor=db_flavor,
+                        close=close_db)
+            # except:
+            #     msg = 'Not able to create a db of tables '\
+            #            'that were read in from {}.'
+            #
+            #     log.error(msg.format(self.input_path))
 
         res = dict()
         res['tables_as_dict_of_dfs'] = dict_of_dfs
@@ -248,8 +256,13 @@ class IO(object):
             filename_to_tablename = re.split('\/', file_path)[-1]
             filename_to_tablename = re.split('\.', filename_to_tablename)[0]
 
+            if self.la['extra_files'] in filename_to_tablename:
+                filename_to_tablename = self.la['extra_files']
+
             dict_of_dfs[filename_to_tablename] = pd.read_csv(
                 file_path)
+
+            bp()
 
         elif file_type == 'database':
             # load all tables found in the
@@ -298,9 +311,8 @@ class IO(object):
 
         # create an sql database within the output folder and connect
         db_path = os.path.join(outpath, run_tag + db_out_type)
-
-        db_con = sqlite3.connect(outpath + \
-            '\\' + run_tag + db_out_type)
+        bp()
+        db_con = sqlite3.connect(db_path)
 
         # write all input tables in the db
         for table_name in dict_of_dfs.keys():

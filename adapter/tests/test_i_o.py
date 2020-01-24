@@ -46,18 +46,36 @@ class IOTests(unittest.TestCase):
     def test_load_from_csv_inputs_from_files(self):
         """
         """
-        pass
+        path = os.path.join(os.getcwd(),
+            r'adapter/tests/inputs_from_files_vTest.csv')
+        i_o = IO(path)
+
+        res = i_o.load()
+
+        bp()
 
     def test_load_from_excel_no_run_parameters(self):
         """
         """
         # *mig the code is supposed to notify user and
         # create a version and outpath
-        pass
+        path = os.path.join(os.getcwd(),
+            r'adapter/tests/test_no_run_parameters.xlsx')
+        i_o = IO(path)
+
+        res = i_o.load()
+
+        bp()
 
     def test_load_from_db(self):
         """
         """
         # *mig the code is supposed to notify user and
         # create a version and outpath
-        pass
+        path = os.path.join(os.getcwd(),
+            r'adapter/tests/test.db')
+        i_o = IO(path)
+
+        res = i_o.load()
+
+        bp()
