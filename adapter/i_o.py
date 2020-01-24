@@ -2,6 +2,7 @@ from to_python import Excel, Db
 from label_map import Labels
 
 from datetime import datetime
+import re
 
 import logging
 log = logging.getLogger(__name__)
@@ -20,6 +21,8 @@ class IO(object):
         # the last `.` in the path string
         self.input_path = path
 
+        extns = re.split('\.', path)[-1]
+
         # extns = ...
         self.input_type = ''
 
@@ -36,14 +39,14 @@ class IO(object):
             self.input_type += 'text'
 
         else:
-            msg = 'Passed an unsupported input file type {}.'
+            msg = 'Passed an unsupported input file type: {}.'
             log.error(msg.format(extns))
 
         # set labels
         self.la = Labels().set_labels()
 
 
-    def load(create_db = True):
+    def load(self, create_db = True):
         """Loads tables from the input file
         as a dictinary of python dataframes.
 
@@ -88,9 +91,16 @@ class IO(object):
         # if that is the case, the file paths and further info
         # should be placed in an `inputs_from_files` table
         if self.la['extra_files'] in dict_of_dfs.keys():
-            # *mig
-
-
+            # *as or *lz:
+            # please walk through the list of files in the
+            # input_from_files table and load
+            # or establish db connection as needed
+            # please see the drafted tests for functionality
+            # requirements, I prepared the test files in the
+            # test folder
+            # it is desirable to have this broken into
+            # separate methods
+            pass
 
         if create_db = True:
             # initial value
@@ -128,7 +138,8 @@ class IO(object):
         return res
 
 
-    def create_db(dict_of_dfs, outpath=None, db_flavor='sqlite'):
+    def create_db(self,
+        dict_of_dfs, outpath=None, db_flavor='sqlite'):
         """Creates a database with all the input
         tables that were read in
 
