@@ -16,6 +16,7 @@ class Excel(object):
         """Opens the file provided
         through file_path, loads
         all or a subset of tables
+        and named ranges
         available in the file and
         converts to a python format.
 
@@ -37,7 +38,18 @@ class Excel(object):
         # docstrings for the analoguos
         # methods in other classes in this
         # file
+        dict_of_dfs = self.get_tables(
+            table_names)
 
+        dict_of_dfs.update(
+            self.get_named_ranges(table_names))
+
+        return dict_of_dfs
+
+
+    def get_tables(self, table_names):
+        """Grabs data defined as excel tables.
+        """
         # grab all the input tables
         all_input_table_names = self.wb.tables
 
@@ -45,41 +57,50 @@ class Excel(object):
         # and populate
         dict_of_dfs = dict()
 
-        if type(table_names)==list:
-            for table_name in table_names:
-                if table_name is not in all_input_table_names:
-                    msg = '{} not found in the input file {}.'
-                    log.error(msg.format(
-                        table_name, self.file_path))
-                    raise ValueError
+        if len(all_input_table_names) > 0:
+            if type(table_names)==list:
+                for table_name in table_names:
+                    if table_name is not in all_input_table_names:
+                        msg = '{} not found in the input file {}.'
+                        log.error(msg.format(
+                            table_name, self.file_path))
+                        raise ValueError
 
-        elif table_names is None:
-            table_names = all_input_table_names
+            elif table_names is None:
+                table_names = all_input_table_names
 
-        else:
-            msg = 'Unsupported type ({}) passed for table names, {}.'
-            msg.error(msg.format(type(table_names), table_names))
-            raise ValueError
+            else:
+                msg = 'Unsupported type ({}) passed for table names, {}.'
+                msg.error(msg.format(type(table_names), table_names))
+                raise ValueError
 
-        try:
-            for table_name in table_names:
-                # prepare labels (strip extra spaces)
-                dict_of_dfs[table_name] = self.wb.named_range_to_df(
-                    input_tables[table_name], verbose = True)
-                dict_of_dfs[table_name].columns = \
-                   Toolbox.process_column_labels(
-                    dict_of_dfs[table_name].columns)
+            try:
+                for table_name in table_names:
+                    # prepare labels (strip extra spaces)
+                    dict_of_dfs[table_name] = self.wb.named_range_to_df(
+                        input_tables[table_name], verbose = True)
+                    dict_of_dfs[table_name].columns = \
+                       Toolbox.process_column_labels(
+                        dict_of_dfs[table_name].columns)
 
-            msg = 'Read in input tables from {}.'
-            log.info(msg.format(self.inpath))
-        except:
-            # more detailed error data should come from xlwings_tools
-            msg = 'Failed to read input tables from {}.'
+                msg = 'Read in input tables from {}.'
+                log.info(msg.format(self.inpath))
+            except:
+                # more detailed error data should come from xlwings_tools
+                msg = 'Failed to read input tables from {}.'
 
-            log.error(msg.format(self.inpath))
-            raise ValueError
+                log.error(msg.format(self.inpath))
+                raise ValueError
 
         return dict_of_dfs
+
+
+    def get_named_ranges(self):
+        """Grabs data defined as named ranges.
+        """
+        # return dict_of_dfs
+        # *lz
+        pass
 
 
 class Db(object):
