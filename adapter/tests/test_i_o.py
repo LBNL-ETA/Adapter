@@ -66,7 +66,8 @@ class IOTests(unittest.TestCase):
 
         res = i_o.load()
 
-        bp()
+        self.assertEqual(len(res['tables_as_dict_of_dfs'].keys()), 2)
+
 
     def test_load_from_db(self):
         """
@@ -79,4 +80,4 @@ class IOTests(unittest.TestCase):
 
         res = i_o.load()
 
-        bp()
+        self.assertEqual(len(res['tables_as_dict_of_dfs'].keys()), 3)
