@@ -8,7 +8,7 @@ from adapter.label_map import Labels
 from datetime import datetime
 import re
 import sqlite3
-from shutil import copyfile
+from shutil import copy
 
 import logging
 log = logging.getLogger(__name__)
@@ -155,9 +155,13 @@ class IO(object):
 
         outpath = os.path.join(outpath_base, run_tag)
 
+        if not os.path.exists(outpath):
+            os.makedirs(outpath)
+
         if save_input:
             # self.input_path
-            copyfile(self.input_path, outpath)
+            filename = re.split('\/', self.input_path)[-1]
+            copy(self.input_path, os.path.join(outpath,filename))
 
         if create_db==True:
 
@@ -262,8 +266,6 @@ class IO(object):
             dict_of_dfs[filename_to_tablename] = pd.read_csv(
                 file_path)
 
-            bp()
-
         elif file_type == 'database':
             # load all tables found in the
             # file as a dict of dataframes
@@ -311,7 +313,6 @@ class IO(object):
 
         # create an sql database within the output folder and connect
         db_path = os.path.join(outpath, run_tag + db_out_type)
-        bp()
         db_con = sqlite3.connect(db_path)
 
         # write all input tables in the db

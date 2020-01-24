@@ -21,7 +21,7 @@ class IOTests(unittest.TestCase):
 
         res = i_o.load()
 
-        self.assertTrue(res['query_only'] is None)
+        self.assertTrue(res['tables_to_query'] is None)
         self.assertTrue('db_path' in res.keys())
 
         res_no_db = i_o.load(create_db=False)
