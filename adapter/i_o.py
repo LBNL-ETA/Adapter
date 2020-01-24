@@ -70,22 +70,7 @@ class IO(object):
 
             tables_to_query:
         """
-        if self.input_type == 'excel':
-            # load all tables found in the
-            # file as a dict of dataframes
-            dict_of_dfs = Excel(
-                self.input_path).load()
-
-        elif self.input_type == 'text':
-            dict_of_dfs = dict()
-            dict_of_dfs[
-                self.la['extra_files']] = pd.read_csv(self.input_path)
-
-        elif self.input_file == 'database':
-            # load all tables found in the
-            # file as a dict of dataframes
-            dict_of_dfs = Db(
-                self.input_path).load()
+        dict_of_dfs = self.get_tables(self.input_type)
 
         # are there any further input files?
         # if that is the case, the file paths and further info
@@ -136,6 +121,84 @@ class IO(object):
             res['outpath'] = outpath
 
         return res
+
+
+    def get_tables(self,
+        file_type,
+        table_names=None,
+        load_or_query=None):
+        """
+
+        Parameters:
+
+            file_type: str
+                Options:
+                'excel', 'database', 'text'
+
+            load_or_query: str list
+                Values: 'N' or 'Y'
+                If None all tables get
+                loaded. If a single
+                'Y' is passed, it will
+                be applied to all tables
+
+            table_names: list of str
+                Tables to load. If None
+                all tables get loaded (
+                unless all need to be
+                queried)
+        """
+        if load_or_query == 'Y':
+            load_or_query = ['Y']
+
+        if load_or_query is not None:
+
+            if table_names is None:
+                if len(load_or_query) !=1:
+                    msg = 'All tables need to be loaded.'\
+                    'It is unclear which tables need to '\
+                    'only be querried. Please provide a '\
+                    'list of table names and query flags '\
+                    'of the same length.'
+                    log.error(msg)
+
+            else:
+                inx = [i=='Y' for i in load_or_query]
+                # load only those tables
+                table_names_to_load = table_names[inx]
+                # others should be just connected to
+                table_names_for_conn = table_names[~inx]
+
+        else:
+            table_names_to_load = table_names
+            table_names_for_conn = None
+
+        # *as or *lz see what to do about db connections
+
+        if file_type == 'excel':
+            # load all tables found in the
+            # file as a dict of dataframes
+            dict_of_dfs = Excel(
+                self.input_path).load(
+                table_names=table_names_to_load
+                )
+
+        elif file_type == 'text':
+            dict_of_dfs = dict()
+            dict_of_dfs[
+                self.la['extra_files']] = pd.read_csv(
+                file_type
+                )
+
+        elif file_type == 'database':
+            # load all tables found in the
+            # file as a dict of dataframes
+            dict_of_dfs = Db(
+                file_type).load(
+                table_names=table_names_to_load
+                )
+
+        return dict_of_dfs
 
 
     def create_db(self,
