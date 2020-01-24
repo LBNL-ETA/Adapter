@@ -82,16 +82,30 @@ class IO(object):
         # if that is the case, the file paths and further info
         # should be placed in an `inputs_from_files` table
         if self.la['extra_files'] in dict_of_dfs.keys():
-            # *as or *lz:
-            # please walk through the list of files in the
-            # input_from_files table and load
-            # or establish db connection as needed
-            # please see the drafted tests for functionality
-            # requirements, I prepared the test files in the
-            # test folder
-            # it is desirable to have this broken into
-            # separate methods
-            pass
+
+            extra_files = dict_of_dfs[
+                self.la['extra_files']].reset_index()
+
+            for inx in extra_files.index:
+
+                file_path = extra_files.loc[
+                inx, self.la['inpath']]
+
+                type = self.get_file_type(
+                    file_path)
+
+                table_names = extra_files.loc[
+                inx, self.la['tbl_nam']]
+
+                qry_flags = extra_files.loc[
+                inx, self.la['query']]
+
+                # get those tables
+                dict_of_dfs.update(self.get_tables(
+                    type, table_names=table_names,
+                    load_or_query=qry_flags)
+                    )
+
 
         if create_db = True:
             # initial value
