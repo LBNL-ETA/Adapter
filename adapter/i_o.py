@@ -95,20 +95,25 @@ class IO(object):
                 file_path = extra_files.loc[
                 inx, self.la['inpath']]
 
-                table_names = extra_files.loc[
-                inx, self.la['tbl_nam']]
-
+                table_names =  re.split(
+                    ',', extra_files.loc[
+                    inx, self.la['tbl_nam']])
+                table_names = [
+                    i.strip() for i in table_names]
 
                 # @as : Please figure out an appropriate
                 # data format to pass the info on to the
                 # main analysis.
-                qry_flags[file_path] = extra_files.loc[
-                inx, self.la['query']]
+                qry_flags[file_path] = re.split(
+                    ',', extra_files.loc[
+                    inx, self.la['query']])
+                qry_flags[file_path] = [
+                    i.strip() for i in qry_flags[file_path]]
 
                 # get those tables
                 dict_of_dfs.update(self.get_tables(
                     file_path, table_names=table_names,
-                    load_or_query=qry_flags)
+                    load_or_query=qry_flags[file_path])
                     )
 
         else:
@@ -203,6 +208,7 @@ class IO(object):
                     log.error(msg)
 
             else:
+                bp()
                 inx = [i=='Y' for i in load_or_query]
                 # load only those tables
                 table_names_to_load = table_names[inx]
