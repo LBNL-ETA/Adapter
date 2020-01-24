@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.DEBUG)
 class ExcelTests(unittest.TestCase):
 
     @classmethod
-    def setUpClass(self):
+    def setUp(self):
         """
         """
         self.exl_loader = Excel(
@@ -20,17 +20,16 @@ class ExcelTests(unittest.TestCase):
         all_tables = self.exl_loader.load()
 
         self.assertTrue(
-        all_tables.keys()==[
+        set(all_tables.keys())=={
         'xlsx_table1','xlsx_table2',
-        'run_parameters'])
+        'run_parameters'})
 
         some_tables = self.exl_loader.load(
-            table_names = ['xlsx_table1','xlsx_table2']
+            table_names = ['xlsx_table1','xlsx_table2'])
 
         self.assertTrue(
-        some_tables.keys()==[
-        'xlsx_table1','xlsx_table2',
-        'run_parameters'])
+        set(some_tables.keys())=={
+        'xlsx_table1','xlsx_table2'})
 
 
     def test_get_tables(self):
