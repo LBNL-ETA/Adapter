@@ -2,7 +2,7 @@ import logging
 import os
 import unittest
 
-from mswh.comm.sql import Sql
+from adapter.comm.sql import Sql
 
 import pandas as pd
 logging.basicConfig(level=logging.DEBUG)
