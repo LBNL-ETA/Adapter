@@ -106,7 +106,6 @@ class IO(object):
                     load_or_query=qry_flags)
                     )
 
-
         if create_db = True:
             # initial value
             outpath = None
@@ -238,8 +237,9 @@ class IO(object):
 
             True to indicate the code succeeded
         """
-        # *mig get db extension based on the db_flavor
-        # for example
+        # *mig account for run paramters, make sure to pass
+        # the path so that results can be dropped in
+        # *as or *lz add db types
         if db_flavor=='sqlite':
             self.db_out_type = 'db'
 
