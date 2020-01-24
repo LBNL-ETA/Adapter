@@ -15,7 +15,8 @@ class ExcelTests(unittest.TestCase):
 
 
     def test_load(self):
-        """
+        """Tests loading named tables
+        and named ranges from excel.
         """
         all_tables = self.exl_loader.load()
 
@@ -31,13 +32,8 @@ class ExcelTests(unittest.TestCase):
         set(some_tables.keys())=={
         'xlsx_table1','xlsx_table2'})
 
-
-    def test_get_tables(self):
-        """
-        """
-
-    def test_get_named_ranges(self):
-        """
-        """
-        # *lz to populate
-        pass
+        # *lz add equivalent tests for loading
+        # named ranges. If you add named
+        # ranges to the same input file, then
+        # you can simply extend the lists of
+        # expected input table names.
