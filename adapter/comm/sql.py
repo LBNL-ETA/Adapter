@@ -1,3 +1,4 @@
+import os
 import logging
 import sqlite3
 
@@ -5,6 +6,8 @@ import pandas as pd
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
+
+from pdb import set_trace as bp
 
 
 class Sql(object):
@@ -19,10 +22,16 @@ class Sql(object):
 
     def __init__(self, path_OR_dbconn):
         # recognize or create the connection object
-        # *mig enable this for other db flavors, such 
+        # *mig enable this for other db flavors, such
         # as sql db and postgres
+        bp()
         if type(path_OR_dbconn) == str:
-            self.db = sqlite3.connect(path_OR_dbconn)
+            try:
+                self.db = sqlite3.connect(path_OR_dbconn)
+            except:
+                path = os.getcwd() +'\\'+ path_OR_dbconn
+                self.db = sqlite3.connect(path)
+
         elif type(path_OR_dbconn) == sqlite3.Connection:
             self.db = path_OR_dbconn
         else:

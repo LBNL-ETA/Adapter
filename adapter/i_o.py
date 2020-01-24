@@ -1,4 +1,5 @@
 import os
+import numpy as np
 
 from adapter.to_python import Excel, Db
 from adapter.label_map import Labels
@@ -95,19 +96,26 @@ class IO(object):
                 file_path = extra_files.loc[
                 inx, self.la['inpath']]
 
-                table_names =  re.split(
-                    ',', extra_files.loc[
-                    inx, self.la['tbl_nam']])
-                table_names = [
+                table_names =  extra_files.loc[
+                    inx, self.la['tbl_nam']]
+                bp()
+
+                if table_names!='':
+                    table_names = re.split(
+                      '/.', table_names)
+                    table_names = [
                     i.strip() for i in table_names]
 
                 # @as : Please figure out an appropriate
                 # data format to pass the info on to the
                 # main analysis.
-                qry_flags[file_path] = re.split(
-                    ',', extra_files.loc[
-                    inx, self.la['query']])
-                qry_flags[file_path] = [
+                qry_flags[file_path] = extra_files.loc[
+                    inx, self.la['query']]
+
+                if qry_flags != '':
+                    qry_flags[file_path] = re.split(
+                        ',', qry_flags[file_path])
+                    qry_flags[file_path] = [
                     i.strip() for i in qry_flags[file_path]]
 
                 # get those tables
@@ -208,12 +216,15 @@ class IO(object):
                     log.error(msg)
 
             else:
-                bp()
+                # @as : related to database connctions
                 inx = [i=='Y' for i in load_or_query]
                 # load only those tables
-                table_names_to_load = table_names[inx]
+                table_names_to_load = np.array(
+                    table_names)[inx].tolist()
                 # others should be just connected to
-                table_names_for_conn = table_names[~inx]
+                not_inx = [not i for i in inx]
+                table_names_for_conn = np.array(
+                    table_names)[not_inx].tolist()
 
         else:
             table_names_to_load = table_names
@@ -243,6 +254,7 @@ class IO(object):
         elif file_type == 'database':
             # load all tables found in the
             # file as a dict of dataframes
+            bp()
             dict_of_dfs = Db(
                 file_path).load(
                 table_names=table_names_to_load
