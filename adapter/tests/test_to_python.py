@@ -51,9 +51,9 @@ class DbTests(unittest.TestCase):
         r'adapter/tests/test.db')
 
 
-    def test_load(self):
-        """Tests loading tables
-        from databases.
+    def test_load_all_tables(self):
+        """Tests loading all tables
+        from sqlite databases.
         """
         all_tables = self.db_loader.load()
 
@@ -61,6 +61,10 @@ class DbTests(unittest.TestCase):
         set(all_tables.keys())=={
         'table2','table3','table1'})
 
+    def test_load_some_tables(self):
+        """Tests loading specified tables
+        from sqlite databases.
+        """
         some_tables = self.db_loader.load(
             table_names = ['table1','table2'])
 

@@ -128,40 +128,40 @@ class Db(object):
     """
     def __init__(self, file_path):
         self.db = Sql(file_path)
-        self.inpath = file_path
+        self.file_path = file_path
 
     def load(self, table_names = None):
         """
         """
-        # try:
-        all_dict_of_dfs = self.db.tables2dict(
-            close = True)
+        try:
+            all_dict_of_dfs = self.db.tables2dict(
+                close = True)
 
-        dict_of_dfs = dict()
+            dict_of_dfs = dict()
 
-        if len(all_dict_of_dfs.keys()) > 0:
+            if len(all_dict_of_dfs.keys()) > 0:
 
-            if type(table_names)==list:
+                if type(table_names)==list:
 
-                for table_name in table_names:
+                    for table_name in table_names:
 
-                    if table_name not in\
-                        all_dict_of_dfs.keys():
-                        msg = '{} not found in the input file {}.'
-                        log.error(msg.format(
-                            table_name, self.file_path))
-                        raise ValueError
+                        if table_name not in\
+                            all_dict_of_dfs.keys():
+                            msg = '{} not found in the input file {}.'
+                            log.error(msg.format(
+                                table_name, self.file_path))
+                            raise ValueError
 
-                    else:
-                        dict_of_dfs[table_name] = \
-                        all_dict_of_dfs[table_name]
-            else:
-                dict_of_dfs = all_dict_of_dfs
+                        else:
+                            dict_of_dfs[table_name] = \
+                            all_dict_of_dfs[table_name]
+                else:
+                    dict_of_dfs = all_dict_of_dfs
 
-        # except:
-        #     msg = 'Failed to read input tables from {}.'
-        #     log.error(msg.format(self.inpath))
-        #     raise ValueError
+        except:
+            msg = 'Failed to read input tables from {}.'
+            log.error(msg.format(self.inpath))
+            raise ValueError
 
         return dict_of_dfs
 
