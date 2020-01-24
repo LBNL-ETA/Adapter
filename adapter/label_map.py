@@ -9,8 +9,14 @@ class Labels(object):
         """
         """
         self.labels = {
+            # table names
             'run_pars' : 'run_parameters',
+            'extra_files' : 'inputs_from_files',
+            # column labels
             'outpath' : 'Output Path',
-            'version' : 'Version'}
+            'version' : 'Version',
+            'inpath' : 'File Path',
+            'tbl_nam' : 'Table Name',
+            'query' : 'Query Only'}
 
         return self.labels
