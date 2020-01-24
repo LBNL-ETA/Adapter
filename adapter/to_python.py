@@ -51,7 +51,7 @@ class Excel(object):
         dict_of_dfs = self.get_tables(
             table_names)
 
-        # *lz - this should be uncommented after
+        # @lz - this should be uncommented after
         # you implement the method
 
         # dict_of_dfs.update(
@@ -116,7 +116,7 @@ class Excel(object):
         """Grabs data defined as named ranges.
         """
         # return dict_of_dfs
-        # *lz
+        # @lz
         # if len(all_input_tables.keys()) > 0:
         #     msg = "Loaded named rangesfrom {}."
         #     log.info(msg.format(self.file_path))

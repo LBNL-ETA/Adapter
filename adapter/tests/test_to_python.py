@@ -34,7 +34,7 @@ class ExcelTests(unittest.TestCase):
         set(some_tables.keys())=={
         'xlsx_table1','xlsx_table2'})
 
-        # *lz add equivalent tests for loading
+        # @lz add equivalent tests for loading
         # named ranges. If you add named
         # ranges to the same input file, then
         # you can simply extend the lists of

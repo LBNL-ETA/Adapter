@@ -29,9 +29,17 @@ class IOTests(unittest.TestCase):
 
 
     def test_load_from_excel_w_input_from_files(self):
+        """Tests the ability to load in input tables
+        from various additional files based on an info provided
+        in the usual excel sheet.
         """
-        """
-        pass
+        path = os.path.join(os.getcwd(),
+            r'adapter/tests/test_w_inputs_from_files_table.xlsx')
+        i_o = IO(path)
+
+        i_o.load()
+
+        bp()
 
     def test_load_from_csv_inputs_from_files(self):
         """

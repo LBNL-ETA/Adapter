@@ -79,11 +79,12 @@ class IO(object):
 
             dict_of_dfs:
         """
-        dict_of_dfs = self.get_tables(self.input_type)
+        dict_of_dfs = self.get_tables(self.input_path)
 
         # are there any further input files?
         # if that is the case, the file paths and further info
         # should be placed in an `inputs_from_files` table
+        qry_flags = dict()
         if self.la['extra_files'] in dict_of_dfs.keys():
 
             extra_files = dict_of_dfs[
@@ -94,18 +95,19 @@ class IO(object):
                 file_path = extra_files.loc[
                 inx, self.la['inpath']]
 
-                type = self.get_file_type(
-                    file_path)
-
                 table_names = extra_files.loc[
                 inx, self.la['tbl_nam']]
 
-                qry_flags = extra_files.loc[
+
+                # @as : Please figure out an appropriate
+                # data format to pass the info on to the
+                # main analysis.
+                qry_flags[file_path] = extra_files.loc[
                 inx, self.la['query']]
 
                 # get those tables
                 dict_of_dfs.update(self.get_tables(
-                    type, table_names=table_names,
+                    file_path, table_names=table_names,
                     load_or_query=qry_flags)
                     )
 
@@ -162,16 +164,14 @@ class IO(object):
 
 
     def get_tables(self,
-        file_type,
+        file_path,
         table_names=None,
         load_or_query=None):
         """
 
         Parameters:
 
-            file_type: str
-                Options:
-                'excel', 'database', 'text'
+            file_path: str
 
             load_or_query: str list
                 Values: 'N' or 'Y'
@@ -186,6 +186,8 @@ class IO(object):
                 unless all need to be
                 queried)
         """
+        file_type = self.get_file_type(file_path)
+
         if load_or_query == 'Y':
             load_or_query = ['Y']
 
@@ -211,18 +213,22 @@ class IO(object):
             table_names_to_load = table_names
             table_names_for_conn = None
 
-        # *as or *lz see what to do about db connections
+        # @as or @lz see what to do about db connections
 
         if file_type == 'excel':
             # load all tables found in the
             # file as a dict of dataframes
             dict_of_dfs = Excel(
-                self.input_path).load(
+                file_path).load(
                 table_names=table_names_to_load
                 )
 
         elif file_type == 'text':
             dict_of_dfs = dict()
+
+            filename_to_tablename = re.split('\\', file_path)[-1]
+            filename_to_tablename = re.split('\.', filename_to_tablename)[0]
+
             dict_of_dfs[
                 self.la['extra_files']] = pd.read_csv(
                 file_type
@@ -232,7 +238,7 @@ class IO(object):
             # load all tables found in the
             # file as a dict of dataframes
             dict_of_dfs = Db(
-                file_type).load(
+                file_path).load(
                 table_names=table_names_to_load
                 )
 
@@ -260,7 +266,7 @@ class IO(object):
 
             True to indicate the code succeeded
         """
-        # *lz add further db flavors
+        # @lz add further db flavors
 
         if flavor=='sqlite':
             db_out_type = '.db'
