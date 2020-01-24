@@ -3,6 +3,9 @@ from label_map import Labels
 
 from datetime import datetime
 
+import logging
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
 
 class IO(object):
     """

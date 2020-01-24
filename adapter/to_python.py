@@ -1,6 +1,9 @@
 from comm.xlwings_tools import Book, xl2pd, pd2xl
 from comm.sql import Sql
 
+import logging
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
 
 class Excel(object):
     """
