@@ -9,6 +9,7 @@ from datetime import datetime
 import re
 import sqlite3
 from shutil import copy
+import ntpath
 
 import logging
 log = logging.getLogger(__name__)
@@ -162,7 +163,7 @@ class IO(object):
 
         if save_input:
             # self.input_path
-            filename = re.split('\/', self.input_path)[-1]
+            filename = ntpath.basename(self.input_path)
             copy(self.input_path, os.path.join(outpath,filename))
 
         if create_db==True:
