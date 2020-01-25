@@ -21,7 +21,6 @@ class IOTests(unittest.TestCase):
 
         res = i_o.load()
 
-        self.assertTrue(res['tables_to_query'] is None)
         self.assertTrue('db_path' in res.keys())
 
         res_no_db = i_o.load(create_db=False)
@@ -52,7 +51,7 @@ class IOTests(unittest.TestCase):
         res = i_o.load()
 
         self.assertEqual(len(res['tables_as_dict_of_dfs'].keys()), 5)
-        self.assertEqual(len(res.keys()), 4)
+        self.assertEqual(len(res.keys()), 5)
 
 
     def test_load_from_excel_no_run_parameters(self):

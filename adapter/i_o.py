@@ -187,6 +187,7 @@ class IO(object):
         # find practical
         # res['tables_to_query'] =
         res['outpath'] = outpath
+        res['run_tag'] = run_tag
 
         if create_db==True:
             res.update(db_res)
