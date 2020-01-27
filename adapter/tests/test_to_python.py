@@ -10,7 +10,7 @@ class ExcelTests(unittest.TestCase):
 
     @classmethod
     def setUp(self):
-        """
+        """Instantiates an excel loader
         """
         self.exl_loader = Excel(
         r'adapter/tests/test.xlsx')
@@ -45,7 +45,7 @@ class DbTests(unittest.TestCase):
 
     @classmethod
     def setUp(self):
-        """
+        """Instantiates a DB loader
         """
         self.db_loader = Db(
         r'adapter/tests/test.db')

@@ -12,11 +12,16 @@ log.setLevel(logging.DEBUG)
 from pdb import set_trace as bp
 
 class Excel(object):
-    """
+    """Loads bulk named tables
+    and ranges from .xlsx to python as
+    a dictionary of dataframes.
+
+    Parameters:
+
+        file_path: str
+            Path to an excel sheet
     """
     def __init__(self, file_path):
-        """
-        """
         self.wb = Book(file_path)
         self.file_path = file_path
 
@@ -51,7 +56,7 @@ class Excel(object):
         # methods in other classes in this
         # file
         dict_of_dfs = self.get_tables(
-            table_names)
+            table_names=table_names)
 
         # @lz - this should be uncommented after
         # you implement the method
@@ -64,6 +69,20 @@ class Excel(object):
 
     def get_tables(self, table_names):
         """Grabs data defined as excel tables.
+
+        Parameters:
+
+            table_names: list
+                List of string table names
+                to load. Default: None means
+                that all tables found in the
+                input file get loaded.
+
+        Returns:
+
+            dict_of_dfs: dict of dataframes
+                Python dictionary with table name
+                keys and input table values.
         """
         # grab all the input tables
         all_input_tables = self.wb.tables
@@ -129,14 +148,26 @@ class Excel(object):
 
 
 class Db(object):
-    """
+    """Loads tables from a database to python
+    as a dictionary of dataframes.
+
+    Parameters:
+
+        file_path: str
+            Path to an db file
     """
     def __init__(self, file_path):
         self.db = Sql(file_path)
         self.file_path = file_path
 
     def load(self, table_names = None):
-        """
+        """Loads tables
+
+        Parameters:
+
+            table_names: list
+                List of table names to load.
+                Default: None = load all tables
         """
         try:
             all_dict_of_dfs = self.db.tables2dict(
@@ -174,7 +205,7 @@ class Db(object):
 class Toolbox(object):
 
     def process_column_labels(self, list_of_labels):
-        """Removes undesired spaces
+        """Removes undesired spaces.
 
         Parameters:
 
