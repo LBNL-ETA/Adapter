@@ -1,12 +1,14 @@
 class Labels(object):
-    """
+    """Label maps related to
+    functional input tables parsed
+    by the adapter.
     """
 
     def __init__(self):
         pass
 
     def set_labels(self):
-        """
+        """Table names and column labels
         """
         self.labels = {
             # table names

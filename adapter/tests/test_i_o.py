@@ -42,7 +42,8 @@ class IOTests(unittest.TestCase):
 
 
     def test_load_from_csv_inputs_from_files(self):
-        """
+        """Tests loading from a single csv file that
+        points to further inputs of any supported type.
         """
         path = os.path.join(os.getcwd(),
             r'adapter/tests/inputs_from_files_vTest.csv')
@@ -55,7 +56,8 @@ class IOTests(unittest.TestCase):
 
 
     def test_load_from_excel_no_run_parameters(self):
-        """
+        """Tests loading from an excel table without
+        defined version and output path parameters.
         """
         # *mig the code is supposed to notify user and
         # create a version and outpath
@@ -69,7 +71,7 @@ class IOTests(unittest.TestCase):
 
 
     def test_load_from_db(self):
-        """
+        """Tests loading from a db.
         """
         # *mig the code is supposed to notify user and
         # create a version and outpath
