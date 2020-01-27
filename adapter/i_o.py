@@ -18,11 +18,32 @@ log.setLevel(logging.DEBUG)
 from pdb import set_trace as bp
 
 class IO(object):
-    """
+    """Connects to the main input
+    file that can be an excel sheet,
+    a csv file or a database,
+    loads the data, looks for
+    additional input data paths
+    and loops through those to
+    get data as well. Saves a
+    full input DB and provides the
+    user with output and db paths,
+    and database connections. It allows
+    for large tables to be only querried and
+    not loaded in python.
 
     Parameters:
 
-        db_db_flavor:
+        path : string
+            Path to the initial input table. An
+            initial input table can be of
+            any type (.xlsx, .csv, .db) and can
+            contain pointers to further input
+            files. It is recommended to have
+            a `run_parameters` table (see test
+            folders on the master branch
+            of the adapter repo for examples)
+            that provides an output path and a
+            version substring.
     """
     def __init__(self, path):
 
@@ -36,6 +57,11 @@ class IO(object):
 
     def get_file_type(self, path):
         """Extracts the file type from the fullpath.
+
+        Parameters:
+
+            path : string
+                File path
         """
         extns = re.split('\.', path)[-1]
 
@@ -74,15 +100,44 @@ class IO(object):
             specifiers.
 
             - `inputs_from_files`, that specifies a list of
-            additional input files of various file types.
+            additional input files of file types: csv, excel, db.
+            See examples in the test folders on the master
+            branch of the adapter repo for details on the
+            structure and labels of the table.
 
         Parameters:
 
-            create_db:
+            create_db: bool
+                Write all tables read from input files
+                into a run database
+
+            db_flavor: string
+                Database type. Currently implemented:
+                'sqlite'
+
+            close_db: bool
+                True: close the database that got
+                created, False: keep the database open
+
+            save_input: bool
+                Save initial input file under the output
+                folder
 
         Returns:
 
-            dict_of_dfs:
+            res : dict
+                Keys:
+
+                'tables_as_dict_of_dfs' - all input
+                    tables loaded in python as dictionary
+                    of dataframes
+                'outpath' - output folder path
+                'run_tag' - version + analysis start time
+
+                If db got written:
+
+                'db_path' - database fullpath
+                'db_conn' - database connection
         """
         dict_of_dfs = self.get_tables(self.input_path)
 
@@ -147,7 +202,7 @@ class IO(object):
 
             self.version = version
 
-        # otherwise declare current folder + /output as the output
+        # otherwise declare current folder + "/output" as the output
         # path
         else:
             outpath_base = os.path.join(os.getcwd(), 'output')
@@ -199,16 +254,25 @@ class IO(object):
         file_path,
         table_names=None,
         load_or_query=None):
-        """
+        """Gets all tables from an input
+        file. Creates a dictionary
+        of pandas dataframes, with each dataframe
+        corresponding to one of the input tables.
+        If it is a csv file the contents
+        get loaded as a single table with the
+        dictionary key being the name of the
+        file
 
         Parameters:
 
             file_path: str
+                Input file path
 
             load_or_query: str list
+                Default: None all tables get
+                loaded.
                 Values: 'N' or 'Y'
-                If None all tables get
-                loaded. If a single
+                If a single
                 'Y' is passed, it will
                 be applied to all tables
 
@@ -217,6 +281,13 @@ class IO(object):
                 all tables get loaded (
                 unless all need to be
                 queried)
+
+            dict_of_dfs: dict of pd dfs
+                Dictionary of pandas dataframes
+                containing all the tables
+                from the input file, less those
+                indicated using the load_or_query
+                flags, if applicable.
         """
         file_type = self.get_file_type(file_path)
 
@@ -264,9 +335,11 @@ class IO(object):
         elif file_type == 'text':
             dict_of_dfs = dict()
 
-            filename_to_tablename = re.split('\/', file_path)[-1]
-            filename_to_tablename = re.split('\.', filename_to_tablename)[0]
+            filename_to_tablename = ntpath.basename(file_path)
+            filename_to_tablename = re.split(
+                '\.', filename_to_tablename)[0]
 
+            # get rid of the version substring
             if self.la['extra_files'] in filename_to_tablename:
                 filename_to_tablename = self.la['extra_files']
 
@@ -279,8 +352,7 @@ class IO(object):
 
             dict_of_dfs = Db(
                 file_path).load(
-                table_names=table_names_to_load
-                )
+                table_names=table_names_to_load)
 
         return dict_of_dfs
 
@@ -292,19 +364,28 @@ class IO(object):
                   flavor='sqlite',
                   close=True):
         """Creates a database with all the input
-        tables that were read in
+        tables that were read in.
 
         Parameters:
 
-            dict_of_dfs:
+            dict_of_dfs: dict of dfs
+                Contains all input
+                tables with table name
+                as a dict key and the table
+                as a pandas dataframe under that
+                key
 
             outpath:
+                Output folder path
 
             db_flavor:
+                Database file format
 
         Returns:
 
-            True to indicate the code succeeded
+            res: dict
+                {'db_path' : database path ,
+                 'db_con' : database connection}
         """
         # @lz add further db flavors
 
