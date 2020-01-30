@@ -38,7 +38,7 @@ class IOTests(unittest.TestCase):
 
         res = i_o.load()
 
-        self.assertEqual(len(res['tables_as_dict_of_dfs'].keys()), 8)
+        self.assertEqual(len(res['tables_as_dict_of_dfs'].keys()), 9)
 
 
     def test_load_from_csv_inputs_from_files(self):
@@ -51,7 +51,7 @@ class IOTests(unittest.TestCase):
 
         res = i_o.load()
 
-        self.assertEqual(len(res['tables_as_dict_of_dfs'].keys()), 5)
+        self.assertEqual(len(res['tables_as_dict_of_dfs'].keys()), 6)
         self.assertEqual(len(res.keys()), 5)
 
 

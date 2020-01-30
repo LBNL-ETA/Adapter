@@ -308,7 +308,7 @@ class IO(object):
 
             else:
                 # @as : related to database connctions
-                inx = [i=='Y' for i in load_or_query]
+                inx = [i!='Y' for i in load_or_query]
                 # load only those tables
 
                 table_names_to_load = np.array(
@@ -409,7 +409,7 @@ class IO(object):
                 dict_of_dfs[table_name].to_sql(
                     name=table_name,
                     con=db_con,
-                    if_exists='append')
+                    if_exists='replace')
             except:
                 msg='An error occured when writting {} table '\
                     'to a db {}.'
