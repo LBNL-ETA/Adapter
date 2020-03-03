@@ -88,7 +88,7 @@ class IO(object):
 
 
     def load(self, create_db=True, db_flavor='sqlite', close_db=True,
-            save_input = True):
+            save_input=True):
         """Loads tables from the input file
         as a dictinary of python dataframes.
 
@@ -219,7 +219,13 @@ class IO(object):
         if save_input:
             # self.input_path
             filename = ntpath.basename(self.input_path)
-            copy(self.input_path, os.path.join(outpath,filename))
+            filename_extns = re.split('\.', filename)[-1]
+            filename_only = re.split('\.', filename)[0]
+
+            versioned_filename = filename_only + \
+                '_' + run_tag + '.' + filename_extns
+
+            copy(self.input_path, os.path.join(outpath, versioned_filename))
 
         if create_db==True:
 
