@@ -335,7 +335,7 @@ class IO(object):
             # file as a dict of dataframes
             dict_of_dfs = Excel(
                 file_path).load(
-                table_names=table_names_to_load
+                data_object_names=table_names_to_load
                 )
 
         elif file_type == 'text':

@@ -20,7 +20,8 @@ class ExcelTests(unittest.TestCase):
         """Tests loading named tables
         and named ranges from excel.
         """
-        all_tables = self.exl_loader.load()
+        all_tables = self.exl_loader.load(
+            kind = 'all')
 
         self.assertTrue(
         set(all_tables.keys())=={
@@ -28,17 +29,14 @@ class ExcelTests(unittest.TestCase):
         'run_parameters'})
 
         some_tables = self.exl_loader.load(
-            table_names = ['xlsx_table1','xlsx_table2'])
+            data_object_names = ['xlsx_table1','xlsx_table2'],
+            kind = 'tables')
+
+        bp()
 
         self.assertTrue(
         set(some_tables.keys())=={
         'xlsx_table1','xlsx_table2'})
-
-        # @lz add equivalent tests for loading
-        # named ranges. If you add named
-        # ranges to the same input file, then
-        # you can simply extend the lists of
-        # expected input table names.
 
 
 class DbTests(unittest.TestCase):
