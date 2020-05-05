@@ -432,3 +432,19 @@ class IO(object):
                'db_con' : db_con}
 
         return res
+
+    def first_col_to_index(self, dict_of_dfs, table_names = None):
+        """Function that sets the first column of dataframe as index.
+        """
+        if table_names is None:
+            table_names = dict_of_dfs.keys()
+
+        res = dict()
+        for x in dict_of_dfs.keys():
+            if x in table_names:
+                col = dict_of_dfs[x].columns[0]
+                res[x] = dict_of_dfs[x].copy().set_index(col, drop = True)
+            else:
+                res[x] = dict_of_dfs[x].copy()
+
+        return res
