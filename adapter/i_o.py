@@ -123,7 +123,7 @@ class IO(object):
                 Save initial input file under the output
                 folder
 
-            set_first_col_as_index: bool or list of strings
+            set_first_col_as_index: bool or list of strings or None
                 False: do not set the first column as index
                 List of strings: List of tables that need
                 their first column set as index
@@ -293,7 +293,7 @@ class IO(object):
                 'Y' is passed, it will
                 be applied to all tables
 
-            table_names: list of str
+            table_names: list of str or None
                 Tables to load. If None
                 all tables get loaded (
                 unless all need to be
