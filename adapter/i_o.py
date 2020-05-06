@@ -293,7 +293,7 @@ class IO(object):
                 'Y' is passed, it will
                 be applied to all tables
 
-            table_names: list of str or None
+            table_names: list of str
                 Tables to load. If None
                 all tables get loaded (
                 unless all need to be
@@ -456,7 +456,7 @@ class IO(object):
                 as a pandas dataframe under that
                 key
 
-            table_names: list
+            table_names: list or None
                 List containing names of tables that
                 need to be modified
 
