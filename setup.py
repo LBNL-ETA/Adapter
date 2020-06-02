@@ -10,7 +10,7 @@ long_description = "This package contains a data input/output adapter"
 setup(
     name=repo_name,
 
-    version='0.0',
+    version='0.1.0',
     description='I/O module',
     long_description=long_description,
 
@@ -18,21 +18,21 @@ setup(
     url='https://bitbucket.org/eetd-ees/adapter',
 
     # Author details
-    author='EES coders',
+    author='EES ATCD coders',
 
     # Choose your license
     license='ETA EAEI EES software',
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
-        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.8',
         ],
 
     keywords='i/o lcc nia shipments aps standards',
 
     packages=find_packages(exclude=['*.tests', '*.tests']),
 
-    install_requires=['pandas>=0.24.1',
-            'xlwings>=0.15.2',
+    install_requires=['pandas>=1.0.4',
+            'xlwings>=0.19.4',
             ],
     )
