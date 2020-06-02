@@ -131,8 +131,6 @@ class Excel(object):
             log.error(msg.format(kind))
             raise ValueError
 
-        bp()
-
         # initiate dictionaries of input table dataframes
         # and populate
         dict_of_dfs = dict()
