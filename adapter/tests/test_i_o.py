@@ -1,6 +1,8 @@
 import unittest
 import os
 
+import pandas as pd
+
 from adapter.i_o import IO
 
 import logging
@@ -82,3 +84,36 @@ class IOTests(unittest.TestCase):
         res = i_o.load()
 
         self.assertEqual(len(res['tables_as_dict_of_dfs'].keys()), 3)
+
+    
+    def test_first_col_to_index(self):
+        """Tests if the first column is set as a index.
+        """
+        lst = [['A', 1, 1], ['A', 2, 1], 
+                ['B', 3, 1], ['B', 4, 1]] 
+                
+        df1 = pd.DataFrame(lst, columns =['A', 'B', 'C']) 
+        df2 = pd.DataFrame(lst, columns =['X', 'Y', 'Z'])
+
+        dict_of_dfs = {'df1':df1, 'df2':df2}
+
+        path = os.path.join(os.getcwd(),
+            r'adapter/tests/test.db')
+        i_o = IO(path)
+
+        case1 = i_o.first_col_to_index(dict_of_dfs, table_names = None)
+        case2 = i_o.first_col_to_index(dict_of_dfs, table_names = ['df1'])
+
+        case1_check = {'df1':df1.set_index('A', drop = True), 
+                        'df2':df2.set_index('X', drop = True)}
+
+        case2_check = {'df1':df1.set_index('A', drop = True), 
+                        'df2':df2}
+
+        # Case1: When all tables have to be modified with the first column as index
+        for x in case1.keys():
+            assert case1[x].equals(case1_check[x])
+
+        # Case2: When only some tables are modified
+        for x in case2.keys():
+            assert case2[x].equals(case2_check[x])

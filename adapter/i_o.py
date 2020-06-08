@@ -126,6 +126,12 @@ class IO(object):
                 Save initial input file under the output
                 folder
 
+            set_first_col_as_index: bool or list of strings or None
+                False: do not set the first column as index
+                List of strings: List of tables that need
+                their first column set as index
+                None: Set index for all tables
+
         Returns:
 
             res : dict
@@ -245,6 +251,11 @@ class IO(object):
 
                 log.error(msg.format(self.input_path))
 
+        if set_first_col_as_index != False:
+            dict_of_dfs = self.first_col_to_index(dict_of_dfs, 
+                    table_names = set_first_col_as_index,
+                    drop = True)
+        
         res = dict()
         res['tables_as_dict_of_dfs'] = dict_of_dfs
         # @as populate with tables or the connections, as you
@@ -433,5 +444,45 @@ class IO(object):
 
         res = {'db_path' : db_path,
                'db_con' : db_con}
+
+        return res
+
+    def first_col_to_index(self, dict_of_dfs, table_names = None, drop = True):
+        """Function that sets the first column of dataframe as index.
+
+        Parameters:
+
+            dict_of_dfs: dict of pandas dataframes
+                Contains all input
+                tables with table name
+                as a dict key and the table
+                as a pandas dataframe under that
+                key
+
+            table_names: list or None
+                List containing names of tables that
+                need to be modified
+
+            drop: boolean
+                Flag indicating whether to drop the column 
+                being set as index. Default value is true.
+
+        Returns:
+
+            res: dict of pandas dataframes
+                Contains the modified dataframes after
+                the index has been set
+
+        """
+        if table_names is None:
+            table_names = dict_of_dfs.keys()
+
+        res = dict()
+        for x in dict_of_dfs.keys():
+            if x in table_names:
+                col = dict_of_dfs[x].columns[0]
+                res[x] = dict_of_dfs[x].copy().set_index(col, drop = True)
+            else:
+                res[x] = dict_of_dfs[x].copy()
 
         return res
