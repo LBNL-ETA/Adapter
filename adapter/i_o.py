@@ -87,11 +87,8 @@ class IO(object):
         return file_type
 
 
-    def load(self, 
-             create_db=True, 
-             db_flavor='sqlite',
-             close_db=True,
-             save_input=True):
+    def load(self, create_db=True, db_flavor='sqlite', close_db=True,
+            save_input=True, set_first_col_as_index = False):
         """Loads tables from the input file
         as a dictinary of python dataframes.
 
