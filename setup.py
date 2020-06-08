@@ -32,12 +32,7 @@ setup(
 
     packages=find_packages(exclude=['*.tests', '*.tests']),
 
-    # install_requires=['pandas>=1.0.4',
-    #         'xlwings>=0.19.4',
-    #         ],
-    # )
-
-    install_requires=['pandas>=0.24.1',
-            'xlwings>=0.15.2',
+    install_requires=['pandas>=1.0.4',
+            'xlwings>=0.19.4',
             ],
     )
