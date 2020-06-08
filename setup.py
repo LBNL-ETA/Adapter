@@ -10,7 +10,7 @@ long_description = "This package contains a data input/output adapter"
 setup(
     name=repo_name,
 
-    version='0.0',
+    version='0.0.1',
     description='I/O module',
     long_description=long_description,
 
