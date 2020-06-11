@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
-# Initial version created and documented by Youness Bennani.
-#
+"""
+Initial version created and documented by Youness Bennani.
+"""
+
 import xlwings as xw
 import pandas as pd
 import re
