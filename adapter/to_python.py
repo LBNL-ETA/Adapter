@@ -11,6 +11,9 @@ log.setLevel(logging.DEBUG)
 
 from pdb import set_trace as bp
 
+
+
+
 class Excel(object):
     """Loads bulk named tables
     and ranges from .xlsx to python as
@@ -52,7 +55,7 @@ class Excel(object):
                 keys and input table values.
         """
         # *mig please make corresponding
-        # docstrings for the analoguos
+        # docstrings for the analogous
         # methods in other classes in this
         # file
         dict_of_dfs = self.get_tables(
@@ -139,7 +142,38 @@ class Excel(object):
     def get_named_ranges(self, table_names):
         """Grabs data defined as named ranges.
         """
-        # return dict_of_dfs
+
+        # grab all the input tables
+        all_input_tables = self.wb.tables
+        
+        # initiate dictionaries of input table dataframes
+        # and populate
+
+        
+        dict_of_dfs = dict()
+
+        if len(all_input_tables.keys()) > 0:
+            
+            try:
+                for table_name in table_names:
+            
+                    type(table_name)==named_range:
+                    dict_of_dfs[table_name]=self.wb.get_range(all_input_tables[table_name], 
+                    verbose = True)
+                    msg = "Loaded named ranges from {}."
+                    log.info(msg.format(self.file_path))
+            except:
+                msg = "Failed to read named ranges from {}."
+                log.error(msg.format(self.file_path))
+                raise ValueError
+
+            msg = "Loaded named tables from {}."
+            log.info(msg.format(self.file_path))
+
+
+
+
+        return dict_of_dfs
         # @lz
         # if len(all_input_tables.keys()) > 0:
         #     msg = "Loaded named rangesfrom {}."
