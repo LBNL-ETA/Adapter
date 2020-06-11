@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-mg: this should be imported from tools
-after it gets upgraded to python 3.
-"""
+# Initial version created and documented by Youness Bennani.
+#
 import xlwings as xw
 import pandas as pd
 import re
