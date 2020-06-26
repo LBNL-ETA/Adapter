@@ -158,8 +158,12 @@ class Book(xw.main.Book):
         if type(df_content) == list and type(df_content[0]) == list:
             header_row, index_col = 1, 0 # mg changed 1 to 0
 
-        # Get dataframe using ```xl2pd```.
-        df = xl2pd(self, rg, header_row=header_row, index_col=index_col)
+            # Get dataframe using ```xl2pd```.
+            df = xl2pd(self, rg, header_row=header_row, index_col=index_col)
+
+        # If named range is 1D, assume the first value is a header, and no index
+        if type(df_content) == list and type(df_content[0]) == str:
+            df = pd.DataFrame(df_content[1:], columns=[df_content[0]])
 
         # If df contains a single value, turn it into that value.
         if df.shape == (1, 1):
