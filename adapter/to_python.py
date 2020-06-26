@@ -111,15 +111,11 @@ class Excel(object):
             all_input_names = self.wb.tables
 
         if kind == 'ranges':
-            all_input_names = dict()
-            # *mig this is not returning a dict, need to find 
-            # a solution
-            # all_input_ranges = [name for name in self.wb.names]
+            all_input_names = {x.name:x for x in self.wb.names}
 
         if kind == 'all':
             all_input_tables = self.wb.tables
-            # * mig fix 
-            all_input_ranges = dict()
+            all_input_ranges = {x.name:x for x in self.wb.names}
 
             all_input_tables.update(\
                 all_input_ranges)
