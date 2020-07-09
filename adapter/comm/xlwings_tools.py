@@ -97,12 +97,10 @@ class Book(xw.main.Book):
         """
         # Excel includes solver-type objects as named ranges. Those shouldn't be
         # read in.
-        bp()
         named_ranges = [
             name for name in self.names if 'solver' not in name.name
         ] + self.tables.values()
         could_not_read = []
-        bp()
         for named_range in named_ranges:
             try:
                 self.named_range_to_df(named_range,
