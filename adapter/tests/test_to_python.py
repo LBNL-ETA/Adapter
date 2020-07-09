@@ -32,8 +32,6 @@ class ExcelTests(unittest.TestCase):
             data_object_names = ['xlsx_table1','xlsx_table2'],
             kind = 'tables')
 
-        bp()
-
         self.assertTrue(
         set(some_tables.keys())=={
         'xlsx_table1','xlsx_table2'})
