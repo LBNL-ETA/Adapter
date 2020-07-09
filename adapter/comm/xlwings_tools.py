@@ -99,7 +99,8 @@ class Book(xw.main.Book):
         # read in.
         bp()
         named_ranges = [
-            name for name in self.names if name != 'solver'] + self.tables.values()
+            name for name in self.names if 'solver' not in name.name
+        ] + self.tables.values()
         could_not_read = []
         bp()
         for named_range in named_ranges:
