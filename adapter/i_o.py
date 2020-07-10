@@ -12,10 +12,12 @@ from shutil import copy
 import ntpath
 
 import logging
+
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 from pdb import set_trace as bp
+
 
 class IO(object):
     """Connects to the main input
@@ -45,6 +47,7 @@ class IO(object):
             that provides an output path and a
             version substring.
     """
+
     def __init__(self, path):
 
         self.input_path = path
@@ -54,7 +57,6 @@ class IO(object):
         # set labels
         self.la = Labels().set_labels()
 
-
     def get_file_type(self, path):
         """Extracts the file type from the fullpath.
 
@@ -63,32 +65,37 @@ class IO(object):
             path : string
                 File path
         """
-        extns = re.split('\.', path)[-1]
+        extns = re.split("\.", path)[-1]
 
         # extns = ...
-        file_type = ''
+        file_type = ""
 
-        if extns=='xlsx':
-            file_type += 'excel'
+        if extns == "xlsx":
+            file_type += "excel"
 
-        elif extns=='db':
-            file_type += 'database'
+        elif extns == "db":
+            file_type += "database"
 
             # *mig add more file extension checks
             # as needed
 
-        elif extns=='csv':
-            file_type += 'text'
+        elif extns == "csv":
+            file_type += "text"
 
         else:
-            msg = 'Passed an unsupported input file type: {}.'
+            msg = "Passed an unsupported input file type: {}."
             log.error(msg.format(extns))
 
         return file_type
 
-
-    def load(self, create_db=True, db_flavor='sqlite', close_db=True,
-            save_input=True, set_first_col_as_index = False):
+    def load(
+        self,
+        create_db=True,
+        db_flavor="sqlite",
+        close_db=True,
+        save_input=True,
+        set_first_col_as_index=False,
+    ):
         """Loads tables from the input file
         as a dictinary of python dataframes.
 
@@ -151,44 +158,40 @@ class IO(object):
         # if that is the case, the file paths and further info
         # should be placed in an `inputs_from_files` table
         qry_flags = dict()
-        if self.la['extra_files'] in dict_of_dfs.keys():
+        if self.la["extra_files"] in dict_of_dfs.keys():
 
-            extra_files = dict_of_dfs[
-                self.la['extra_files']].reset_index()
+            extra_files = dict_of_dfs[self.la["extra_files"]].reset_index()
 
             for inx in extra_files.index:
 
-                file_path = extra_files.loc[
-                inx, self.la['inpath']].strip()
+                file_path = extra_files.loc[inx, self.la["inpath"]].strip()
 
-                table_names =  extra_files.loc[
-                    inx, self.la['tbl_nam']]
+                table_names = extra_files.loc[inx, self.la["tbl_nam"]]
 
-                if (table_names is not None) and\
-                    (table_names is not np.nan):
-                    table_names = re.split(
-                      ',', table_names)
-                    table_names = [
-                    i.strip() for i in table_names]
+                if (table_names is not None) and (table_names is not np.nan):
+                    table_names = re.split(",", table_names)
+                    table_names = [i.strip() for i in table_names]
 
                 # @as : Please figure out an appropriate
                 # data format to pass the info on to the
                 # main analysis.
-                qry_flags[file_path] = extra_files.loc[
-                    inx, self.la['query']]
+                qry_flags[file_path] = extra_files.loc[inx, self.la["query"]]
 
-                if (qry_flags[file_path] is not None) and\
-                    (table_names is not np.nan):
-                    qry_flags[file_path] = re.split(
-                        ',', qry_flags[file_path])
+                if (qry_flags[file_path] is not None) and (
+                    table_names is not np.nan
+                ):
+                    qry_flags[file_path] = re.split(",", qry_flags[file_path])
                     qry_flags[file_path] = [
-                    i.strip() for i in qry_flags[file_path]]
+                        i.strip() for i in qry_flags[file_path]
+                    ]
 
-                dict_of_dfs.update(self.get_tables(
-                    file_path,
-                    table_names=table_names,
-                    load_or_query=qry_flags[file_path])
+                dict_of_dfs.update(
+                    self.get_tables(
+                        file_path,
+                        table_names=table_names,
+                        load_or_query=qry_flags[file_path],
                     )
+                )
 
         else:
             qry_flags = None
@@ -198,28 +201,30 @@ class IO(object):
         # look for `run_parameters` table to extract the outpath
         # note that `run_parameters` table should occur only in one
         # of the input files
-        if self.la['run_pars'] in dict_of_dfs.keys():
+        if self.la["run_pars"] in dict_of_dfs.keys():
 
-            outpath_base = os.path.join(os.getcwd(), dict_of_dfs[
-                self.la['run_pars']].loc[0, self.la['outpath']])
+            outpath_base = os.path.join(
+                os.getcwd(),
+                dict_of_dfs[self.la["run_pars"]].loc[0, self.la["outpath"]],
+            )
 
-            version = dict_of_dfs[
-                self.la['run_pars']].loc[0, self.la['version']]
+            version = dict_of_dfs[self.la["run_pars"]].loc[
+                0, self.la["version"]
+            ]
 
             # Removing '.', '\', '/' characters from version
             # to avoid any errors during writing output
-            version = re.sub("[\\\\./]", '', version)
+            version = re.sub("[\\\\./]", "", version)
 
             self.version = version
 
         # otherwise declare current folder + "/output" as the output
         # path
         else:
-            outpath_base = os.path.join(os.getcwd(), 'output')
-            version = ''
+            outpath_base = os.path.join(os.getcwd(), "output")
+            version = ""
 
-        run_tag = version + '_' + \
-            datetime.now().strftime('%Y_%m_%d-%Hh_%Mm')
+        run_tag = version + "_" + datetime.now().strftime("%Y_%m_%d-%Hh_%Mm")
 
         outpath = os.path.join(outpath_base, run_tag)
 
@@ -229,52 +234,52 @@ class IO(object):
         if save_input:
             # self.input_path
             filename = ntpath.basename(self.input_path)
-            filename_extns = re.split('\.', filename)[-1]
-            filename_only = re.split('\.', filename)[0]
+            filename_extns = re.split("\.", filename)[-1]
+            filename_only = re.split("\.", filename)[0]
 
-            versioned_filename = filename_only + \
-                '_' + run_tag + '.' + filename_extns
+            versioned_filename = (
+                filename_only + "_" + run_tag + "." + filename_extns
+            )
 
             copy(self.input_path, os.path.join(outpath, versioned_filename))
 
-        if create_db==True:
+        if create_db == True:
 
             try:
                 db_res = self.create_db(
-                            dict_of_dfs,
-                            outpath=outpath,
-                            run_tag=run_tag,
-                            flavor=db_flavor,
-                            close=close_db)
+                    dict_of_dfs,
+                    outpath=outpath,
+                    run_tag=run_tag,
+                    flavor=db_flavor,
+                    close=close_db,
+                )
             except:
-                msg = 'Not able to create a db of tables '\
-                       'that were read in from {}.'
+                msg = (
+                    "Not able to create a db of tables "
+                    "that were read in from {}."
+                )
 
                 log.error(msg.format(self.input_path))
 
         if set_first_col_as_index != False:
-            dict_of_dfs = self.first_col_to_index(dict_of_dfs, 
-                    table_names = set_first_col_as_index,
-                    drop = True)
-        
+            dict_of_dfs = self.first_col_to_index(
+                dict_of_dfs, table_names=set_first_col_as_index, drop=True
+            )
+
         res = dict()
-        res['tables_as_dict_of_dfs'] = dict_of_dfs
+        res["tables_as_dict_of_dfs"] = dict_of_dfs
         # @as populate with tables or the connections, as you
         # find practical
         # res['tables_to_query'] =
-        res['outpath'] = outpath
-        res['run_tag'] = run_tag
+        res["outpath"] = outpath
+        res["run_tag"] = run_tag
 
-        if create_db==True:
+        if create_db == True:
             res.update(db_res)
 
         return res
 
-
-    def get_tables(self,
-        file_path,
-        table_names=None,
-        load_or_query=None):
+    def get_tables(self, file_path, table_names=None, load_or_query=None):
         """Gets all tables from an input
         file. Creates a dictionary
         of pandas dataframes, with each dataframe
@@ -312,32 +317,31 @@ class IO(object):
         """
         file_type = self.get_file_type(file_path)
 
-        if load_or_query == 'Y':
-            load_or_query = ['Y']
+        if load_or_query == "Y":
+            load_or_query = ["Y"]
 
-        if (load_or_query is not None) and \
-           (load_or_query is not np.nan):
+        if (load_or_query is not None) and (load_or_query is not np.nan):
 
             if table_names is None:
-                if len(load_or_query) !=1:
-                    msg = 'All tables need to be loaded.'\
-                    'It is unclear which tables need to '\
-                    'only be querried. Please provide a '\
-                    'list of table names and query flags '\
-                    'of the same length.'
+                if len(load_or_query) != 1:
+                    msg = (
+                        "All tables need to be loaded."
+                        "It is unclear which tables need to "
+                        "only be querried. Please provide a "
+                        "list of table names and query flags "
+                        "of the same length."
+                    )
                     log.error(msg)
 
             else:
                 # @as : related to database connctions
-                inx = [i!='Y' for i in load_or_query]
+                inx = [i != "Y" for i in load_or_query]
                 # load only those tables
 
-                table_names_to_load = np.array(
-                    table_names)[inx].tolist()
+                table_names_to_load = np.array(table_names)[inx].tolist()
                 # others should be just connected to
                 not_inx = [not i for i in inx]
-                table_names_for_conn = np.array(
-                    table_names)[not_inx].tolist()
+                table_names_for_conn = np.array(table_names)[not_inx].tolist()
 
         else:
             table_names_to_load = table_names
@@ -345,45 +349,41 @@ class IO(object):
 
         # @as or @lz see what to do about db connections
 
-        if file_type == 'excel':
+        if file_type == "excel":
             # load all tables found in the
             # file as a dict of dataframes
-            dict_of_dfs = Excel(
-                file_path).load(
+            dict_of_dfs = Excel(file_path).load(
                 data_object_names=table_names_to_load
-                )
+            )
 
-        elif file_type == 'text':
+        elif file_type == "text":
             dict_of_dfs = dict()
 
             filename_to_tablename = ntpath.basename(file_path)
-            filename_to_tablename = re.split(
-                '\.', filename_to_tablename)[0]
+            filename_to_tablename = re.split("\.", filename_to_tablename)[0]
 
             # get rid of the version substring
-            if self.la['extra_files'] in filename_to_tablename:
-                filename_to_tablename = self.la['extra_files']
+            if self.la["extra_files"] in filename_to_tablename:
+                filename_to_tablename = self.la["extra_files"]
 
-            dict_of_dfs[filename_to_tablename] = pd.read_csv(
-                file_path)
+            dict_of_dfs[filename_to_tablename] = pd.read_csv(file_path)
 
-        elif file_type == 'database':
+        elif file_type == "database":
             # load all tables found in the
             # file as a dict of dataframes
 
-            dict_of_dfs = Db(
-                file_path).load(
-                table_names=table_names_to_load)
+            dict_of_dfs = Db(file_path).load(table_names=table_names_to_load)
 
         return dict_of_dfs
 
-
-    def create_db(self,
-                  dict_of_dfs,
-                  outpath=None,
-                  run_tag='',
-                  flavor='sqlite',
-                  close=True):
+    def create_db(
+        self,
+        dict_of_dfs,
+        outpath=None,
+        run_tag="",
+        flavor="sqlite",
+        close=True,
+    ):
         """Creates a database with all the input
         tables that were read in.
 
@@ -410,12 +410,12 @@ class IO(object):
         """
         # @lz add further db flavors
 
-        if flavor=='sqlite':
-            db_out_type = '.db'
+        if flavor == "sqlite":
+            db_out_type = ".db"
 
         if outpath is None:
             # create an `output` folder under CWD
-            outpath = os.path.join(os.getcwd(), 'output')
+            outpath = os.path.join(os.getcwd(), "output")
 
         if not os.path.exists(outpath):
             os.makedirs(outpath)
@@ -428,27 +428,24 @@ class IO(object):
         for table_name in dict_of_dfs.keys():
             try:
                 dict_of_dfs[table_name].to_sql(
-                    name=table_name,
-                    con=db_con,
-                    if_exists='replace')
+                    name=table_name, con=db_con, if_exists="replace"
+                )
             except:
-                msg='An error occured when writting {} table '\
-                    'to a db {}.'
+                msg = "An error occured when writting {} table " "to a db {}."
                 log.error(msg.format(table_name, db_path))
                 raise ValueError
 
-            msg = 'Wrote tables in a database: {}.'
+            msg = "Wrote tables in a database: {}."
             log.info(msg.format(db_path))
 
         if close:
             db_con.close()
 
-        res = {'db_path' : db_path,
-               'db_con' : db_con}
+        res = {"db_path": db_path, "db_con": db_con}
 
         return res
 
-    def first_col_to_index(self, dict_of_dfs, table_names = None, drop = True):
+    def first_col_to_index(self, dict_of_dfs, table_names=None, drop=True):
         """Function that sets the first column of dataframe as index.
 
         Parameters:
@@ -482,7 +479,7 @@ class IO(object):
         for x in dict_of_dfs.keys():
             if x in table_names:
                 col = dict_of_dfs[x].columns[0]
-                res[x] = dict_of_dfs[x].copy().set_index(col, drop = True)
+                res[x] = dict_of_dfs[x].copy().set_index(col, drop=True)
             else:
                 res[x] = dict_of_dfs[x].copy()
 
