@@ -206,6 +206,10 @@ class IO(object):
             version = dict_of_dfs[
                 self.la['run_pars']].loc[0, self.la['version']]
 
+            # Removing '.', '\', '/' characters from version
+            # to avoid any errors during writing output
+            version = re.sub("[\\\\./]", '', version)
+
             self.version = version
 
         # otherwise declare current folder + "/output" as the output
