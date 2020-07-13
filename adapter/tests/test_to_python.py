@@ -2,54 +2,60 @@ import unittest
 from adapter.to_python import Excel, Db
 
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
 
-from pdb import set_trace as bp
 
 class ExcelTests(unittest.TestCase):
-
     @classmethod
     def setUp(self):
         """Instantiates an excel loader
         """
-        self.exl_loader = Excel(
-        r'adapter/tests/test.xlsx')
-
+        self.exl_loader = Excel(r"adapter/tests/test.xlsx")
 
     def test_load(self):
         """Tests loading named tables
         and named ranges from excel.
         """
-        all_tables = self.exl_loader.load()
+        all_tables = self.exl_loader.load(kind="all")
 
         self.assertTrue(
-        set(all_tables.keys())=={
-        'xlsx_table1','xlsx_table2',
-        'run_parameters'})
+            set(all_tables.keys())
+            == {
+                "xlsx_table1",
+                "xlsx_table2",
+                "run_parameters",
+                "xlsx_single_col_table",
+                "xlsx_named_range1",
+                "xlsx_single_col_range",
+            }
+        )
 
         some_tables = self.exl_loader.load(
-            table_names = ['xlsx_table1','xlsx_table2'])
+            data_object_names=["xlsx_table1", "xlsx_table2"], kind="tables"
+        )
 
         self.assertTrue(
-        set(some_tables.keys())=={
-        'xlsx_table1','xlsx_table2'})
+            set(some_tables.keys()) == {"xlsx_table1", "xlsx_table2"}
+        )
 
-        # @lz add equivalent tests for loading
-        # named ranges. If you add named
-        # ranges to the same input file, then
-        # you can simply extend the lists of
-        # expected input table names.
+        some_ranges = self.exl_loader.load(
+            data_object_names=["xlsx_named_range1", "xlsx_single_col_range"],
+            kind="ranges",
+        )
+
+        self.assertTrue(
+            set(some_ranges.keys())
+            == {"xlsx_named_range1", "xlsx_single_col_range"}
+        )
 
 
 class DbTests(unittest.TestCase):
-
     @classmethod
     def setUp(self):
         """Instantiates a DB loader
         """
-        self.db_loader = Db(
-        r'adapter/tests/test.db')
-
+        self.db_loader = Db(r"adapter/tests/test.db")
 
     def test_load_all_tables(self):
         """Tests loading all tables
@@ -58,16 +64,13 @@ class DbTests(unittest.TestCase):
         all_tables = self.db_loader.load()
 
         self.assertTrue(
-        set(all_tables.keys())=={
-        'table2','table3','table1'})
+            set(all_tables.keys()) == {"table2", "table3", "table1"}
+        )
 
     def test_load_some_tables(self):
         """Tests loading specified tables
         from sqlite databases.
         """
-        some_tables = self.db_loader.load(
-            table_names = ['table1','table2'])
+        some_tables = self.db_loader.load(table_names=["table1", "table2"])
 
-        self.assertTrue(
-        set(some_tables.keys())=={
-        'table1','table2'})
+        self.assertTrue(set(some_tables.keys()) == {"table1", "table2"})

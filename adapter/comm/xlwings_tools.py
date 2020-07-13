@@ -21,7 +21,7 @@ class Name(xw.main.Name):
     @property
     def wb(self):
         full_address = str(self.refers_to_range)
-        wb_name = re.search(r'\[(.*)\]', full_address).groups()[0]
+        wb_name = re.search(r"\[(.*)\]", full_address).groups()[0]
         wb = Book(wb_name)
         return wb
 
@@ -48,7 +48,7 @@ class Table(object):
         if not sheet_name:
             sheet_name = wb.sheets.active.name
         self.refers_to_range = wb.sheets(sheet_name).range(range_address)
-        self.refers_to = self.refers_to_range.__str__().split(']')[1][:-1]
+        self.refers_to = self.refers_to_range.__str__().split("]")[1][:-1]
 
     def __repr__(self):
         return "<Table '%s': %s>" % (self.name, self.refers_to)
@@ -56,6 +56,7 @@ class Table(object):
 
 class BookDataFrames(dict):
     """Object used to store Excel named ranges converted to dataframes."""
+
     pass
 
 
@@ -83,10 +84,10 @@ class Book(xw.main.Book):
     def add_sheet(self, sheet_name):
         """Add sheet or return it if it already exists."""
         if sheet_name.lower() in (s.name.lower() for s in self.sheets):
-            print('Sheet {} exists. Assigning it'.format(sheet_name))
+            print("Sheet {} exists. Assigning it".format(sheet_name))
             return self.sheets(sheet_name)
         else:
-            print('Added sheet {}.'.format(sheet_name))
+            print("Added sheet {}.".format(sheet_name))
             return self.sheets.add(sheet_name)
 
     def range(self, address, sheet_name=None, verbose=True):
@@ -98,22 +99,30 @@ class Book(xw.main.Book):
         # Excel includes solver-type objects as named ranges. Those shouldn't be
         # read in.
         named_ranges = [
-            name for name in self.names if 'solver' not in name.name
+            name for name in self.names if "solver" not in name.name
         ] + self.tables.values()
         could_not_read = []
         for named_range in named_ranges:
             try:
-                self.named_range_to_df(named_range,
-                                       keep_sheet_name=keep_sheet_name,
-                                       verbose=verbose)
+                self.named_range_to_df(
+                    named_range,
+                    keep_sheet_name=keep_sheet_name,
+                    verbose=verbose,
+                )
             except:
                 print("Warning: couldn't read name {}".format(named_range))
                 could_not_read += [named_range]
         return set(named_ranges) - set(could_not_read)
 
-    def named_range_to_df(self, named_range, keep_sheet_name=False,
-                          sheet_name=None, header_row=None, index_col=None,
-                          verbose=True):
+    def named_range_to_df(
+        self,
+        named_range,
+        keep_sheet_name=False,
+        sheet_name=None,
+        header_row=None,
+        index_col=None,
+        verbose=True,
+    ):
         """Turns a named range in Excel into a pandas dataframe.
         Also adds the dataframe to the ```dfs``` attribute.
 
@@ -139,26 +148,32 @@ class Book(xw.main.Book):
             pd.DataFrame: The Excel data turned into a Pandas DataFrame.
         """
         if isinstance(type(named_range), str):
-            named_range = Name(
-                get_named_range(self, named_range, sheet_name))
+            named_range = Name(get_named_range(self, named_range, sheet_name))
 
         # Determine what the name should be.
         if keep_sheet_name:
             # Keep the sheet name in the name of the dataframe.
-            name = named_range.name.replace('!', '_')
+            name = named_range.name.replace("!", "_")
         else:
-            name = (named_range.name.split('!')[1]
-                    if named_range.name.find('!') > 0 else named_range.name)
+            name = (
+                named_range.name.split("!")[1]
+                if named_range.name.find("!") > 0
+                else named_range.name
+            )
 
         rg = named_range.refers_to_range
         # Determine whether there is a header and an index.
         df_content = rg.value
         # If the named_range is 2D, assume it has a header and no index.
         if type(df_content) == list and type(df_content[0]) == list:
-            header_row, index_col = 1, 0 # mg changed 1 to 0
+            header_row, index_col = 1, 0  # mg changed 1 to 0
 
-        # Get dataframe using ```xl2pd```.
-        df = xl2pd(self, rg, header_row=header_row, index_col=index_col)
+            # Get dataframe using ```xl2pd```.
+            df = xl2pd(self, rg, header_row=header_row, index_col=index_col)
+
+        # If named range is 1D, assume the first value is a header, and no index
+        if type(df_content) == list and type(df_content[0]) == str:
+            df = pd.DataFrame(df_content[1:], columns=[df_content[0]])
 
         # If df contains a single value, turn it into that value.
         if df.shape == (1, 1):
@@ -166,9 +181,9 @@ class Book(xw.main.Book):
 
         # Assign the dataframe to the name.
         if verbose:
-            print('Read in {}'.format(named_range)) #mg changed assigning to
+            print("Read in {}".format(named_range))  # mg changed assigning to
             # read in
-        exec ('self.dfs.{} = df'.format(name))
+        exec("self.dfs.{} = df".format(name))
         self.dfs[name] = df
 
         return df
@@ -183,20 +198,22 @@ def _parse_address(full_address):
         ```_parse_address("'my sheet'!A1:X100")``` would return
         ```("my_sheet", "A1:X100")```.
     """
-    splitaddr = full_address.split('!')
+    splitaddr = full_address.split("!")
     if len(splitaddr) == 1:
         sheet_name = None
         address = splitaddr[0]
     elif len(splitaddr) == 2:
         characters_to_strip = list("'<>=")
-        sheet_name = reduce( \
-            lambda x, y: x.strip(y), characters_to_strip,
-                            splitaddr[0])
-        sheet_name = sheet_name.split(']')[-1]
-        address = splitaddr[1].strip('>')
+        sheet_name = reduce(
+            lambda x, y: x.strip(y), characters_to_strip, splitaddr[0]
+        )
+        sheet_name = sheet_name.split("]")[-1]
+        address = splitaddr[1].strip(">")
     else:
-        raise ValueError('Invalid address in _parse_address: ' + \
-                         'cannot contain multiple "!" characters')
+        raise ValueError(
+            "Invalid address in _parse_address: "
+            + 'cannot contain multiple "!" characters'
+        )
     return (sheet_name, address)
 
 
@@ -211,7 +228,7 @@ def get_tables(wb):
         ```wb```, and the values are the corresponding sheet names.
     """
     return {
-        obj.Name: Table(obj.Name, ws.name + '!' + obj.Range.Address, wb)
+        obj.Name: Table(obj.Name, ws.name + "!" + obj.Range.Address, wb)
         for ws in wb.sheets
         for obj in ws.api.ListObjects
         if ws.api.ListObjects.Count > 0
@@ -242,24 +259,31 @@ def get_range(wb, address, sheet_name=None, verbose=True):
     """
 
     # Determine if the address contains sheet information
-    match = re.search(r'^=*(.*)!(.*)', address)
+    match = re.search(r"^=*(.*)!(.*)", address)
     if match:
         sheet_name, address = match.groups()
         sheet_name = sheet_name.strip("'")
-    elif (not sheet_name):
+    elif not sheet_name:
         if verbose:
             sheet_name = wb.sheets[0].name
-            print('Warning: no explicit sheet information'
-                  ' was passed to get_range. Assuming the desired'
-                  ' sheet is "{}".'.format(sheet_name))
+            print(
+                "Warning: no explicit sheet information"
+                " was passed to get_range. Assuming the desired"
+                ' sheet is "{}".'.format(sheet_name)
+            )
 
     # Otherwise we use the sheet_name keyword to get the sheet.
     try:
         rng = wb.sheets(sheet_name).range(address)
     except:
         if verbose:
-            print('Warning: unable to find a range at "' + address +
-                  '" in sheet "' + sheet_name + '".')
+            print(
+                'Warning: unable to find a range at "'
+                + address
+                + '" in sheet "'
+                + sheet_name
+                + '".'
+            )
         rng = None
 
     return rng
@@ -291,12 +315,19 @@ def get_named_range(wb, range_name, sheet_name=None, verbose=True, **kwargs):
         return obj.names[range_name].refers_to_range
     except:
         if verbose:
-            print("Warning: unable to find a range named "+range_name + '.')
+            print("Warning: unable to find a range named " + range_name + ".")
         return None
 
 
-def create_named_range(wb, range_name, address=None, sheet_name=None,
-                       local=False, resize=False, verbose=True):
+def create_named_range(
+    wb,
+    range_name,
+    address=None,
+    sheet_name=None,
+    local=False,
+    resize=False,
+    verbose=True,
+):
     """Create a named range.
 
     Create a named range OR re-create an existing named range, extending
@@ -334,17 +365,21 @@ def create_named_range(wb, range_name, address=None, sheet_name=None,
 
     if address:
         if rg:
-            print('A named range was found, but an address was provided.'
-                  ' Deleting existing named range.')
+            print(
+                "A named range was found, but an address was provided."
+                " Deleting existing named range."
+            )
             rg.name.delete()
         sheet_name_from_address, address = _parse_address(address)
         # Use the user-provided sheet if available.
         rg = get_range(wb, address, sheet_name or sheet_name_from_address)
 
     if not rg:
-        print('Please provide a valid value for ```range_name```. If you\'re '
-              'providing a string, if the name does not already exist, please '
-              'also provide a valid address.')
+        print(
+            "Please provide a valid value for ```range_name```. If you're "
+            "providing a string, if the name does not already exist, please "
+            "also provide a valid address."
+        )
         return
 
     # This is needed if the named range is to be local.
@@ -355,19 +390,29 @@ def create_named_range(wb, range_name, address=None, sheet_name=None,
         rg = rg.current_region
 
     # Create the named range.
-    rg.name = ((sheet_name + '!'
-                if local and '!' not in range_name else '') + range_name)
+    rg.name = (
+        sheet_name + "!" if local and "!" not in range_name else ""
+    ) + range_name
 
     if verbose:
-        info_string = ' as a named range local to sheet,' if local else ''
-        print('Created named range {},{} in sheet {}, at address {}.'.format(
-            range_name, info_string, sheet_name, rg.address))
+        info_string = " as a named range local to sheet," if local else ""
+        print(
+            "Created named range {},{} in sheet {}, at address {}.".format(
+                range_name, info_string, sheet_name, rg.address
+            )
+        )
 
     return rg
 
 
-def xl2pd(workbook, myrange, index_col=None, header_row=None, formulas=False,
-          **kwargs):
+def xl2pd(
+    workbook,
+    myrange,
+    index_col=None,
+    header_row=None,
+    formulas=False,
+    **kwargs
+):
     """Turn a named range from an Excel workbook into a Pandas dataframe.
 
     Args:
@@ -417,10 +462,10 @@ def xl2pd(workbook, myrange, index_col=None, header_row=None, formulas=False,
     if isinstance(type(workbook), str):
         # Load workbook from specified file
         workbook = xw.Book(workbook)
-    #(otherwise assume a Book object was passed.)
+    # (otherwise assume a Book object was passed.)
 
     if isinstance(type(myrange), str):
-        if ':' in myrange:
+        if ":" in myrange:
             rng = get_range(workbook, myrange, **kwargs)
         else:
             rng = get_named_range(workbook, myrange, **kwargs)
@@ -431,13 +476,14 @@ def xl2pd(workbook, myrange, index_col=None, header_row=None, formulas=False,
         if formulas:
             data = rng.formula  # This is a tuple of tuples.
             cols = list(data[0])
-            cols[0] = 'convert_to_index'
+            cols[0] = "convert_to_index"
             ret_df = pd.DataFrame(list(data[1:]), columns=cols)
-            ret_df.set_index('convert_to_index', drop=True, inplace=True)
+            ret_df.set_index("convert_to_index", drop=True, inplace=True)
         else:
             # Convert directly to dataframe.
-            ret_df = rng.options(pd.DataFrame, header=header_row,
-                                 index=index_col).value
+            ret_df = rng.options(
+                pd.DataFrame, header=header_row, index=index_col
+            ).value
             if type(ret_df.columns) == pd.MultiIndex:
                 # Get rid of MultiIndex in columns (introduced in xlwings 11.4).
                 ret_df.columns = ret_df.columns.get_level_values(0)
@@ -447,9 +493,22 @@ def xl2pd(workbook, myrange, index_col=None, header_row=None, formulas=False,
     return ret_df
 
 
-def pd2xl(dataframe, workbook, path=None, sheet_name='Sheet1', start_cell='A1',
-          create_sheet=True, header=False, index=False, range_name=None,
-          save=False, close=False, clear=False, resize=False, **kwargs):
+def pd2xl(
+    dataframe,
+    workbook,
+    path=None,
+    sheet_name="Sheet1",
+    start_cell="A1",
+    create_sheet=True,
+    header=False,
+    index=False,
+    range_name=None,
+    save=False,
+    close=False,
+    clear=False,
+    resize=False,
+    **kwargs
+):
     """Write a Pandas dataframe to an Excel workbook.
 
     Args:
@@ -529,7 +588,7 @@ def pd2xl(dataframe, workbook, path=None, sheet_name='Sheet1', start_cell='A1',
         else:
             # Load workbook from specified file
             workbook = xw.Book(workbook)
-    #(otherwise assume a Book object was passed.)
+    # (otherwise assume a Book object was passed.)
 
     rg = None
     if range_name:
@@ -550,8 +609,13 @@ def pd2xl(dataframe, workbook, path=None, sheet_name='Sheet1', start_cell='A1',
     rg.options(index=index, header=header).value = dataframe
 
     if range_name:
-        create_named_range(workbook, range_name, address=rg.address,
-                           sheet_name=rg.sheet.name, resize=resize)
+        create_named_range(
+            workbook,
+            range_name,
+            address=rg.address,
+            sheet_name=rg.sheet.name,
+            resize=resize,
+        )
 
     if save:
         workbook.save(path)

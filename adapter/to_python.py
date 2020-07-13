@@ -5,11 +5,13 @@ from adapter.comm.sql import Sql
 import re
 
 import logging
+
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 
 from pdb import set_trace as bp
+
 
 class Excel(object):
     """Loads bulk named tables
@@ -21,15 +23,14 @@ class Excel(object):
         file_path: str
             Path to an excel sheet
     """
+
     def __init__(self, file_path):
         self.wb = Book(file_path)
         self.file_path = file_path
 
-        log.info(
-        "Connected to: {}".format(file_path))
+        log.info("Connected to: {}".format(file_path))
 
-
-    def load(self, table_names = None):
+    def load(self, data_object_names=None, kind="all"):
         """Opens the file provided
         through file_path, loads
         all or a subset of tables
@@ -39,11 +40,20 @@ class Excel(object):
 
         Parameters:
 
-            table_names: list
-                List of string table names
-                to load. Default: None means
-                that all tables found in the
+            data_object_names: list
+                List of string data object names
+                to load. Data objects can be 
+                named tables and named ranges, see 
+                'type' kwarg for details. 
+                Default: None means
+                that all data objects found in the
                 input file get loaded.
+
+            kind: str
+                'tables' : gets only named tables
+                'ranges' : gets only named ranges
+                'all' : gest both named tables 
+                and named ranges
 
         Returns:
 
@@ -55,8 +65,7 @@ class Excel(object):
         # docstrings for the analoguos
         # methods in other classes in this
         # file
-        dict_of_dfs = self.get_tables(
-            table_names=table_names)
+        dict_of_dfs = self.get_named_data_objects(data_object_names, kind=kind)
 
         # @lz - this should be uncommented after
         # you implement the method
@@ -66,66 +75,91 @@ class Excel(object):
 
         return dict_of_dfs
 
-
-    def get_tables(self, table_names):
+    def get_named_data_objects(self, data_object_names, kind="all"):
         """Grabs data defined as excel tables.
 
         Parameters:
 
-            table_names: list
-                List of string table names
-                to load. Default: None means
-                that all tables found in the
+            data_object_names: list
+                List of string data object names
+                to load. Data objects can be 
+                named tables and named ranges, see 
+                'type' kwarg for details. 
+                Default: None means
+                that all data objects found in the
                 input file get loaded.
+
+            kind: str
+                'tables' : gets only named tables
+                'ranges' : gets only named ranges
+                'all' : gest both named tables 
+                and named ranges
 
         Returns:
 
             dict_of_dfs: dict of dataframes
-                Python dictionary with table name
-                keys and input table values.
+                Python dictionary with table name/
+                named range as keys and contents of 
+                the corresponding named data object
+                 values.
         """
-        # grab all the input tables
-        all_input_tables = self.wb.tables
+        if kind == "tables":
+            # grab all the input tables/named ranges
+            all_input_names = self.wb.tables
+
+        if kind == "ranges":
+            all_input_names = {x.name: x for x in self.wb.names}
+
+        if kind == "all":
+            all_input_tables = self.wb.tables
+            all_input_ranges = {x.name: x for x in self.wb.names}
+
+            all_input_tables.update(all_input_ranges)
+
+            all_input_names = all_input_tables.copy()
+
+        elif kind not in ["all", "ranges", "tables"]:
+            msg = "An unsupported value provided for kwarg kind {}."
+            log.error(msg.format(kind))
+            raise ValueError
 
         # initiate dictionaries of input table dataframes
         # and populate
         dict_of_dfs = dict()
 
-        if len(all_input_tables.keys()) > 0:
-            if type(table_names)==list:
-                for table_name in table_names:
-                    if table_name not in all_input_tables.keys():
-                        msg = '{} not found in the input file {}.'
-                        log.error(msg.format(
-                            table_name, self.file_path))
+        if len(all_input_names.keys()) > 0:
+            if type(data_object_names) == list:
+                for data_object_name in data_object_names:
+                    if data_object_name not in all_input_names.keys():
+                        msg = "{} not found in the input file {}."
+                        log.error(msg.format(data_object_name, self.file_path))
                         raise ValueError
 
-            elif table_names is None:
-                table_names = all_input_tables.keys()
-
-            elif table_names is np.nan:
-                table_names = all_input_tables.keys()
+            elif (data_object_names is None) or (data_object_names is np.nan):
+                data_object_names = all_input_names.keys()
 
             else:
-                msg = 'Unsupported type ({}) passed for table names, {}.'
+                msg = "Unsupported type ({}) passed for table names, {}."
                 log.error(msg.format(type(table_names), table_names))
                 raise ValueError
 
             try:
-                for table_name in table_names:
+                for data_object_name in data_object_names:
                     # prepare labels (strip extra spaces)
-                    dict_of_dfs[table_name] = self.wb.named_range_to_df(
-                        all_input_tables[table_name],
-                        verbose = True)
-                    dict_of_dfs[table_name].columns = \
-                       Toolbox().process_column_labels(
-                        dict_of_dfs[table_name].columns)
+                    dict_of_dfs[data_object_name] = self.wb.named_range_to_df(
+                        all_input_names[data_object_name], verbose=True
+                    )
+                    dict_of_dfs[
+                        data_object_name
+                    ].columns = Toolbox().process_column_labels(
+                        dict_of_dfs[data_object_name].columns
+                    )
 
-                msg = 'Read in input tables from {}.'
+                msg = "Read in input tables from {}."
                 log.info(msg.format(self.file_path))
             except:
                 # more detailed error data should come from xlwings_tools
-                msg = 'Failed to read input tables from {}.'
+                msg = "Failed to read input tables from {}."
 
                 log.error(msg.format(self.file_path))
                 raise ValueError
@@ -133,18 +167,14 @@ class Excel(object):
             msg = "Loaded named tables from {}."
             log.info(msg.format(self.file_path))
 
+        else:
+            msg = (
+                "Neither named tables nor named ranges found in "
+                "the input file {}."
+            )
+            log.info(msg.format(self.file_path))
+
         return dict_of_dfs
-
-
-    def get_named_ranges(self, table_names):
-        """Grabs data defined as named ranges.
-        """
-        # return dict_of_dfs
-        # @lz
-        # if len(all_input_tables.keys()) > 0:
-        #     msg = "Loaded named rangesfrom {}."
-        #     log.info(msg.format(self.file_path))
-        pass
 
 
 class Db(object):
@@ -156,11 +186,12 @@ class Db(object):
         file_path: str
             Path to an db file
     """
+
     def __init__(self, file_path):
         self.db = Sql(file_path)
         self.file_path = file_path
 
-    def load(self, table_names = None):
+    def load(self, table_names=None):
         """Loads tables
 
         Parameters:
@@ -170,32 +201,30 @@ class Db(object):
                 Default: None = load all tables
         """
         try:
-            all_dict_of_dfs = self.db.tables2dict(
-                close = True)
+            all_dict_of_dfs = self.db.tables2dict(close=True)
 
             dict_of_dfs = dict()
 
             if len(all_dict_of_dfs.keys()) > 0:
 
-                if type(table_names)==list:
+                if type(table_names) == list:
 
                     for table_name in table_names:
 
-                        if table_name not in\
-                            all_dict_of_dfs.keys():
-                            msg = '{} not found in the input file {}.'
-                            log.error(msg.format(
-                                table_name, self.file_path))
+                        if table_name not in all_dict_of_dfs.keys():
+                            msg = "{} not found in the input file {}."
+                            log.error(msg.format(table_name, self.file_path))
                             raise ValueError
 
                         else:
-                            dict_of_dfs[table_name] = \
-                            all_dict_of_dfs[table_name]
+                            dict_of_dfs[table_name] = all_dict_of_dfs[
+                                table_name
+                            ]
                 else:
                     dict_of_dfs = all_dict_of_dfs
 
         except:
-            msg = 'Failed to read input tables from {}.'
+            msg = "Failed to read input tables from {}."
             log.error(msg.format(self.inpath))
             raise ValueError
 
@@ -203,7 +232,6 @@ class Db(object):
 
 
 class Toolbox(object):
-
     def process_column_labels(self, list_of_labels):
         """Removes undesired spaces.
 
@@ -218,6 +246,7 @@ class Toolbox(object):
                 A list with cleaned lables
         """
         list_of_cleaned_labels = [
-            re.sub(' +', ' ', lbl.strip()) for lbl in list_of_labels]
+            re.sub(" +", " ", lbl.strip()) for lbl in list_of_labels
+        ]
 
         return list_of_cleaned_labels
