@@ -2,6 +2,22 @@
 
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
+import codecs
+import os.path
+
+# to access version
+def read(rel_path):
+    here = os.path.abspath(os.path.dirname(__file__))
+    with codecs.open(os.path.join(here, rel_path), 'r') as fp:
+        return fp.read()
+
+def get_version(rel_path):
+    for line in read(rel_path).splitlines():
+        if line.startswith('__version__'):
+            delim = '"' if '"' in line else "'"
+            return line.split(delim)[1]
+    else:
+        raise RuntimeError("Unable to find version string.")
 
 repo_name = "adapter"
 
@@ -9,7 +25,7 @@ long_description = "This package contains a data input/output adapter"
 
 setup(
     name=repo_name,
-    version="0.1.1",
+    version=get_version("adapter/__init__.py"),
     description="I/O module",
     long_description=long_description,
     # The project's main homepage.
