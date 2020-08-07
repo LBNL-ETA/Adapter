@@ -175,9 +175,9 @@ class Book(xw.main.Book):
         if type(df_content) == list and type(df_content[0]) == str:
             df = pd.DataFrame(df_content[1:], columns=[df_content[0]])
 
-        # If df contains a single value, turn it into that value.
-        if df.shape == (1, 1):
-            df = df.iloc[0, 0]
+        # If named range is a single value, use name of the range as header
+        if type(df_content) != list and type(df_content) in [str, float, int]:
+            df = pd.DataFrame({rg.name.name: [df_content]})
 
         # Assign the dataframe to the name.
         if verbose:
