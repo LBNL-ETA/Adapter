@@ -34,6 +34,7 @@ class IOTests(unittest.TestCase):
         path = os.path.join(
             os.getcwd(), r"adapter/tests/test_w_inputs_from_files_table.xlsx"
         )
+
         i_o = IO(path)
 
         res = i_o.load()
@@ -47,11 +48,12 @@ class IOTests(unittest.TestCase):
         path = os.path.join(
             os.getcwd(), r"adapter/tests/inputs_from_files_vTest.csv"
         )
+
         i_o = IO(path)
 
         res = i_o.load()
 
-        self.assertEqual(len(res["tables_as_dict_of_dfs"].keys()), 9)
+        self.assertEqual(len(res["tables_as_dict_of_dfs"].keys()), 10)
         self.assertEqual(len(res.keys()), 5)
 
     def test_load_from_excel_no_run_parameters(self):

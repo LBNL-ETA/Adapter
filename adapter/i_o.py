@@ -91,11 +91,11 @@ class IO(object):
     def load(
         self,
         create_db=True,
-        outfilepath=None,
         db_flavor="sqlite",
         close_db=True,
         save_input=True,
         set_first_col_as_index=False,
+        quick_db_out_filename=None,
     ):
         """Loads tables from the input file
         as a dictinary of python dataframes.
@@ -137,8 +137,8 @@ class IO(object):
                 their first column set as index
                 None: Set index for all tables
 
-            outfilepath: string, defaults to None
-                Full output file path without the
+            quick_db_out_filename: string, defaults to None
+                Output filename without the
                 file extension if one does not
                 want to use the version tag and outpath
                 as provided in a run parameters table when
@@ -146,8 +146,8 @@ class IO(object):
 
                 Use with caution as there is no run tag
                 or timestamp included. This may be useful when
-                converting an excel file with tables and named
-                ranges into a database.
+                quickly converting an excel file with tables
+                and named ranges into a database.
 
         Returns:
 
@@ -211,7 +211,7 @@ class IO(object):
 
         # define output path for the analysis run
 
-        if outfilepath is None:
+        if quick_db_out_filename is None:
             # look for `run_parameters` table to extract the outpath
             # note that `run_parameters` table should occur only in one
             # of the input files
@@ -244,8 +244,8 @@ class IO(object):
             outpath = os.path.join(outpath_base, run_tag)
 
         else:
-            outpath=""
-            run_tag=outfilepath
+            outpath=os.getcwd()
+            run_tag=quick_db_out_filename
 
         if not os.path.exists(outpath):
             os.makedirs(outpath)
