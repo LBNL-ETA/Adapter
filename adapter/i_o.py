@@ -138,9 +138,11 @@ class IO(object):
                 None: Set index for all tables
 
             outfilepath: string, defaults to None
-                Full output file path if one does not
+                Full output file path without the
+                file extension if one does not
                 want to use the version tag and outpath
-                as provided in a run parameters table.
+                as provided in a run parameters table when
+                saving a database.
 
                 Use with caution as there is no run tag
                 or timestamp included. This may be useful when
@@ -242,8 +244,8 @@ class IO(object):
             outpath = os.path.join(outpath_base, run_tag)
 
         else:
-            outpath=outfilepath
-            run_tag=""
+            outpath=""
+            run_tag=outfilepath
 
         if not os.path.exists(outpath):
             os.makedirs(outpath)
