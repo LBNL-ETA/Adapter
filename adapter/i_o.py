@@ -91,6 +91,7 @@ class IO(object):
     def load(
         self,
         create_db=True,
+        outfilepath=None,
         db_flavor="sqlite",
         close_db=True,
         save_input=True,
@@ -135,6 +136,16 @@ class IO(object):
                 List of strings: List of tables that need
                 their first column set as index
                 None: Set index for all tables
+
+            outfilepath: string, defaults to None
+                Full output file path if one does not
+                want to use the version tag and outpath
+                as provided in a run parameters table.
+
+                Use with caution as there is no run tag
+                or timestamp included. This may be useful when
+                converting an excel file with tables and named
+                ranges into a database.
 
         Returns:
 
@@ -198,35 +209,41 @@ class IO(object):
 
         # define output path for the analysis run
 
-        # look for `run_parameters` table to extract the outpath
-        # note that `run_parameters` table should occur only in one
-        # of the input files
-        if self.la["run_pars"] in dict_of_dfs.keys():
+        if outfilepath is None:
+            # look for `run_parameters` table to extract the outpath
+            # note that `run_parameters` table should occur only in one
+            # of the input files
+            if self.la["run_pars"] in dict_of_dfs.keys():
 
-            outpath_base = os.path.join(
-                os.getcwd(),
-                dict_of_dfs[self.la["run_pars"]].loc[0, self.la["outpath"]],
-            )
+                outpath_base = os.path.join(
+                    os.getcwd(),
+                    dict_of_dfs[self.la["run_pars"]].loc[0, self.la["outpath"]],
+                )
 
-            version = dict_of_dfs[self.la["run_pars"]].loc[
-                0, self.la["version"]
-            ]
+                version = dict_of_dfs[self.la["run_pars"]].loc[
+                    0, self.la["version"]
+                ]
 
-            # Removing '.', '\', '/' characters from version
-            # to avoid any errors during writing output
-            version = re.sub("[\\\\./]", "", version)
+                # Removing '.', '\', '/' characters from version
+                # to avoid any errors during writing output
+                version = re.sub("[\\\\./]", "", version)
 
-            self.version = version
+                self.version = version
 
-        # otherwise declare current folder + "/output" as the output
-        # path
+            # otherwise declare current folder + "/output" as the output
+            # path
+            else:
+                outpath_base = os.path.join(os.getcwd(), "output")
+                version = ""
+
+            run_tag = version + "_" + datetime.now().strftime(
+                "%Y_%m_%d-%Hh_%Mm")
+
+            outpath = os.path.join(outpath_base, run_tag)
+
         else:
-            outpath_base = os.path.join(os.getcwd(), "output")
-            version = ""
-
-        run_tag = version + "_" + datetime.now().strftime("%Y_%m_%d-%Hh_%Mm")
-
-        outpath = os.path.join(outpath_base, run_tag)
+            outpath=outfilepath
+            run_tag=""
 
         if not os.path.exists(outpath):
             os.makedirs(outpath)
@@ -462,7 +479,7 @@ class IO(object):
                 need to be modified
 
             drop: boolean
-                Flag indicating whether to drop the column 
+                Flag indicating whether to drop the column
                 being set as index. Default value is true.
 
         Returns:
