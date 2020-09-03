@@ -6,8 +6,9 @@ Data loader from various format such as `xlsx`, `csv`, `db`. Converts all to `db
 
 To install the package use:
 ```
-pip install git+https://{your bitbucket username}@bitbucket.org/eetd-ees/adapter.git
+pip install git+https://{your bitbucket username}@bitbucket.org/eetd-ees/adapter.git@v0.1.3
 ```
+To check versions please use `git tag -n`.
 
 ## Usage
 

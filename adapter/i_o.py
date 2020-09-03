@@ -447,7 +447,8 @@ class IO(object):
         for table_name in dict_of_dfs.keys():
             try:
                 dict_of_dfs[table_name].to_sql(
-                    name=table_name, con=db_con, if_exists="replace"
+                    name=table_name, con=db_con, if_exists="replace",
+                    index=False
                 )
             except:
                 msg = "An error occured when writting {} table " "to a db {}."
