@@ -96,6 +96,7 @@ class IO(object):
         save_input=True,
         set_first_col_as_index=False,
         quick_db_out_filename=None,
+        clean_labels=True
     ):
         """Loads tables from the input file
         as a dictinary of python dataframes.
@@ -148,6 +149,9 @@ class IO(object):
                 or timestamp included. This may be useful when
                 quickly converting an excel file with tables
                 and named ranges into a database.
+
+            clean_labels: bool
+                Process table columns to remove trailing whitespaces
 
         Returns:
 
@@ -295,6 +299,21 @@ class IO(object):
 
         if create_db == True:
             res.update(db_res)
+
+        if clean_labels == True:
+
+            input_tables_list=res["tables_as_dict_of_dfs"]
+
+            for table in input_tables_list:
+
+                table_columns=input_tables_list[table].columns
+
+                clean_cols=self.process_column_labels(table_columns)
+                input_tables_list[table].columns=clean_cols
+
+
+            msg="All table column labels were processed to remove undesired whitespaces."
+            log.info(msg)
 
         return res
 
@@ -504,3 +523,27 @@ class IO(object):
                 res[x] = dict_of_dfs[x].copy()
 
         return res
+
+
+    def process_column_labels(self, list_of_labels):
+        """
+        Converts table columns to string type and removes undesired spaces
+
+        Parameters:
+
+            list_of_labels: list
+                list with column labels
+
+        Returns:
+
+            list_of_cleaned_labels: list
+                A list with cleaned lables
+        """
+        list_of_labels=[str(x) for x in list_of_labels]
+
+        list_of_cleaned_labels = [
+            re.sub(" +", " ", lbl.strip()) for lbl in list_of_labels
+        ]
+
+
+        return list_of_cleaned_labels
