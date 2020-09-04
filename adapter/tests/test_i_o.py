@@ -113,3 +113,16 @@ class IOTests(unittest.TestCase):
         # Case2: When only some tables are modified
         for x in case2.keys():
             assert case2[x].equals(case2_check[x])
+
+    def test_process_column_labels(self):
+        """Tests if undesired whitespace from column labels is removed.
+        """
+        path = os.path.join(os.getcwd(), r"adapter/tests/test_labels.xlsx")
+        i_o = IO(path)
+
+        labels = ["aa bb ", " cc   dd"]
+        expected_labels = ["aa bb", "cc dd"]
+
+        result_labels = i_o.process_column_labels(labels)
+
+        self.assertEqual(result_labels, expected_labels)
