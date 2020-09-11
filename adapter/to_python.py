@@ -108,14 +108,19 @@ class Excel(object):
             all_input_names = self.wb.tables
 
         if kind == "ranges":
-            all_input_names = {x.name: x for x in self.wb.names
-                                if '_FilterDatabase' not in x.name}
-
+            all_input_names = {
+                x.name: x
+                for x in self.wb.names
+                if "_FilterDatabase" not in x.name
+            }
 
         if kind == "all":
             all_input_tables = self.wb.tables
-            all_input_ranges = {x.name: x for x in self.wb.names
-                                if '_FilterDatabase' not in x.name}
+            all_input_ranges = {
+                x.name: x
+                for x in self.wb.names
+                if "_FilterDatabase" not in x.name
+            }
 
             all_input_tables.update(all_input_ranges)
 
@@ -249,8 +254,7 @@ class Toolbox(object):
                 A list with cleaned lables
         """
         list_of_cleaned_labels = [
-            re.sub(" +", " ", lbl.strip()) if lbl is str
-            else lbl
+            re.sub(" +", " ", lbl.strip()) if lbl is str else lbl
             for lbl in list_of_labels
         ]
 

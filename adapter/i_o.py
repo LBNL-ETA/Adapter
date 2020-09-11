@@ -96,7 +96,7 @@ class IO(object):
         save_input=True,
         set_first_col_as_index=False,
         quick_db_out_filename=None,
-        clean_labels=True
+        clean_labels=True,
     ):
         """Loads tables from the input file
         as a dictinary of python dataframes.
@@ -132,11 +132,13 @@ class IO(object):
                 Save initial input file under the output
                 folder
 
-            set_first_col_as_index: bool or list of strings or None
+            set_first_col_as_index: bool or list of strings
+                True: Set index for all tables
                 False: do not set the first column as index
+                for any tables
                 List of strings: List of tables that need
                 their first column set as index
-                None: Set index for all tables
+
 
             quick_db_out_filename: string, defaults to None
                 Output filename without the
@@ -223,7 +225,9 @@ class IO(object):
 
                 outpath_base = os.path.join(
                     os.getcwd(),
-                    dict_of_dfs[self.la["run_pars"]].loc[0, self.la["outpath"]],
+                    dict_of_dfs[self.la["run_pars"]].loc[
+                        0, self.la["outpath"]
+                    ],
                 )
 
                 version = dict_of_dfs[self.la["run_pars"]].loc[
@@ -242,14 +246,15 @@ class IO(object):
                 outpath_base = os.path.join(os.getcwd(), "output")
                 version = ""
 
-            run_tag = version + "_" + datetime.now().strftime(
-                "%Y_%m_%d-%Hh_%Mm")
+            run_tag = (
+                version + "_" + datetime.now().strftime("%Y_%m_%d-%Hh_%Mm")
+            )
 
             outpath = os.path.join(outpath_base, run_tag)
 
         else:
-            outpath=os.getcwd()
-            run_tag=quick_db_out_filename
+            outpath = os.getcwd()
+            run_tag = quick_db_out_filename
 
         if not os.path.exists(outpath):
             os.makedirs(outpath)
@@ -302,17 +307,16 @@ class IO(object):
 
         if clean_labels == True:
 
-            input_tables_list=res["tables_as_dict_of_dfs"]
+            input_tables_list = res["tables_as_dict_of_dfs"]
 
             for table in input_tables_list:
 
-                table_columns=input_tables_list[table].columns
+                table_columns = input_tables_list[table].columns
 
-                clean_cols=self.process_column_labels(table_columns)
-                input_tables_list[table].columns=clean_cols
+                clean_cols = self.process_column_labels(table_columns)
+                input_tables_list[table].columns = clean_cols
 
-
-            msg="All table column labels were processed to remove undesired whitespaces."
+            msg = "All table column labels were processed to remove undesired whitespaces."
             log.info(msg)
 
         return res
@@ -466,8 +470,10 @@ class IO(object):
         for table_name in dict_of_dfs.keys():
             try:
                 dict_of_dfs[table_name].to_sql(
-                    name=table_name, con=db_con, if_exists="replace",
-                    index=False
+                    name=table_name,
+                    con=db_con,
+                    if_exists="replace",
+                    index=False,
                 )
             except:
                 msg = "An error occured when writting {} table " "to a db {}."
@@ -484,7 +490,7 @@ class IO(object):
 
         return res
 
-    def first_col_to_index(self, dict_of_dfs, table_names=None, drop=True):
+    def first_col_to_index(self, dict_of_dfs, table_names=True, drop=True):
         """Function that sets the first column of dataframe as index.
 
         Parameters:
@@ -496,9 +502,11 @@ class IO(object):
                 as a pandas dataframe under that
                 key
 
-            table_names: list or None
+            table_names: list or True
                 List containing names of tables that
                 need to be modified
+                Default: True means all tables are
+                modified
 
             drop: boolean
                 Flag indicating whether to drop the column
@@ -511,8 +519,22 @@ class IO(object):
                 the index has been set
 
         """
-        if table_names is None:
+        if table_names == True:
+            msg = "Converting first column to index for all inputs."
+            log.info(msg.format(table_names))
             table_names = dict_of_dfs.keys()
+
+        elif isinstance(table_names, list):
+            msg = "Converting first column to index for {} tables."
+            log.info(msg.format(table_names))
+
+        elif table_names == False:
+            pass
+
+        else:
+            msg = "Unsuported value {} passed to table_names kwarg."
+            log.error(msg.format(table_names))
+            raise ValueError
 
         res = dict()
         for x in dict_of_dfs.keys():
@@ -523,7 +545,6 @@ class IO(object):
                 res[x] = dict_of_dfs[x].copy()
 
         return res
-
 
     def process_column_labels(self, list_of_labels):
         """
@@ -539,11 +560,10 @@ class IO(object):
             list_of_cleaned_labels: list
                 A list with cleaned lables
         """
-        list_of_labels=[str(x) for x in list_of_labels]
+        list_of_labels = [str(x) for x in list_of_labels]
 
         list_of_cleaned_labels = [
             re.sub(" +", " ", lbl.strip()) for lbl in list_of_labels
         ]
-
 
         return list_of_cleaned_labels

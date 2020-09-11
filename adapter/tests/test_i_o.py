@@ -96,7 +96,7 @@ class IOTests(unittest.TestCase):
         path = os.path.join(os.getcwd(), r"adapter/tests/test.db")
         i_o = IO(path)
 
-        case1 = i_o.first_col_to_index(dict_of_dfs, table_names=None)
+        case1 = i_o.first_col_to_index(dict_of_dfs, table_names=True)
         case2 = i_o.first_col_to_index(dict_of_dfs, table_names=["df1"])
 
         case1_check = {
