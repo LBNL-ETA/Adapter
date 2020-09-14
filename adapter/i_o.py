@@ -421,6 +421,7 @@ class IO(object):
     def create_db(
         self,
         dict_of_dfs,
+        db_conn=False,
         outpath=None,
         run_tag="",
         flavor="sqlite",
@@ -437,6 +438,12 @@ class IO(object):
                 as a dict key and the table
                 as a pandas dataframe under that
                 key
+
+            db_conn: None or db connection
+                None: Writes to the db initiated at
+                input data read-in
+                Otherwise pass a database connection
+                to an exhisting database
 
             outpath:
                 Output folder path
@@ -489,6 +496,16 @@ class IO(object):
         res = {"db_path": db_path, "db_con": db_con}
 
         return res
+
+    def write_to_db(self,
+        df_of_dicts,
+        db_conn=None,
+        close_db=True):
+        """Writes all dataframes from a dictionary of dataframes
+        out into an existing database.
+        """
+
+
 
     def first_col_to_index(self, dict_of_dfs, table_names=True, drop=True):
         """Function that sets the first column of dataframe as index.
