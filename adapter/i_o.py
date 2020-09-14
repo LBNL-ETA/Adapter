@@ -97,6 +97,7 @@ class IO(object):
         set_first_col_as_index=False,
         quick_db_out_filename=None,
         clean_labels=True,
+        to_numeric=None,
     ):
         """Loads tables from the input file
         as a dictinary of python dataframes.
@@ -139,7 +140,6 @@ class IO(object):
                 List of strings: List of tables that need
                 their first column set as index
 
-
             quick_db_out_filename: string, defaults to None
                 Output filename without the
                 file extension if one does not
@@ -151,6 +151,11 @@ class IO(object):
                 or timestamp included. This may be useful when
                 quickly converting an excel file with tables
                 and named ranges into a database.
+
+            to_numeric: list
+                List of string table names where
+                values should be converted to
+                numeric where possible
 
             clean_labels: bool
                 Process table columns to remove trailing whitespaces
@@ -214,6 +219,23 @@ class IO(object):
 
         else:
             qry_flags = None
+
+        # value type conversion for any tables listed
+        # as to_numeric and to_float
+        if to_numeric is not None:
+            if isinstance(to_numeric, list):
+                pass
+            else:
+                msg = "{} passed for to_numeric kwarg."\
+                "Only None or a list of strings are supported."
+                log.error(msg.format(to_numeric))
+
+            for key in dict_of_dfs.keys():
+                if key in to_numeric:
+                dict_of_dfs[key] = dict_of_dfs[key].apply(
+                    pd.to_numeric,
+                    errors='ignore',
+                    axis=1)
 
         # define output path for the analysis run
 
@@ -457,8 +479,6 @@ class IO(object):
                 {'db_path' : database path ,
                  'db_con' : database connection}
         """
-        # @lz add further db flavors
-
         if flavor == "sqlite":
             db_out_type = ".db"
 
@@ -497,14 +517,28 @@ class IO(object):
 
         return res
 
-    def write_to_db(self,
+    def write(self,
         df_of_dicts,
+        type='db',
+        data_connection=None
+        outpath=None,
+        run_tag="adapter_wrote_",
         db_conn=None,
         close_db=True):
         """Writes all dataframes from a dictionary of dataframes
         out into an existing database.
-        """
 
+        Paramters:
+
+            type: str
+                'db'
+                'csv'
+                'db&csv'
+
+
+        """
+        # *mg if data_connection, use outpath and version from it
+        #
 
 
     def first_col_to_index(self, dict_of_dfs, table_names=True, drop=True):
