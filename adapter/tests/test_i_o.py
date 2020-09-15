@@ -1,5 +1,5 @@
 import unittest
-import os
+import os, shutil
 
 import pandas as pd
 
@@ -131,7 +131,26 @@ class IOTests(unittest.TestCase):
     def test_write_to_db(self):
         """
         """
-        pass
+        path = os.path.join(
+            os.getcwd(), r"adapter/tests/inputs_from_files_vTest.csv"
+        )
+        i_o = IO(path)
+        data_conn = i_o.load()
+
+        # build files
+        i_o.write(
+            type='db',
+            data_connection=data_conn
+        )
+
+        self.assertTrue(
+            os.path.isfile(data_conn["db_path"]))
+        self.assertTrue(
+            os.path.isdir(data_conn["outpath"])
+        )
+
+        # tear down files
+        shutil.rmtree(data_conn["outpath"])
 
     def test_write_to_csv(self):
         """

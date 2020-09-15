@@ -232,10 +232,10 @@ class IO(object):
 
             for key in dict_of_dfs.keys():
                 if key in to_numeric:
-                dict_of_dfs[key] = dict_of_dfs[key].apply(
-                    pd.to_numeric,
-                    errors='ignore',
-                    axis=1)
+                    dict_of_dfs[key] = dict_of_dfs[key].apply(
+                        pd.to_numeric,
+                        errors='ignore',
+                        axis=1)
 
         # define output path for the analysis run
 
@@ -481,7 +481,7 @@ class IO(object):
 
             res: dict
                 {'db_path' : database path ,
-                 'db_con' : database connection}
+                 'db_conn' : database connection}
         """
         if flavor == "sqlite":
             db_out_type = ".db"
@@ -517,7 +517,7 @@ class IO(object):
         if close:
             db_con.close()
 
-        res = {"db_path": db_path, "db_con": db_con}
+        res = {"db_path": db_path, "db_conn": db_con}
 
         return res
 
@@ -595,8 +595,8 @@ class IO(object):
             True
         """
         if data_connection is not None:
-            data_as_dict_of_dfs = data_connection["
-            tables_as_dict_of_dfs"]
+            data_as_dict_of_dfs = data_connection[
+            "tables_as_dict_of_dfs"]
             db_conn = data_connection[
                 "db_conn"]
             outpath = data_connection[
@@ -610,7 +610,7 @@ class IO(object):
                 log.error(msg)
                 raise ValueError
             elif not isinstance(
-                data_as_dict_of_dfs, dict)
+                data_as_dict_of_dfs, dict
             ):
                 msg='Data needs to be in a '\
                 "dictionary of dataframes format."
