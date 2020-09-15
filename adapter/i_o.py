@@ -182,6 +182,7 @@ class IO(object):
         # if that is the case, the file paths and further info
         # should be placed in an `inputs_from_files` table
         qry_flags = dict()
+
         if self.la["extra_files"] in dict_of_dfs.keys():
 
             extra_files = dict_of_dfs[self.la["extra_files"]].reset_index()
@@ -318,9 +319,7 @@ class IO(object):
 
         res = dict()
         res["tables_as_dict_of_dfs"] = dict_of_dfs
-        # @as populate with tables or the connections, as you
-        # find practical
-        # res['tables_to_query'] =
+
         res["outpath"] = outpath
         res["run_tag"] = run_tag
 
@@ -355,8 +354,10 @@ class IO(object):
 
         Parameters:
 
-            file_path: str
+            file_path: str or None
                 Input file path
+                No data is read in when None,
+                creates an empty dictionary
 
             load_or_query: str list
                 Default: None all tables get
@@ -372,6 +373,8 @@ class IO(object):
                 unless all need to be
                 queried)
 
+        Returns:
+
             dict_of_dfs: dict of pd dfs
                 Dictionary of pandas dataframes
                 containing all the tables
@@ -379,64 +382,77 @@ class IO(object):
                 indicated using the load_or_query
                 flags, if applicable.
         """
-        file_type = self.get_file_type(file_path)
+        if file_path is None:
 
-        if load_or_query == "Y":
-            load_or_query = ["Y"]
-
-        if (load_or_query is not None) and (load_or_query is not np.nan):
-
-            if table_names is None:
-                if len(load_or_query) != 1:
-                    msg = (
-                        "All tables need to be loaded."
-                        "It is unclear which tables need to "
-                        "only be querried. Please provide a "
-                        "list of table names and query flags "
-                        "of the same length."
-                    )
-                    log.error(msg)
-
-            else:
-                # @as : related to database connctions
-                inx = [i != "Y" for i in load_or_query]
-                # load only those tables
-
-                table_names_to_load = np.array(table_names)[inx].tolist()
-                # others should be just connected to
-                not_inx = [not i for i in inx]
-                table_names_for_conn = np.array(table_names)[not_inx].tolist()
-
-        else:
-            table_names_to_load = table_names
-            table_names_for_conn = None
-
-        # @as or @lz see what to do about db connections
-
-        if file_type == "excel":
-            # load all tables found in the
-            # file as a dict of dataframes
-            dict_of_dfs = Excel(file_path).load(
-                data_object_names=table_names_to_load
-            )
-
-        elif file_type == "text":
             dict_of_dfs = dict()
 
-            filename_to_tablename = ntpath.basename(file_path)
-            filename_to_tablename = re.split("\.", filename_to_tablename)[0]
+        elif isinstance(file_path, str):
 
-            # get rid of the version substring
-            if self.la["extra_files"] in filename_to_tablename:
-                filename_to_tablename = self.la["extra_files"]
+            file_type = self.get_file_type(file_path)
 
-            dict_of_dfs[filename_to_tablename] = pd.read_csv(file_path)
+            if load_or_query == "Y":
+                load_or_query = ["Y"]
 
-        elif file_type == "database":
-            # load all tables found in the
-            # file as a dict of dataframes
+            if (load_or_query is not None) and (load_or_query is not np.nan):
 
-            dict_of_dfs = Db(file_path).load(table_names=table_names_to_load)
+                if table_names is None:
+                    if len(load_or_query) != 1:
+                        msg = (
+                            "All tables need to be loaded."
+                            "It is unclear which tables need to "
+                            "only be querried. Please provide a "
+                            "list of table names and query flags "
+                            "of the same length."
+                        )
+                        log.error(msg)
+
+                else:
+                    # @as : related to database connctions
+                    inx = [i != "Y" for i in load_or_query]
+                    # load only those tables
+
+                    table_names_to_load = np.array(table_names)[inx].tolist()
+                    # others should be just connected to
+                    not_inx = [not i for i in inx]
+                    table_names_for_conn = np.array(table_names)[not_inx].tolist()
+
+            else:
+                table_names_to_load = table_names
+                table_names_for_conn = None
+
+            # @as or @lz see what to do about db connections
+
+            if file_type == "excel":
+                # load all tables found in the
+                # file as a dict of dataframes
+                dict_of_dfs = Excel(file_path).load(
+                    data_object_names=table_names_to_load
+                )
+
+            elif file_type == "text":
+                dict_of_dfs = dict()
+
+                filename_to_tablename = ntpath.basename(file_path)
+                filename_to_tablename = re.split(
+                    "\.", filename_to_tablename)[0]
+
+                # get rid of the version substring
+                if self.la["extra_files"] in filename_to_tablename:
+                    filename_to_tablename = self.la["extra_files"]
+
+                dict_of_dfs[filename_to_tablename] = pd.read_csv(file_path)
+
+            elif file_type == "database":
+                # load all tables found in the
+                # file as a dict of dataframes
+
+                dict_of_dfs = Db(
+                    file_path).load(
+                    table_names=table_names_to_load)
+
+        else:
+            msg="Unsupported value ({}) provided as input file path."
+            log.error(msg.format(file_path))
 
         return dict_of_dfs
 
