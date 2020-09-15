@@ -24,7 +24,11 @@ class IOTests(unittest.TestCase):
 
         self.assertTrue("db_path" in res.keys())
 
+        # tear down
+        shutil.rmtree(res["outpath"])
+
         res_no_db = i_o.load(create_db=False)
+
         self.assertFalse("db_path" in res_no_db.keys())
 
     def test_load_from_excel_w_input_from_files(self):
@@ -41,6 +45,9 @@ class IOTests(unittest.TestCase):
         res = i_o.load()
 
         self.assertEqual(len(res["tables_as_dict_of_dfs"].keys()), 9)
+
+        # tear down
+        shutil.rmtree(res["outpath"])
 
     def test_load_from_csv_inputs_from_files(self):
         """Tests loading from a single csv file that
@@ -71,6 +78,9 @@ class IOTests(unittest.TestCase):
         res = i_o.load()
 
         self.assertEqual(len(res["tables_as_dict_of_dfs"].keys()), 2)
+
+        # tear down
+        shutil.rmtree(res["outpath"])
 
     def test_load_from_db(self):
         """Tests loading from a db.
@@ -223,8 +233,6 @@ class IOTests(unittest.TestCase):
             os.path.isdir(data_conn["outpath"])
         )
 
-        breakpoint()
-
         # tear down files
         shutil.rmtree(data_conn["outpath"])
 
@@ -248,8 +256,6 @@ class IOTests(unittest.TestCase):
         self.assertTrue(
             os.path.isdir(data_conn["outpath"])
         )
-
-        breakpoint()
 
         # tear down files
         shutil.rmtree(data_conn["outpath"])
