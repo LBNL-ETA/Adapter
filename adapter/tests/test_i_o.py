@@ -137,10 +137,36 @@ class IOTests(unittest.TestCase):
         i_o = IO(path)
         data_conn = i_o.load()
 
-        # build files
+        # write to db based on load method output only
         i_o.write(
             type='db',
             data_connection=data_conn
+        )
+
+        self.assertTrue(
+            os.path.isfile(data_conn["db_path"]))
+        self.assertTrue(
+            os.path.isdir(data_conn["outpath"])
+        )
+
+        # tear down files
+        shutil.rmtree(data_conn["outpath"])
+
+        # write to db based on load method output but
+        # write new dataframes
+        new = {'df1':pd.DataFrame([1,2]),
+               'df2':pd.DataFrame(['a','b'])}
+
+        i_o.write(
+            type='db',
+            data_connection=data_conn,
+            data_as_dict_of_dfs=new
+        )
+
+        # add the input tables to the same db
+        i_o.write(
+            type='db',
+            data_connection=data_conn,
         )
 
         self.assertTrue(

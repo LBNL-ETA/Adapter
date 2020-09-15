@@ -550,8 +550,14 @@ class IO(object):
                 'tables_as_dict_of_dfs' - all input
                     tables loaded in python as dictionary
                     of dataframes, to be written
+
+                If data_as_dict_of_dfs is not none, these
+                will be the dataframes writtne to output
+                instead
+
                 'outpath' - output folder path
                 'run_tag' - version + analysis start time
+
 
                 If db got written:
 
@@ -595,30 +601,33 @@ class IO(object):
             True
         """
         if data_connection is not None:
-            data_as_dict_of_dfs = data_connection[
-            "tables_as_dict_of_dfs"]
+
+            if data_as_dict_of_dfs is None:
+                data_as_dict_of_dfs = data_connection[
+                "tables_as_dict_of_dfs"]
+
+
             db_conn = data_connection[
                 "db_conn"]
             outpath = data_connection[
                 "outpath"]
             run_tag = data_connection[
                 "run_tag"]
-
         else:
-            if data_as_dict_of_dfs is None:
-                msg='No data to write passed.'
-                log.error(msg)
-                raise ValueError
-            elif not isinstance(
-                data_as_dict_of_dfs, dict
-            ):
-                msg='Data needs to be in a '\
-                "dictionary of dataframes format."
-                log.error(msg)
-                raise ValueError
-
             if outpath is None:
                 outpath = os.getcwd()
+
+        if data_as_dict_of_dfs is None:
+            msg='No data to write passed.'
+            log.error(msg)
+            raise ValueError
+        elif not isinstance(
+            data_as_dict_of_dfs, dict
+        ):
+            msg='Data needs to be in a '\
+            "dictionary of dataframes format."
+            log.error(msg)
+            raise ValueError
 
         if 'db' in type:
 
