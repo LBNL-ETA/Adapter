@@ -568,13 +568,16 @@ class IO(object):
                 data_connection
 
             outpath:
-                Default: None if using the data connection that
-                is the return of `load` method.
+                Default: None means current working directory
+                It is ignored if using the data connection
+                that is the return of `load` method.
                 Otherwise pass output folder path
 
             run_tag: str
                 Default: ""
-                Tag to include in the db name
+                It is ignored if using the data connection
+                that is the return of `load` method.
+                Tag to include in the db/file name
 
             db_conn: None or db connection
                 Default: None if using the data connection that
@@ -591,56 +594,61 @@ class IO(object):
 
             True
         """
+        if data_connection is not None:
+            data_as_dict_of_dfs = data_connection["
+            tables_as_dict_of_dfs"]
+            db_conn = data_connection[
+                "db_conn"]
+            outpath = data_connection[
+                "outpath"]
+            run_tag = data_connection[
+                "run_tag"]
+
+        else:
+            if data_as_dict_of_dfs is None:
+                msg='No data to write passed.'
+                log.error(msg)
+                raise ValueError
+            elif not isinstance(
+                data_as_dict_of_dfs, dict)
+            ):
+                msg='Data needs to be in a '\
+                "dictionary of dataframes format."
+                log.error(msg)
+                raise ValueError
+
+            if outpath is None:
+                outpath = os.getcwd()
+
         if 'db' in type:
 
             close=close_db
 
-            if data_connection is not None:
-                data_as_dict_of_dfs = data_connection["
-                tables_as_dict_of_dfs"]
-                db_conn = data_connection[
-                    "db_conn"]
-                outpath = data_connection[
-                    "outpath"]
-                run_tag = data_connection[
-                    "run_tag"]
-
-            else:
-                if data_as_dict_of_dfs is None:
-                    msg='No data to write passed.'
-                    log.error(msg)
-                    raise ValueError
-                elif not isinstance(
-                    data_as_dict_of_dfs, dict)
-                ):
-                    msg='Data needs to be in a '\
-                    "dictionary of dataframes format."
-                    log.error(msg)
-                    raise ValueError
+            if db_conn is None:
+                msg = 'Missing db connection.'
+                log.error(msg)
+                raise ValueError
 
             self.create_db(
-            dict_of_dfs=data_as_dict_of_dfs,
-            db_conn=db_conn,
-            outpath=outpath,
-            run_tag=run_tag,
-            flavor="sqlite",
-            close=close_db,
+                dict_of_dfs=data_as_dict_of_dfs,
+                db_conn=db_conn,
+                outpath=outpath,
+                run_tag=run_tag,
+                flavor="sqlite",
+                close=close_db,
             )
 
         if 'csv' in type:
-            
 
+            for key in data_as_dict_of_dfs.keys():
+                df_to_write = data_as_dict_of_dfs[key]
 
-    def create_db(
-        self,
-        dict_of_dfs,
-        db_conn=False,
-        outpath=None,
-        run_tag="",
-        flavor="sqlite",
-        close=True,
-
-
+                df_to_write.to_csv(
+                    path_or_buf=os.path.join(
+                        output,
+                        key + '_' + run_tag + ".csv",
+                    )
+                )
 
     def first_col_to_index(self, dict_of_dfs, table_names=True, drop=True):
         """Function that sets the first column of dataframe as index.
