@@ -591,8 +591,55 @@ class IO(object):
 
             True
         """
-        # *mg if data_connection, use outpath and version from it
-        #
+        if 'db' in type:
+
+            close=close_db
+
+            if data_connection is not None:
+                data_as_dict_of_dfs = data_connection["
+                tables_as_dict_of_dfs"]
+                db_conn = data_connection[
+                    "db_conn"]
+                outpath = data_connection[
+                    "outpath"]
+                run_tag = data_connection[
+                    "run_tag"]
+
+            else:
+                if data_as_dict_of_dfs is None:
+                    msg='No data to write passed.'
+                    log.error(msg)
+                    raise ValueError
+                elif not isinstance(
+                    data_as_dict_of_dfs, dict)
+                ):
+                    msg='Data needs to be in a '\
+                    "dictionary of dataframes format."
+                    log.error(msg)
+                    raise ValueError
+
+            self.create_db(
+            dict_of_dfs=data_as_dict_of_dfs,
+            db_conn=db_conn,
+            outpath=outpath,
+            run_tag=run_tag,
+            flavor="sqlite",
+            close=close_db,
+            )
+
+        if 'csv' in type:
+            
+
+
+    def create_db(
+        self,
+        dict_of_dfs,
+        db_conn=False,
+        outpath=None,
+        run_tag="",
+        flavor="sqlite",
+        close=True,
+
 
 
     def first_col_to_index(self, dict_of_dfs, table_names=True, drop=True):
