@@ -231,4 +231,25 @@ class IOTests(unittest.TestCase):
     def test_write_to_csv_and_db(self):
         """Tests main write method for both csv and db
         """
-        pass
+        path = os.path.join(
+            os.getcwd(), r"adapter/tests/inputs_from_files_vTest.csv"
+        )
+        i_o = IO(path)
+        data_conn = i_o.load()
+
+        # write to db based on load method output only
+        i_o.write(
+            type='db&csv',
+            data_connection=data_conn
+        )
+
+        self.assertTrue(
+            os.path.isfile(data_conn["db_path"]))
+        self.assertTrue(
+            os.path.isdir(data_conn["outpath"])
+        )
+
+        breakpoint()
+
+        # tear down files
+        shutil.rmtree(data_conn["outpath"])
