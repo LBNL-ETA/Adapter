@@ -606,7 +606,6 @@ class IO(object):
                 data_as_dict_of_dfs = data_connection[
                 "tables_as_dict_of_dfs"]
 
-
             db_conn = data_connection[
                 "db_conn"]
             outpath = data_connection[
@@ -649,12 +648,15 @@ class IO(object):
 
         if 'csv' in type:
 
+            if not os.path.exists(outpath):
+                os.mkdir(outpath)
+
             for key in data_as_dict_of_dfs.keys():
                 df_to_write = data_as_dict_of_dfs[key]
 
                 df_to_write.to_csv(
                     path_or_buf=os.path.join(
-                        output,
+                        outpath,
                         key + '_' + run_tag + ".csv",
                     )
                 )

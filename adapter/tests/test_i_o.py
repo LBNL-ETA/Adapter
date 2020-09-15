@@ -129,7 +129,7 @@ class IOTests(unittest.TestCase):
         self.assertEqual(result_labels, expected_labels)
 
     def test_write_to_db(self):
-        """
+        """Tests main write method for type db
         """
         path = os.path.join(
             os.getcwd(), r"adapter/tests/inputs_from_files_vTest.csv"
@@ -179,11 +179,56 @@ class IOTests(unittest.TestCase):
         shutil.rmtree(data_conn["outpath"])
 
     def test_write_to_csv(self):
+        """Tests main write method for type csv
         """
-        """
-        pass
+        path = os.path.join(
+            os.getcwd(), r"adapter/tests/inputs_from_files_vTest.csv"
+        )
+        i_o = IO(path)
+        data_conn = i_o.load()
+
+        # write to db based on load method output only
+        i_o.write(
+            type='csv',
+            data_connection=data_conn
+        )
+
+        self.assertTrue(
+            os.path.isfile(data_conn["db_path"]))
+        self.assertTrue(
+            os.path.isdir(data_conn["outpath"])
+        )
+
+        # tear down files
+        shutil.rmtree(data_conn["outpath"])
+
+        # write to db based on load method output but
+        # write new dataframes
+        new = {'df1':pd.DataFrame([1,2]),
+               'df2':pd.DataFrame(['a','b'])}
+
+        i_o.write(
+            type='csv',
+            data_connection=data_conn,
+            data_as_dict_of_dfs=new
+        )
+
+        # add the input tables to the same db
+        i_o.write(
+            type='csv',
+            data_connection=data_conn,
+        )
+
+        self.assertTrue(
+            os.path.isdir(data_conn["outpath"])
+        )
+
+        breakpoint()
+
+        # tear down files
+        shutil.rmtree(data_conn["outpath"])
 
     def test_write_to_csv_and_db(self):
-        """
+        """Tests main write method for both csv and db
         """
         pass
