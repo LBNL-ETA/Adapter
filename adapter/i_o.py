@@ -465,10 +465,14 @@ class IO(object):
                 None: Writes to the db initiated at
                 input data read-in
                 Otherwise pass a database connection
-                to an exhisting database
+                to an existing database
 
             outpath:
                 Output folder path
+
+            run_tag: str
+                Default: ""
+                Tag to include in the db name
 
             db_flavor:
                 Database file format
@@ -518,11 +522,11 @@ class IO(object):
         return res
 
     def write(self,
-        df_of_dicts,
         type='db',
-        data_connection=None
+        data_connection=None,
+        data_as_dict_of_dfs=None,
         outpath=None,
-        run_tag="adapter_wrote_",
+        run_tag="",
         db_conn=None,
         close_db=True):
         """Writes all dataframes from a dictionary of dataframes
@@ -531,11 +535,61 @@ class IO(object):
         Paramters:
 
             type: str
-                'db'
-                'csv'
-                'db&csv'
+                String to indicate type of output
+                files:
 
+                'db': database
+                'csv': csv
+                'db&csv': both database and csv
 
+            data_connection: dict
+                Return of `load` method
+
+                Keys:
+
+                'tables_as_dict_of_dfs' - all input
+                    tables loaded in python as dictionary
+                    of dataframes, to be written
+                'outpath' - output folder path
+                'run_tag' - version + analysis start time
+
+                If db got written:
+
+                'db_path' - database fullpath
+                'db_conn' - database connection
+
+                Set to None if passing the data, db
+                connection and run tag explicitelly through
+                other kwargs. This functionality can
+                be used when the `load` method was not called.
+
+            data_as_dict_of_dfs: dict of dfs to be written
+                Default: None, if data was passed with the
+                data_connection
+
+            outpath:
+                Default: None if using the data connection that
+                is the return of `load` method.
+                Otherwise pass output folder path
+
+            run_tag: str
+                Default: ""
+                Tag to include in the db name
+
+            db_conn: None or db connection
+                Default: None if using the data connection that
+                is the return of `load` method.
+                Otherwise pass a database connection
+                to an existing database
+
+            close_db: boolean
+                Default: True
+                To close the db connection after
+                the data is written.
+
+        Return:
+
+            True
         """
         # *mg if data_connection, use outpath and version from it
         #

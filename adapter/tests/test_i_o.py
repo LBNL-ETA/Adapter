@@ -11,6 +11,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class IOTests(unittest.TestCase):
+
     def test_load_from_excel(self):
         """Tests the typical LCC analysis case
         where all input tables are saved as
@@ -126,3 +127,18 @@ class IOTests(unittest.TestCase):
         result_labels = i_o.process_column_labels(labels)
 
         self.assertEqual(result_labels, expected_labels)
+
+    def test_write_to_db(self):
+        """
+        """
+        pass
+
+    def test_write_to_csv(self):
+        """
+        """
+        pass
+
+    def test_write_to_csv_and_db(self):
+        """
+        """
+        pass
