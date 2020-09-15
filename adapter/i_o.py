@@ -177,6 +177,7 @@ class IO(object):
                 'db_conn' - database connection
         """
         dict_of_dfs = self.get_tables(self.input_path)
+        breakpoint()
 
         # are there any further input files?
         # if that is the case, the file paths and further info
@@ -512,6 +513,8 @@ class IO(object):
         # create an sql database within the output folder and connect
         db_path = os.path.join(outpath, run_tag + db_out_type)
         db_con = sqlite3.connect(db_path)
+
+        breakppoint()
 
         # write all input tables in the db
         for table_name in dict_of_dfs.keys():
