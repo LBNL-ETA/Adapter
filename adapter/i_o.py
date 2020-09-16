@@ -625,8 +625,11 @@ class IO(object):
 
             db_conn = data_connection[
                 "db_conn"]
-            outpath = data_connection[
-                "outpath"]
+
+            if outpath is None:
+                outpath = data_connection[
+                    "outpath"]
+
             run_tag = data_connection[
                 "run_tag"]
         else:
