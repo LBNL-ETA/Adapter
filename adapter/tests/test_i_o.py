@@ -100,7 +100,7 @@ class IOTests(unittest.TestCase):
 
         res = i_o.load()
 
-        breakpoint()
+        self.assertEqual(isinstance(res, dict), True)
 
     def test_first_col_to_index(self):
         """Tests if the first column is set as a index.
