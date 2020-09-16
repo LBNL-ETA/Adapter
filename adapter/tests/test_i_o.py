@@ -68,8 +68,7 @@ class IOTests(unittest.TestCase):
         """Tests loading from an excel table without
         defined version and output path parameters.
         """
-        # *mig the code is supposed to notify user and
-        # create a version and outpath
+
         path = os.path.join(
             os.getcwd(), r"adapter/tests/test_no_run_parameters.xlsx"
         )
@@ -85,14 +84,23 @@ class IOTests(unittest.TestCase):
     def test_load_from_db(self):
         """Tests loading from a db.
         """
-        # *mig the code is supposed to notify user and
-        # create a version and outpath
+
         path = os.path.join(os.getcwd(), r"adapter/tests/test.db")
         i_o = IO(path)
 
         res = i_o.load()
 
         self.assertEqual(len(res["tables_as_dict_of_dfs"].keys()), 3)
+
+    def test_load_from_none(self):
+        """Tests loading from a path specified as None.
+        """
+
+        i_o = IO(None)
+
+        res = i_o.load()
+
+        breakpoint()
 
     def test_first_col_to_index(self):
         """Tests if the first column is set as a index.

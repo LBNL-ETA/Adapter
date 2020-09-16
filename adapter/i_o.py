@@ -52,7 +52,8 @@ class IO(object):
 
         self.input_path = path
 
-        self.input_type = self.get_file_type(path)
+        if isinstance(path, str):
+            self.input_type = self.get_file_type(path)
 
         # set labels
         self.la = Labels().set_labels()
@@ -282,7 +283,7 @@ class IO(object):
         if not os.path.exists(outpath):
             os.makedirs(outpath)
 
-        if save_input:
+        if save_input and isinstance(self.input_path, str):
             # self.input_path
             filename = ntpath.basename(self.input_path)
             filename_extns = re.split("\.", filename)[-1]
