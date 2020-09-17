@@ -59,8 +59,9 @@ class IOTests(unittest.TestCase):
 
         i_o = IO(path)
 
-        res = i_o.load()
+        res = i_o.load(to_numeric=['xlsx_table2'])
 
+        breakpoint()
         self.assertEqual(len(res["tables_as_dict_of_dfs"].keys()), 10)
         self.assertEqual(len(res.keys()), 5)
 

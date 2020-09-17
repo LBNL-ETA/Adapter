@@ -233,9 +233,9 @@ class IO(object):
                 log.error(msg.format(to_numeric))
 
             for key in dict_of_dfs.keys():
-                if key in to_numeric:
-                    dict_of_dfs[key] = dict_of_dfs[key].apply(
-                        pd.to_numeric,
+                if any([key in tb_nm for tb_nm in to_numeric]):
+                    dict_of_dfs[key] = dict_of_dfs[
+                        key].apply(pd.to_numeric,
                         errors='ignore',
                         axis=1)
 
