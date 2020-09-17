@@ -222,23 +222,6 @@ class IO(object):
         else:
             qry_flags = None
 
-        # value type conversion for any tables listed
-        # as to_numeric and to_float
-        if to_numeric is not None:
-            if isinstance(to_numeric, list):
-                pass
-            else:
-                msg = "{} passed for to_numeric kwarg."\
-                "Only None or a list of strings are supported."
-                log.error(msg.format(to_numeric))
-
-            for key in dict_of_dfs.keys():
-                if any([key in tb_nm for tb_nm in to_numeric]):
-                    dict_of_dfs[key] = dict_of_dfs[
-                        key].apply(pd.to_numeric,
-                        errors='ignore',
-                        axis=1)
-
         # define output path for the analysis run
 
         if quick_db_out_filename is None:
@@ -317,6 +300,23 @@ class IO(object):
             dict_of_dfs = self.first_col_to_index(
                 dict_of_dfs, table_names=set_first_col_as_index, drop=True
             )
+
+        # value type conversion for any tables listed
+        # as to_numeric and to_float
+        if to_numeric is not None:
+            if isinstance(to_numeric, list):
+                pass
+            else:
+                msg = "{} passed for to_numeric kwarg."\
+                "Only None or a list of strings are supported."
+                log.error(msg.format(to_numeric))
+
+            for key in dict_of_dfs.keys():
+                if any([key in tb_nm for tb_nm in to_numeric]):
+                    dict_of_dfs[key] = dict_of_dfs[
+                        key].apply(pd.to_numeric,
+                        errors='ignore',
+                        axis=1)
 
         res = dict()
         res["tables_as_dict_of_dfs"] = dict_of_dfs
