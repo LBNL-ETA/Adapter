@@ -52,7 +52,8 @@ class IO(object):
 
         self.input_path = path
 
-        self.input_type = self.get_file_type(path)
+        if isinstance(path, str):
+            self.input_type = self.get_file_type(path)
 
         # set labels
         self.la = Labels().set_labels()
@@ -96,7 +97,8 @@ class IO(object):
         save_input=True,
         set_first_col_as_index=False,
         quick_db_out_filename=None,
-        clean_labels=True
+        clean_labels=True,
+        to_numeric=None,
     ):
         """Loads tables from the input file
         as a dictinary of python dataframes.
@@ -132,11 +134,12 @@ class IO(object):
                 Save initial input file under the output
                 folder
 
-            set_first_col_as_index: bool or list of strings or None
+            set_first_col_as_index: bool or list of strings
+                True: Set index for all tables
                 False: do not set the first column as index
+                for any tables
                 List of strings: List of tables that need
                 their first column set as index
-                None: Set index for all tables
 
             quick_db_out_filename: string, defaults to None
                 Output filename without the
@@ -149,6 +152,11 @@ class IO(object):
                 or timestamp included. This may be useful when
                 quickly converting an excel file with tables
                 and named ranges into a database.
+
+            to_numeric: list
+                List of string table names where
+                values should be converted to
+                numeric where possible
 
             clean_labels: bool
                 Process table columns to remove trailing whitespaces
@@ -175,6 +183,7 @@ class IO(object):
         # if that is the case, the file paths and further info
         # should be placed in an `inputs_from_files` table
         qry_flags = dict()
+
         if self.la["extra_files"] in dict_of_dfs.keys():
 
             extra_files = dict_of_dfs[self.la["extra_files"]].reset_index()
@@ -223,7 +232,9 @@ class IO(object):
 
                 outpath_base = os.path.join(
                     os.getcwd(),
-                    dict_of_dfs[self.la["run_pars"]].loc[0, self.la["outpath"]],
+                    dict_of_dfs[self.la["run_pars"]].loc[
+                        0, self.la["outpath"]
+                    ],
                 )
 
                 version = dict_of_dfs[self.la["run_pars"]].loc[
@@ -242,19 +253,20 @@ class IO(object):
                 outpath_base = os.path.join(os.getcwd(), "output")
                 version = ""
 
-            run_tag = version + "_" + datetime.now().strftime(
-                "%Y_%m_%d-%Hh_%Mm")
+            run_tag = (
+                version + "_" + datetime.now().strftime("%Y_%m_%d-%Hh_%Mm")
+            )
 
             outpath = os.path.join(outpath_base, run_tag)
 
         else:
-            outpath=os.getcwd()
-            run_tag=quick_db_out_filename
+            outpath = os.getcwd()
+            run_tag = quick_db_out_filename
 
         if not os.path.exists(outpath):
             os.makedirs(outpath)
 
-        if save_input:
+        if save_input and isinstance(self.input_path, str):
             # self.input_path
             filename = ntpath.basename(self.input_path)
             filename_extns = re.split("\.", filename)[-1]
@@ -289,11 +301,26 @@ class IO(object):
                 dict_of_dfs, table_names=set_first_col_as_index, drop=True
             )
 
+        # value type conversion for any tables listed
+        # as to_numeric and to_float
+        if to_numeric is not None:
+            if isinstance(to_numeric, list):
+                pass
+            else:
+                msg = "{} passed for to_numeric kwarg."\
+                "Only None or a list of strings are supported."
+                log.error(msg.format(to_numeric))
+
+            for key in dict_of_dfs.keys():
+                if any([key in tb_nm for tb_nm in to_numeric]):
+                    dict_of_dfs[key] = dict_of_dfs[
+                        key].apply(pd.to_numeric,
+                        errors='ignore',
+                        axis=1)
+
         res = dict()
         res["tables_as_dict_of_dfs"] = dict_of_dfs
-        # @as populate with tables or the connections, as you
-        # find practical
-        # res['tables_to_query'] =
+
         res["outpath"] = outpath
         res["run_tag"] = run_tag
 
@@ -302,17 +329,16 @@ class IO(object):
 
         if clean_labels == True:
 
-            input_tables_list=res["tables_as_dict_of_dfs"]
+            input_tables_list = res["tables_as_dict_of_dfs"]
 
             for table in input_tables_list:
 
-                table_columns=input_tables_list[table].columns
+                table_columns = input_tables_list[table].columns
 
-                clean_cols=self.process_column_labels(table_columns)
-                input_tables_list[table].columns=clean_cols
+                clean_cols = self.process_column_labels(table_columns)
+                input_tables_list[table].columns = clean_cols
 
-
-            msg="All table column labels were processed to remove undesired whitespaces."
+            msg = "All table column labels were processed to remove undesired whitespaces."
             log.info(msg)
 
         return res
@@ -329,8 +355,10 @@ class IO(object):
 
         Parameters:
 
-            file_path: str
+            file_path: str or None
                 Input file path
+                No data is read in when None,
+                creates an empty dictionary
 
             load_or_query: str list
                 Default: None all tables get
@@ -346,6 +374,8 @@ class IO(object):
                 unless all need to be
                 queried)
 
+        Returns:
+
             dict_of_dfs: dict of pd dfs
                 Dictionary of pandas dataframes
                 containing all the tables
@@ -353,70 +383,84 @@ class IO(object):
                 indicated using the load_or_query
                 flags, if applicable.
         """
-        file_type = self.get_file_type(file_path)
+        if file_path is None:
 
-        if load_or_query == "Y":
-            load_or_query = ["Y"]
-
-        if (load_or_query is not None) and (load_or_query is not np.nan):
-
-            if table_names is None:
-                if len(load_or_query) != 1:
-                    msg = (
-                        "All tables need to be loaded."
-                        "It is unclear which tables need to "
-                        "only be querried. Please provide a "
-                        "list of table names and query flags "
-                        "of the same length."
-                    )
-                    log.error(msg)
-
-            else:
-                # @as : related to database connctions
-                inx = [i != "Y" for i in load_or_query]
-                # load only those tables
-
-                table_names_to_load = np.array(table_names)[inx].tolist()
-                # others should be just connected to
-                not_inx = [not i for i in inx]
-                table_names_for_conn = np.array(table_names)[not_inx].tolist()
-
-        else:
-            table_names_to_load = table_names
-            table_names_for_conn = None
-
-        # @as or @lz see what to do about db connections
-
-        if file_type == "excel":
-            # load all tables found in the
-            # file as a dict of dataframes
-            dict_of_dfs = Excel(file_path).load(
-                data_object_names=table_names_to_load
-            )
-
-        elif file_type == "text":
             dict_of_dfs = dict()
 
-            filename_to_tablename = ntpath.basename(file_path)
-            filename_to_tablename = re.split("\.", filename_to_tablename)[0]
+        elif isinstance(file_path, str):
 
-            # get rid of the version substring
-            if self.la["extra_files"] in filename_to_tablename:
-                filename_to_tablename = self.la["extra_files"]
+            file_type = self.get_file_type(file_path)
 
-            dict_of_dfs[filename_to_tablename] = pd.read_csv(file_path)
+            if load_or_query == "Y":
+                load_or_query = ["Y"]
 
-        elif file_type == "database":
-            # load all tables found in the
-            # file as a dict of dataframes
+            if (load_or_query is not None) and (load_or_query is not np.nan):
 
-            dict_of_dfs = Db(file_path).load(table_names=table_names_to_load)
+                if table_names is None:
+                    if len(load_or_query) != 1:
+                        msg = (
+                            "All tables need to be loaded."
+                            "It is unclear which tables need to "
+                            "only be querried. Please provide a "
+                            "list of table names and query flags "
+                            "of the same length."
+                        )
+                        log.error(msg)
+
+                else:
+                    # @as : related to database connctions
+                    inx = [i != "Y" for i in load_or_query]
+                    # load only those tables
+
+                    table_names_to_load = np.array(table_names)[inx].tolist()
+                    # others should be just connected to
+                    not_inx = [not i for i in inx]
+                    table_names_for_conn = np.array(table_names)[not_inx].tolist()
+
+            else:
+                table_names_to_load = table_names
+                table_names_for_conn = None
+
+            # @as or @lz see what to do about db connections
+
+            if file_type == "excel":
+                # load all tables found in the
+                # file as a dict of dataframes
+                dict_of_dfs = Excel(file_path).load(
+                    data_object_names=table_names_to_load
+                )
+
+            elif file_type == "text":
+                dict_of_dfs = dict()
+
+                filename_to_tablename = ntpath.basename(file_path)
+                filename_to_tablename = re.split(
+                    "\.", filename_to_tablename)[0]
+
+                # get rid of the version substring
+                if self.la["extra_files"] in filename_to_tablename:
+                    filename_to_tablename = self.la["extra_files"]
+
+                dict_of_dfs[filename_to_tablename] = pd.read_csv(file_path)
+
+            elif file_type == "database":
+                # load all tables found in the
+                # file as a dict of dataframes
+
+                dict_of_dfs = Db(
+                    file_path).load(
+                    table_names=table_names_to_load)
+
+        else:
+            msg="Unsupported value ({}) provided as input file path."
+            log.error(msg.format(file_path))
 
         return dict_of_dfs
 
     def create_db(
         self,
         dict_of_dfs,
+        db_conn=False,
         outpath=None,
         run_tag="",
         flavor="sqlite",
@@ -434,8 +478,18 @@ class IO(object):
                 as a pandas dataframe under that
                 key
 
+            db_conn: None or db connection
+                None: Writes to the db initiated at
+                input data read-in
+                Otherwise pass a database connection
+                to an existing database
+
             outpath:
                 Output folder path
+
+            run_tag: str
+                Default: ""
+                Tag to include in the db name
 
             db_flavor:
                 Database file format
@@ -444,10 +498,8 @@ class IO(object):
 
             res: dict
                 {'db_path' : database path ,
-                 'db_con' : database connection}
+                 'db_conn' : database connection}
         """
-        # @lz add further db flavors
-
         if flavor == "sqlite":
             db_out_type = ".db"
 
@@ -466,8 +518,10 @@ class IO(object):
         for table_name in dict_of_dfs.keys():
             try:
                 dict_of_dfs[table_name].to_sql(
-                    name=table_name, con=db_con, if_exists="replace",
-                    index=False
+                    name=table_name,
+                    con=db_con,
+                    if_exists="replace",
+                    index=False,
                 )
             except:
                 msg = "An error occured when writting {} table " "to a db {}."
@@ -480,11 +534,154 @@ class IO(object):
         if close:
             db_con.close()
 
-        res = {"db_path": db_path, "db_con": db_con}
+        res = {"db_path": db_path, "db_conn": db_con}
 
         return res
 
-    def first_col_to_index(self, dict_of_dfs, table_names=None, drop=True):
+    def write(self,
+        type='db',
+        data_connection=None,
+        data_as_dict_of_dfs=None,
+        outpath=None,
+        run_tag="",
+        db_conn=None,
+        close_db=True):
+        """Writes all dataframes from a dictionary of dataframes
+        out into an existing database.
+
+        Paramters:
+
+            type: str
+                String to indicate type of output
+                files:
+
+                'db': database
+                'csv': csv
+                'db&csv': both database and csv
+
+            data_connection: dict
+                Return of `load` method
+
+                Keys:
+
+                'tables_as_dict_of_dfs' - all input
+                    tables loaded in python as dictionary
+                    of dataframes, to be written
+
+                If data_as_dict_of_dfs is not none, these
+                will be the dataframes writtne to output
+                instead
+
+                'outpath' - output folder path
+                'run_tag' - version + analysis start time
+
+
+                If db got written:
+
+                'db_path' - database fullpath
+                'db_conn' - database connection
+
+                Set to None if passing the data, db
+                connection and run tag explicitelly through
+                other kwargs. This functionality can
+                be used when the `load` method was not called.
+
+            data_as_dict_of_dfs: dict of dfs to be written
+                Default: None, if data was passed with the
+                data_connection
+
+            outpath:
+                Default: None means current working directory
+                It is ignored if using the data connection
+                that is the return of `load` method.
+                Otherwise pass output folder path
+
+            run_tag: str
+                Default: ""
+                It is ignored if using the data connection
+                that is the return of `load` method.
+                Tag to include in the db/file name
+
+            db_conn: None or db connection
+                Default: None if using the data connection that
+                is the return of `load` method.
+                Otherwise pass a database connection
+                to an existing database
+
+            close_db: boolean
+                Default: True
+                To close the db connection after
+                the data is written.
+
+        Return:
+
+            True
+        """
+        if data_connection is not None:
+
+            if data_as_dict_of_dfs is None:
+                data_as_dict_of_dfs = data_connection[
+                "tables_as_dict_of_dfs"]
+
+            db_conn = data_connection[
+                "db_conn"]
+
+            if outpath is None:
+                outpath = data_connection[
+                    "outpath"]
+
+            run_tag = data_connection[
+                "run_tag"]
+        else:
+            if outpath is None:
+                outpath = os.getcwd()
+
+        if data_as_dict_of_dfs is None:
+            msg='No data to write passed.'
+            log.error(msg)
+            raise ValueError
+        elif not isinstance(
+            data_as_dict_of_dfs, dict
+        ):
+            msg='Data needs to be in a '\
+            "dictionary of dataframes format."
+            log.error(msg)
+            raise ValueError
+
+        if 'db' in type:
+
+            close=close_db
+
+            if db_conn is None:
+                msg = 'Missing db connection.'
+                log.error(msg)
+                raise ValueError
+
+            self.create_db(
+                dict_of_dfs=data_as_dict_of_dfs,
+                db_conn=db_conn,
+                outpath=outpath,
+                run_tag=run_tag,
+                flavor="sqlite",
+                close=close_db,
+            )
+
+        if 'csv' in type:
+
+            if not os.path.exists(outpath):
+                os.mkdir(outpath)
+
+            for key in data_as_dict_of_dfs.keys():
+                df_to_write = data_as_dict_of_dfs[key]
+
+                df_to_write.to_csv(
+                    path_or_buf=os.path.join(
+                        outpath,
+                        key + '_' + run_tag + ".csv",
+                    )
+                )
+
+    def first_col_to_index(self, dict_of_dfs, table_names=True, drop=True):
         """Function that sets the first column of dataframe as index.
 
         Parameters:
@@ -496,9 +693,11 @@ class IO(object):
                 as a pandas dataframe under that
                 key
 
-            table_names: list or None
+            table_names: list or True
                 List containing names of tables that
                 need to be modified
+                Default: True means all tables are
+                modified
 
             drop: boolean
                 Flag indicating whether to drop the column
@@ -511,8 +710,22 @@ class IO(object):
                 the index has been set
 
         """
-        if table_names is None:
+        if table_names == True:
+            msg = "Converting first column to index for all inputs."
+            log.info(msg.format(table_names))
             table_names = dict_of_dfs.keys()
+
+        elif isinstance(table_names, list):
+            msg = "Converting first column to index for {} tables."
+            log.info(msg.format(table_names))
+
+        elif table_names == False:
+            pass
+
+        else:
+            msg = "Unsuported value {} passed to table_names kwarg."
+            log.error(msg.format(table_names))
+            raise ValueError
 
         res = dict()
         for x in dict_of_dfs.keys():
@@ -523,7 +736,6 @@ class IO(object):
                 res[x] = dict_of_dfs[x].copy()
 
         return res
-
 
     def process_column_labels(self, list_of_labels):
         """
@@ -539,11 +751,10 @@ class IO(object):
             list_of_cleaned_labels: list
                 A list with cleaned lables
         """
-        list_of_labels=[str(x) for x in list_of_labels]
+        list_of_labels = [str(x) for x in list_of_labels]
 
         list_of_cleaned_labels = [
             re.sub(" +", " ", lbl.strip()) for lbl in list_of_labels
         ]
-
 
         return list_of_cleaned_labels

@@ -28,7 +28,7 @@ class ExcelTests(unittest.TestCase):
                 "xlsx_single_col_table",
                 "xlsx_named_range1",
                 "xlsx_single_col_range",
-                "xlsx_single_value_named_range"
+                "xlsx_single_value_named_range",
             }
         )
 
