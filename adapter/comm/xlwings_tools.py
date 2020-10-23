@@ -238,7 +238,7 @@ def get_tables(wb):
             for obj in ws.api.list_objects() # Windows: ListObject, OSX: list_objects?
             if ws.api.list_objects().__len__() > 0
         }
-    elif sys.platform.lower() == 'win32': 
+    elif sys.platform.lower().startswith('win'): 
         return {
             obj.Name: Table(obj.Name, ws.name + "!" + obj.Range.Address, wb)
             for ws in wb.sheets
