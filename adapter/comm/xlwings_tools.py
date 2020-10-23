@@ -11,6 +11,7 @@ from functools import reduce
 
 from pdb import set_trace as bp
 
+import sys
 
 class Name(xw.main.Name):
     """Class used in the definition of the class ```Names```."""
@@ -227,7 +228,7 @@ def get_tables(wb):
         dict: A dictionary of strings where the keys are all the table names in
         ```wb```, and the values are the corresponding sheet names.
     """
-    
+
     # the `api` attribute acts differently for windows and osx. (Linux undeveloped). 
     # On top of that, OSX excel named ranges attached to a table that implicitly includes headers require a [#all] tag when grabbing the range for the Table. Otherwise the first row of data gets read as headers
     if sys.platform.lower() == 'darwin':
