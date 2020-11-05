@@ -92,7 +92,7 @@ class Book(xw.main.Book):
     def range(self, address, sheet_name=None, verbose=True):
         return get_range(self, address, sheet_name, verbose)
 
-    def all_names_to_df(self, keep_sheet_name=False, verbose=True, header_row = 1, index_col = 0):
+    def all_names_to_df(self, keep_sheet_name=False, verbose=True, header_row = 0, index_col = None):
         """Turn all names in an Excel workbook to pandas dataframes.
         """
         # Excel includes solver-type objects as named ranges. Those shouldn't be
@@ -167,7 +167,6 @@ class Book(xw.main.Book):
         df_content = rg.value
         # If the named_range is 2D, assume it has a header and no index.
         if type(df_content) == list and type(df_content[0]) == list:
-            header_row, index_col = 1, 0  # mg changed 1 to 0
 
             # Get dataframe using ```xl2pd```.
             df = xl2pd(self, rg, header_row=header_row, index_col=index_col)
@@ -504,9 +503,15 @@ def xl2pd(
                 ret_df = rng.options(
                     pd.DataFrame, header=header_row, index=index_col
                 ).value
+
             elif sys.platform == 'darwin':
-                ret_df = pd.DataFrame(rng.value[1:],columns = rng.value[0])
-                if index_col:
+                if header_row is not None:
+                    ret_df = pd.DataFrame(rng.value[(header_row+1):],columns = rng.value[header_row])
+                else:
+                    # Don't label columns
+                    ret_df = pd.DataFrame(rng.value)
+
+                if index_col is not None:
                     ret_df.index = ret_df.pop(ret_df.columns[index_col])
             
             if type(ret_df.columns) == pd.MultiIndex:
