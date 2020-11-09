@@ -319,11 +319,11 @@ def get_named_range(wb, range_name, sheet_name=None, verbose=True, **kwargs):
     if not sheet_name:
         sheet_name = kwargs.get(sheet_name)
     try:
-        # if sheet_name:
-        #     obj = wb.sheets(sheet_name)
-        # else:
-        #     obj = wb
         if sys.platform.lower().startswith('win'):
+            if sheet_name:
+                obj = wb.sheets(sheet_name)
+            else:
+                obj = wb
             return obj.names[range_name].refers_to_range
         elif sys.platform.lower()=='darwin':
             # This is a ridiculous way to do it, I know. But if you try to get a range from a workbook by name, or sheet that doesn't have it, it breaks
