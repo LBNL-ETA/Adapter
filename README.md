@@ -24,5 +24,19 @@ from adapter.i_o import IO
 input_loader = IO(r'fullpath_to_main_input_file')
 df_of_input_dataframes = input_loader.load()
 ```
+## Testing
 
-Some test input files are also [provided in that test folder](https://bitbucket.org/eetd-ees/adapter/src/master/adapter/tests/).
+Some example input files are [provided in that test folder](https://bitbucket.org/eetd-ees/adapter/src/master/adapter/tests/).
+
+To run tests use the `unittest` framework. All tests will be run with, from the repo root folder:
+```
+python -m unittest discover
+```
+
+All test modules have names that start with `test_`
+
+Individual test module can be run with, for example:
+```
+python -m unittest adapter.tests.test_i_o
+```
+
