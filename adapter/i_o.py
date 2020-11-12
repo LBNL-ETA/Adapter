@@ -241,6 +241,13 @@ class IO(object):
                     0, self.la["version"]
                 ]
 
+                if not isinstance(version,str):
+                    # if it was read in as a number, as occurrs in the test_input.xlsx on OSX
+                    if str(version).endswith('.0'):
+                        # Assume that the only case is when version "123" got read in as number "123.0"
+                        # period will be removed next
+                        version = str(version).rstrip('0')
+
                 # Removing '.', '\', '/' characters from version
                 # to avoid any errors during writing output
                 version = re.sub("[\\\\./]", "", version)
