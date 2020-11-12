@@ -120,7 +120,7 @@ class Book(xw.main.Book):
         named_range,
         keep_sheet_name=False,
         sheet_name=None,
-        header_row=None,
+        header_row=0,
         index_col=None,
         verbose=True,
     ):
