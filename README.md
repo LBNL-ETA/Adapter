@@ -33,9 +33,9 @@ To run tests use the `unittest` framework. All tests will be run with, from the 
 python -m unittest discover
 ```
 
-All test modules have names that start with `test_`
+All test modules have names that start with `test_`.
 
-Individual test module can be run with, for example:
+Individual test module can be run with the following command, for example the `test_i_o` module:
 ```
 python -m unittest adapter.tests.test_i_o
 ```
