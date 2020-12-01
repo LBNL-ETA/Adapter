@@ -92,7 +92,7 @@ class Book(xw.main.Book):
     def range(self, address, sheet_name=None, verbose=True):
         return get_range(self, address, sheet_name, verbose)
 
-    def all_names_to_df(self, keep_sheet_name=False, verbose=True, header_row = 0, index_col = None):
+    def all_names_to_df(self, keep_sheet_name=False, verbose=True, header_row = 1, index_col = 0):
         """Turn all names in an Excel workbook to pandas dataframes.
         """
         # Excel includes solver-type objects as named ranges. Those shouldn't be
@@ -120,7 +120,7 @@ class Book(xw.main.Book):
         named_range,
         keep_sheet_name=False,
         sheet_name=None,
-        header_row=0,
+        header_row=None,
         index_col=None,
         verbose=True,
     ):
@@ -169,7 +169,7 @@ class Book(xw.main.Book):
         if type(df_content) == list and type(df_content[0]) == list:
 
             # Get dataframe using ```xl2pd```.
-            df = xl2pd(self, rg, header_row=header_row, index_col=index_col)
+            df = xl2pd(self, rg, header_row=1, index_col=0)
 
         # If named range is 1D, assume the first value is a header, and no index
         if type(df_content) == list and type(df_content[0]) == str:
@@ -505,18 +505,35 @@ def xl2pd(
                 ).value
 
             elif sys.platform == 'darwin':
-                if header_row is not None:
-                    ret_df = pd.DataFrame(rng.value[(header_row+1):],columns = rng.value[header_row])
-                else:
-                    # Don't label columns
-                    ret_df = pd.DataFrame(rng.value)
+                ### This snippet comes directly from xlwings source code
 
-                if index_col is not None:
-                    ret_df.index = ret_df.pop(ret_df.columns[index_col])
-            
-            if type(ret_df.columns) == pd.MultiIndex:
-                # Get rid of MultiIndex in columns (introduced in xlwings 11.4).
-                ret_df.columns = ret_df.columns.get_level_values(0)
+                # build dataframe with only columns (no index) but correct header
+                if header_row == 1:
+                    columns = pd.Index(rng.value[0])
+                elif header_row > 1:
+                    columns = pd.MultiIndex.from_arrays(rng.value[:header])
+                else:
+                    columns = None
+
+                ret_df = pd.DataFrame(rng.value[header_row:], columns=columns, dtype = None, copy = False)
+
+                # handle index by resetting the index to the index first columns
+                # and renaming the index according to the name in the last row
+                if index_col > 0:
+                    # rename uniquely the index columns to some never used name for column
+                    # we do not use the column name directly as it would cause issues if several
+                    # columns have the same name
+                    ret_df.columns = pd.Index(range(len(ret_df.columns)))
+                    ret_df.set_index(list(ret_df.columns)[:index_col], inplace=True)
+
+                    ret_df.index.names = pd.Index(value[header_row - 1][:index_col] if header_row else [None]*index_col)
+
+                    if header_row:
+                        ret_df.columns = columns[index_row:]
+                    else:
+                        ret_df.columns = pd.Index(range(len(df.columns)))
+
+                ### End of snippet
     else:
         ret_df = None
 
