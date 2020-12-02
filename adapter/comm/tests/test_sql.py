@@ -2,6 +2,8 @@ import logging
 import os
 import unittest
 
+from pathlib import Path
+
 from adapter.comm.sql import Sql
 
 import pandas as pd
@@ -27,7 +29,8 @@ class SqlTests(unittest.TestCase):
         # create test db if it does not exist
 
         if not os.path.exists(test_db_fulpath):
-            os.system("touch " + test_db_fulpath)
+            # https://stackoverflow.com/questions/1158076/implement-touch-using-python
+            Path(test_db_fulpath).touch()
 
         cls.sql_api = Sql(test_db_fulpath)
 

@@ -9,8 +9,6 @@ import re
 from glob import glob
 from functools import reduce
 
-from pdb import set_trace as bp
-
 import sys
 
 class Name(xw.main.Name):
@@ -94,20 +92,22 @@ class Book(xw.main.Book):
     def range(self, address, sheet_name=None, verbose=True):
         return get_range(self, address, sheet_name, verbose)
 
-    def all_names_to_df(self, keep_sheet_name=False, verbose=True):
+    def all_names_to_df(self, keep_sheet_name=False, verbose=True, header_row = 1, index_col = 0):
         """Turn all names in an Excel workbook to pandas dataframes.
         """
         # Excel includes solver-type objects as named ranges. Those shouldn't be
         # read in.
         named_ranges = [
             name for name in self.names if "solver" not in name.name
-        ] + self.tables.values()
+        ] + list(self.tables.values())
         could_not_read = []
         for named_range in named_ranges:
             try:
                 self.named_range_to_df(
                     named_range,
                     keep_sheet_name=keep_sheet_name,
+                    header_row = header_row,
+                    index_col = index_col,
                     verbose=verbose,
                 )
             except:
@@ -167,10 +167,9 @@ class Book(xw.main.Book):
         df_content = rg.value
         # If the named_range is 2D, assume it has a header and no index.
         if type(df_content) == list and type(df_content[0]) == list:
-            header_row, index_col = 1, 0  # mg changed 1 to 0
 
             # Get dataframe using ```xl2pd```.
-            df = xl2pd(self, rg, header_row=header_row, index_col=index_col)
+            df = xl2pd(self, rg, header_row=1, index_col=0)
 
         # If named range is 1D, assume the first value is a header, and no index
         if type(df_content) == list and type(df_content[0]) == str:
@@ -320,11 +319,18 @@ def get_named_range(wb, range_name, sheet_name=None, verbose=True, **kwargs):
     if not sheet_name:
         sheet_name = kwargs.get(sheet_name)
     try:
-        if sheet_name:
-            obj = wb.sheets(sheet_name)
-        else:
-            obj = wb
-        return obj.names[range_name].refers_to_range
+        if sys.platform.lower().startswith('win'):
+            if sheet_name:
+                obj = wb.sheets(sheet_name)
+            else:
+                obj = wb
+            return obj.names[range_name].refers_to_range
+        elif sys.platform.lower()=='darwin':
+            # This is a ridiculous way to do it, I know. But if you try to get a range from a workbook by name, or sheet that doesn't have it, it breaks
+            for ws in wb.sheets:
+                for obj in ws.api.list_objects():
+                    if obj.name()==range_name:
+                        return ws.range(range_name+"[#all]" if not range_name.endswith("[#all]") else range_name)
     except:
         if verbose:
             print("Warning: unable to find a range named " + range_name + ".")
@@ -471,12 +477,12 @@ def xl2pd(
     Returns:
         pd.DataFrame: A Pandas dataframe with the data retrieved.
     """
-    if isinstance(type(workbook), str):
+    if isinstance(workbook, str):
         # Load workbook from specified file
         workbook = xw.Book(workbook)
     # (otherwise assume a Book object was passed.)
 
-    if isinstance(type(myrange), str):
+    if isinstance(myrange, str):
         if ":" in myrange:
             rng = get_range(workbook, myrange, **kwargs)
         else:
@@ -492,13 +498,42 @@ def xl2pd(
             ret_df = pd.DataFrame(list(data[1:]), columns=cols)
             ret_df.set_index("convert_to_index", drop=True, inplace=True)
         else:
-            # Convert directly to dataframe.
-            ret_df = rng.options(
-                pd.DataFrame, header=header_row, index=index_col
-            ).value
-            if type(ret_df.columns) == pd.MultiIndex:
-                # Get rid of MultiIndex in columns (introduced in xlwings 11.4).
-                ret_df.columns = ret_df.columns.get_level_values(0)
+            if sys.platform.startswith('win'):
+                # Convert directly to dataframe using xlwings
+                ret_df = rng.options(
+                    pd.DataFrame, header=header_row, index=index_col
+                ).value
+
+            elif sys.platform == 'darwin':
+                ### >>>>> The following code (with a few trivial renamings) comes directly from xlwings source code, and is subject to copyright <<<<<
+                # Copyright (c) 2020, Zoomer Analytics LLC
+                # Subject to BSD-3 License for above copyright holder: https://opensource.org/licenses/BSD-3-Clause
+                if header_row == 1:
+                    columns = pd.Index(rng.value[0])
+                elif header_row > 1:
+                    columns = pd.MultiIndex.from_arrays(rng.value[:header])
+                else:
+                    columns = None
+
+                ret_df = pd.DataFrame(rng.value[header_row:], columns=columns, dtype = None, copy = False)
+
+                # handle index by resetting the index to the index first columns
+                # and renaming the index according to the name in the last row
+                if index_col > 0:
+                    # rename uniquely the index columns to some never used name for column
+                    # we do not use the column name directly as it would cause issues if several
+                    # columns have the same name
+                    ret_df.columns = pd.Index(range(len(ret_df.columns)))
+                    ret_df.set_index(list(ret_df.columns)[:index_col], inplace=True)
+
+                    ret_df.index.names = pd.Index(value[header_row - 1][:index_col] if header_row else [None]*index_col)
+
+                    if header_row:
+                        ret_df.columns = columns[index_row:]
+                    else:
+                        ret_df.columns = pd.Index(range(len(df.columns)))
+
+                ### >>>>> End of snippet <<<<<
     else:
         ret_df = None
 
