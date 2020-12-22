@@ -44,7 +44,6 @@ class IOTests(unittest.TestCase):
 
         res = i_o.load()
 
-        breakpoint()
         self.assertEqual(len(res["tables_as_dict_of_dfs"].keys()), 9)
 
         # tear down
@@ -62,7 +61,7 @@ class IOTests(unittest.TestCase):
 
         res = i_o.load(to_numeric=['xlsx_table2'])
 
-        self.assertEqual(len(res["tables_as_dict_of_dfs"].keys()), 10)
+        self.assertEqual(len(res["tables_as_dict_of_dfs"].keys()), 11)
         self.assertEqual(len(res.keys()), 5)
 
     def test_load_from_excel_no_run_parameters(self):
