@@ -193,8 +193,8 @@ class IO(object):
                 file_path = extra_files.loc[inx, self.la["inpath"]].strip()
 
                 table_names = extra_files.loc[inx, self.la["tbl_nam"]]
-
-                if (table_names is not None) and (table_names is not np.nan):
+                
+                if isinstance(table_names, str):
                     table_names = re.split(",", table_names)
                     table_names = [i.strip() for i in table_names]
 
@@ -203,9 +203,9 @@ class IO(object):
                 # main analysis.
                 qry_flags[file_path] = extra_files.loc[inx, self.la["query"]]
 
-                if (qry_flags[file_path] is not None) and (
-                    table_names is not np.nan
-                ):
+                if (qry_flags[file_path] is not None) and isinstance(
+                    table_names, str):
+
                     qry_flags[file_path] = re.split(",", qry_flags[file_path])
                     qry_flags[file_path] = [
                         i.strip() for i in qry_flags[file_path]
@@ -215,7 +215,7 @@ class IO(object):
                     self.get_tables(
                         file_path,
                         table_names=table_names,
-                        load_or_query=qry_flags[file_path],
+                        query_only=qry_flags[file_path],
                     )
                 )
 
@@ -350,7 +350,7 @@ class IO(object):
 
         return res
 
-    def get_tables(self, file_path, table_names=None, load_or_query=None):
+    def get_tables(self, file_path, table_names=None, query_only=None):
         """Gets all tables from an input
         file. Creates a dictionary
         of pandas dataframes, with each dataframe
@@ -367,13 +367,10 @@ class IO(object):
                 No data is read in when None,
                 creates an empty dictionary
 
-            load_or_query: str list
-                Default: None all tables get
+            query_only: str list of 'N' and 'Y', or empty cell (None)
+                Default: None - all tables get
                 loaded.
-                Values: 'N' or 'Y'
-                If a single
-                'Y' is passed, it will
-                be applied to all tables
+                Values in the list: 'N' or 'Y'
 
             table_names: list of str
                 Tables to load. If None
@@ -387,7 +384,7 @@ class IO(object):
                 Dictionary of pandas dataframes
                 containing all the tables
                 from the input file, less those
-                indicated using the load_or_query
+                indicated using the query_only
                 flags, if applicable.
         """
         if file_path is None:
@@ -398,13 +395,13 @@ class IO(object):
 
             file_type = self.get_file_type(file_path)
 
-            if load_or_query == "Y":
-                load_or_query = ["Y"]
-
-            if (load_or_query is not None) and (load_or_query is not np.nan):
+            if isinstance(query_only, str):
+                
+                query_only = re.split(",", query_only)
+                query_only = [i.strip() for i in query_only]
 
                 if table_names is None:
-                    if len(load_or_query) != 1:
+                    if len(query_only) != 1:
                         msg = (
                             "All tables need to be loaded."
                             "It is unclear which tables need to "
@@ -413,12 +410,16 @@ class IO(object):
                             "of the same length."
                         )
                         log.error(msg)
+                    
+                    elif query_only[0] == 'Y':
+                        # query all tables
+                        table_names_to_load = None
+                        table_names_for_conn = table_names
 
                 else:
-                    # @as : related to database connctions
-                    inx = [i != "Y" for i in load_or_query]
-                    # load only those tables
-
+                    # identify tables that require database connections
+                    inx = [i != "Y" for i in query_only]
+                    # load only these tables
                     table_names_to_load = np.array(table_names)[inx].tolist()
                     # others should be just connected to
                     not_inx = [not i for i in inx]
@@ -447,7 +448,7 @@ class IO(object):
                 # get rid of the version substring
                 if self.la["extra_files"] in filename_to_tablename:
                     filename_to_tablename = self.la["extra_files"]
-
+                
                 dict_of_dfs[filename_to_tablename] = pd.read_csv(file_path)
 
             elif file_type == "database":
