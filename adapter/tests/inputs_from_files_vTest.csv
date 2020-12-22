@@ -1,3 +1,4 @@
 File Path,Table Name,Query Only
 adapter/tests/test.db,"table1, table2, table3","N, Y, N"
 adapter/tests/test.xlsx,,
+adapter/tests/test.csv,,
