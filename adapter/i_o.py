@@ -788,13 +788,13 @@ class IO(object):
         if sys.platform.startswith('win'):
             for i,name in enumerate(osx_drive_names):
                 if str_or_path.startswith(name):
-                    str_or_path.replace(name,windows_drive_names[i]).replace('/','\\')
+                    str_or_path = str_or_path.replace(name,windows_drive_names[i]).replace('/','\\')
                     break
 
         elif sys.platform.startswith('darwin'):
             for i,name in enumerate(windows_drive_names):
                 if str_or_path.startswith(name):
-                    str_or_path.replace('\\','/').replace(name,osx_drive_names[i])
+                    str_or_path = str_or_path.replace('\\','/').replace(name,osx_drive_names[i])
                     break
             
         return str_or_path
