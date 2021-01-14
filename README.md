@@ -7,28 +7,89 @@ The `Adapter` software builds upon the existing Python packages that allow for t
 
 To install the package use:
 ```
-pip install git+https://{your bitbucket username}@bitbucket.org/eetd-ees/adapter.git@v0.1.3
+pip install git+https://{your bitbucket username}@bitbucket.org/eetd-ees/adapter.git@
 ```
-To check versions please use `git tag -n`.
+
+Alternatively, you may clone the repository and from its root folder run:
+```
+python setup.py
+```
+
+To install a specific version of the `adapter` software you can use:
+```
+pip install git+https://{your bitbucket username}@bitbucket.org/eetd-ees/adapter.git@vX.Y.Z
+```
+where `vX.Y.Z` is the specific version. To check the available versions please check the repository webpage - the tags are listed right next to the branches - or, if you cloned the repository, use `git tag -n`.`
 
 
 ## Usage
 
 The examples on how to conveniently utilize adapter as your IO tool can be found in [the tests for the `i_o.py` module](https://bitbucket.org/eetd-ees/adapter/src/master/adapter/tests/test_i_o.py). The same examples are provided below. We assume that the user is running the commands from the repo root folder.
 
-To load all data tables and named ranges specified in an excel input file as a
-dictionary of pandas dataframes:
+The simplest example of how to use the package is:
 ```
 from adapter.i_o import IO
 
-input_loader = IO(r'fullpath_to_main_input_file')
+input_loader = IO(r'fullpath_to_the_main_input_file')
 df_of_input_dataframes = input_loader.load()
 ```
 
 The example inputs files, also used in the unit tests, are located in [the test suite folder](https://bitbucket.org/eetd-ees/adapter/src/master/adapter/tests/). You can look at those to see how to structure the main input file such that you can fetch either all the data from that input file or, in addition to those, fetch data from other input files as specified in the `inputs_from_files` table.
 
+For example, to load all objects defined as data tables and named ranges specified in an excel input file, as a
+dictionary of pandas dataframes:
+
+```
+path = os.path.join(
+    os.getcwd(), r"adapter/tests/test_w_inputs_from_files_table.xlsx"
+)
+
+i_o = IO(path)
+
+res = i_o.load()
+```
+
+where the `res` output is a dictionary with the following keys:
+```
+'tables_as_dict_of_dfs' - all input
+    tables loaded in python as dictionary
+    of dataframes
+'outpath' - output folder path
+'run_tag' - version + analysis start time
+
+If db got written:
+
+'db_path' - database fullpath
+'db_conn' - database connection
+```
+
+An another example especially useful for `Linux` users would be to provide several or all inputs as `csv` files through listing their paths in the main `csv` input file. The `Adapter` can then be used to load all inputs at once. This can be done as follows:
+```
+path = os.path.join(
+    os.getcwd(), r"adapter/tests/inputs_from_files_vTest.csv"
+)
+i_o = IO(path)
+data_conn = i_o.load()
+```
+
+If one of the input tables is named `run_parameters` and contains columns `Output Path` and `Version`, the code will create a unique run tag at the point of data loading and use the provided output path to store any output should the user utilize the writing functionality of `Adapter`.
+
+To write the loaded data into either a single `db` and a number of `csv` files the user can run:
+```
+i_o.write(
+    type='db&csv',
+    data_connection=data_conn
+)
+```
+Depending on the `type` flag, there is an option to writhe only a `db` or a `csv` formatted output.
+
+The `Adapter` also provides an option to only establish a `db` connection to certain tables that are for example large and the user would 
+rather query them instead of having them be loaded as a `pandas dataframe`. An example of how to provide such information through the input file is 
+provided in this example input file [`adapter/tests/inputs_from_files_vTest.csv`](https://bitbucket.org/eetd-ees/adapter/src/master/adapter/tests/inputs_from_files_vTest.csv).
+
 To learn more about how to user the `adapter` software it may be useful to read the [Use cases provided in the Functional Requirements](https://bitbucket.org/eetd-ees/adapter/wiki/Functional%20Requirements).
 
+Please see the `API documentation`[*mg add link to gh-pages later] to explore the full functionality of the modules.  
 
 
 ## Testing
@@ -41,6 +102,7 @@ Individual test module can be run with the following command, for example the `t
 ```
 python -m unittest adapter.tests.test_i_o
 ```
+
 
 ## Contributing
 
