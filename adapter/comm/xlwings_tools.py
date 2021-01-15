@@ -505,7 +505,8 @@ def xl2pd(
                 ).value
 
             elif sys.platform == 'darwin':
-                ### >>>>> The following code (with a few trivial renamings) comes directly from xlwings source code, and is subject to copyright <<<<<
+                ### >>>>> The following code (with a few trivial renamings) comes directly from xlwings source code, 
+                # and is subject to copyright <<<<<
                 # Copyright (c) 2020, Zoomer Analytics LLC
                 # Subject to BSD-3 License for above copyright holder: https://opensource.org/licenses/BSD-3-Clause
                 if header_row == 1:
@@ -533,7 +534,7 @@ def xl2pd(
                     else:
                         ret_df.columns = pd.Index(range(len(df.columns)))
 
-                ### >>>>> End of snippet <<<<<
+                ### >>>>> End of snippet that comes directly from xlwings <<<<<
     else:
         ret_df = None
 
