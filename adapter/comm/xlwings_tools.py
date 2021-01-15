@@ -169,14 +169,19 @@ class Book(xw.main.Book):
         if type(df_content) == list and type(df_content[0]) == list:
 
             # Get dataframe using ```xl2pd```.
-            df = xl2pd(self, rg, header_row=1, index_col=0)
+            df = xl2pd(self, rg, header_row=header_row, index_col=0)
 
-        # If named range is 1D, assume the first value is a header, and no index
-        if type(df_content) == list and type(df_content[0]) == str:
-            df = pd.DataFrame(df_content[1:], columns=[df_content[0]])
-
+        # If named range is 1D
+        # assume the first value is a header if it is a string, and no index
+        if type(df_content) == list:
+            if type(df_content[0]) == str:
+                df = pd.DataFrame(df_content[1:], columns=[df_content[0]])
+            # Otherwise just treat 1D array as data
+            else:
+                df = pd.DataFrame(df_content)
+            
         # If named range is a single value, use name of the range as header
-        if type(df_content) != list and type(df_content) in [str, float, int]:
+        if type(df_content) != list and type(df_content) in [str, float, int, bool]:
             df = pd.DataFrame({rg.name.name: [df_content]})
 
         # Assign the dataframe to the name.
