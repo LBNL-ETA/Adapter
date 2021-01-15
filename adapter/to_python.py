@@ -111,7 +111,8 @@ class Excel(object):
             all_input_names = {
                 x.name: x
                 for x in self.wb.names
-                if "_FilterDatabase" not in x.name
+                if "_FilterDatabase" not in x.name and
+                "_xlfn." not in x.name
             }
 
         if kind == "all":
@@ -119,7 +120,8 @@ class Excel(object):
             all_input_ranges = {
                 x.name: x
                 for x in self.wb.names
-                if "_FilterDatabase" not in x.name
+                if "_FilterDatabase" not in x.name and
+                "_xlfn." not in x.name
             }
 
             all_input_tables.update(all_input_ranges)
