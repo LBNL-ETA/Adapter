@@ -124,4 +124,4 @@ The initial purpose of this software was to serve certain `Python` analytical to
 
 ## Developers
 
-The codebase was developed at the Energy Efficiency Standards Department by Milica Grahovac, Youness Bennani, Thomas Burke, Katie Coughlin, Akhil Mathur, Evan Neil, and Akshay Sharma.
+The codebase was developed at the Energy Efficiency Standards Department by Milica Grahovac, Youness Bennani, Thomas Burke, Akhil Mathur, Evan Neil, and Akshay Sharma.
