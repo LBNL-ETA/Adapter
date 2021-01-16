@@ -508,7 +508,6 @@ def xl2pd(
                 ret_df = rng.options(
                     pd.DataFrame, header=header_row, index=index_col
                 ).value
-                print(header_row)
 
             elif sys.platform == 'darwin':
                 ### >>>>> The following code (with a few trivial renamings) comes directly from xlwings source code, and is subject to copyright <<<<<
