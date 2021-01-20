@@ -157,7 +157,7 @@ class Excel(object):
                 for data_object_name in data_object_names:
                     # prepare labels (strip extra spaces)
                     dict_of_dfs[data_object_name] = self.wb.named_range_to_df(
-                        all_input_names[data_object_name], verbose=True, index_col = 1
+                        all_input_names[data_object_name], verbose=True,
                     )
                     dict_of_dfs[
                         data_object_name
