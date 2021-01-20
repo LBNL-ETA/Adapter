@@ -461,13 +461,13 @@ def xl2pd(
             whose name contains a colon, then set named_range=True
             to override this.)
 
-        index_col (int or None): The column number that should be used to create
+        index_col (int ): The column number that should be used to create
             an index for the Pandas dataframe If the first column is the index,
             then set index_col=1 (not zero) The default value is
-            index_col=None: all columns are read in as data, and a separate
+            index_col=0: all columns are read in as data, and a separate
             index is created for the dataframe.
 
-        header_row (int or None): The row number that should be used to create
+        header_row (int): The row number that should be used to create
             column headings. Has similar functionality to index_col.
 
         formulas (bool): If True, read in Excel formulas as strings. Note that
