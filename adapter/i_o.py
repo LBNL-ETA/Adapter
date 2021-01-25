@@ -768,13 +768,13 @@ class IO(object):
         return list_of_cleaned_labels
 
     @staticmethod
-    def convert_network_drive_path(str_or_path,mapping = []):
+    def convert_network_drive_path(str_or_path,mapping = [("W:","/Volumes/ees")]):
         """Convert network drive paths from those formatted for one OS into those formatted for another. (works for Windows <-> OSX)
         If a string that doesn't seem to represent a path in the other OS is given, it will be returned unchanged.
 
         Args:
             str_or_path (str): string holding a filepath. 
-            mapping (list, optional): list of 2-tuples where 0th entry of each tuple is the name of a windows network drive location (e.g. "A:") and the 1st entry is OSX network drive location (e.g. "/Volumes/A"). Defaults to [].
+            mapping (list): list of 2-tuples where 0th entry of each tuple is the name of a windows network drive location (e.g. "A:") and the 1st entry is OSX network drive location (e.g. "/Volumes/A"). Defaults to [("W:","/Volumes/ees")].
 
         Raises:
             Exception: When no mapping is given
