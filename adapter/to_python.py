@@ -111,7 +111,8 @@ class Excel(object):
             all_input_names = {
                 x.name: x
                 for x in self.wb.names
-                if "_FilterDatabase" not in x.name
+                if "_FilterDatabase" not in x.name and
+                "_xlfn." not in x.name
             }
 
         if kind == "all":
@@ -119,7 +120,8 @@ class Excel(object):
             all_input_ranges = {
                 x.name: x
                 for x in self.wb.names
-                if "_FilterDatabase" not in x.name
+                if "_FilterDatabase" not in x.name and
+                "_xlfn." not in x.name
             }
 
             all_input_tables.update(all_input_ranges)
@@ -155,7 +157,7 @@ class Excel(object):
                 for data_object_name in data_object_names:
                     # prepare labels (strip extra spaces)
                     dict_of_dfs[data_object_name] = self.wb.named_range_to_df(
-                        all_input_names[data_object_name], verbose=True
+                        all_input_names[data_object_name], verbose=True,
                     )
                     dict_of_dfs[
                         data_object_name
