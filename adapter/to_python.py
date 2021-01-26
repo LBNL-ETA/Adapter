@@ -25,10 +25,12 @@ class Excel(object):
     """
 
     def __init__(self, file_path):
-        self.wb = Book(file_path)
-        self.file_path = file_path
+        converted_fpath = Toolbox.convert_network_drive_path(file_path)
+        
+        self.wb = Book(converted_fpath)
+        self.converted_fpath = converted_fpath
 
-        log.info("Connected to: {}".format(file_path))
+        log.info("Connected to: {}".format(converted_fpath))
 
     def load(self, data_object_names=None, kind="all"):
         """Opens the file provided
@@ -196,8 +198,10 @@ class Db(object):
     """
 
     def __init__(self, file_path):
-        self.db = Sql(file_path)
-        self.file_path = file_path
+        converted_fpath = Toolbox.convert_network_drive_path(file_path)
+
+        self.db = Sql(converted_fpath)
+        self.file_path = converted_fpath
 
     def load(self, table_names=None):
         """Loads tables
@@ -259,3 +263,35 @@ class Toolbox(object):
         ]
 
         return list_of_cleaned_labels
+
+    @staticmethod
+    def convert_network_drive_path(str_or_path,mapping = [("X:","/Volumes/my_folder")]):
+        """Convert network drive paths from those formatted for one OS into those formatted for another. (works for Windows <-> OSX)
+        If a string that doesn't seem to represent a path in the other OS is given, it will be returned unchanged.
+
+        Args:
+            str_or_path (str): string holding a filepath. 
+            mapping (list): list of 2-tuples where 0th entry of each tuple is the name of a windows network drive location (e.g. "A:") and the 1st entry is OSX network drive location (e.g. "/Volumes/A"). Defaults to [("X:","/Volumes/my_folder")].
+
+        Raises:
+            Exception: When no mapping is given
+        """            
+        if mapping:
+            windows_drive_names = [pair[0].rstrip('\\') for pair in mapping]
+            osx_drive_names = [pair[1].rstrip('/') for pair in mapping]
+        else:
+            raise Exception("No network drive mappings given")
+
+        if sys.platform.startswith('win'):
+            for i,name in enumerate(osx_drive_names):
+                if str_or_path.startswith(name):
+                    str_or_path = str_or_path.replace(name,windows_drive_names[i]).replace('/','\\')
+                    break
+
+        elif sys.platform.startswith('darwin'):
+            for i,name in enumerate(windows_drive_names):
+                if str_or_path.startswith(name):
+                    str_or_path = str_or_path.replace('\\','/').replace(name,osx_drive_names[i])
+                    break
+            
+        return str_or_path
