@@ -28,7 +28,7 @@ class Excel(object):
         converted_fpath = Toolbox.convert_network_drive_path(file_path)
         
         self.wb = Book(converted_fpath)
-        self.converted_fpath = converted_fpath
+        self.file_path = converted_fpath
 
         log.info("Connected to: {}".format(converted_fpath))
 
