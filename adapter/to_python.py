@@ -2,7 +2,7 @@ import numpy as np
 
 from adapter.comm.xlwings_tools import Book, xl2pd, pd2xl
 from adapter.comm.sql import Sql
-import re
+import re, sys
 
 import logging
 
