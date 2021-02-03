@@ -5,6 +5,8 @@ import pandas as pd
 from adapter.to_python import Excel, Db
 from adapter.label_map import Labels
 
+from tools import convert_network_drive_path
+
 from datetime import datetime
 import re
 import sqlite3
@@ -49,6 +51,8 @@ class IO(object):
     """
 
     def __init__(self, path):
+
+        path = convert_network_drive_path(path)
 
         self.input_path = path
 
@@ -387,6 +391,8 @@ class IO(object):
                 indicated using the query_only
                 flags, if applicable.
         """
+        file_path = convert_network_drive_path(file_path)
+
         if file_path is None:
 
             dict_of_dfs = dict()
@@ -643,6 +649,8 @@ class IO(object):
         else:
             if outpath is None:
                 outpath = os.getcwd()
+        
+        outpath = convert_network_drive_path(outpath)
 
         if data_as_dict_of_dfs is None:
             msg='No data to write passed.'
