@@ -32,7 +32,7 @@ class IO(object):
     full input DB and provides the
     user with output and db paths,
     and database connections. It allows
-    for large tables to be only querried and
+    for large tables to be only queried and
     not loaded in python.
 
     Parameters:
@@ -583,7 +583,7 @@ class IO(object):
                     of dataframes, to be written
 
                 If data_as_dict_of_dfs is not none, these
-                will be the dataframes writtne to output
+                will be the dataframes written to output
                 instead
 
                 'outpath' - output folder path
@@ -596,7 +596,7 @@ class IO(object):
                 'db_conn' - database connection
 
                 Set to None if passing the data, db
-                connection and run tag explicitelly through
+                connection and run tag explicitely through
                 other kwargs. This functionality can
                 be used when the `load` method was not called.
 
@@ -739,7 +739,7 @@ class IO(object):
             pass
 
         else:
-            msg = "Unsuported value {} passed to table_names kwarg."
+            msg = "Unsupported value {} passed to table_names kwarg."
             log.error(msg.format(table_names))
             raise ValueError
 
