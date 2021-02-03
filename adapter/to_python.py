@@ -62,16 +62,11 @@ class Excel(object):
                 keys and input table values.
         """
         # *mig please make corresponding
-        # docstrings for the analoguos
+        # docstrings for the analogous
         # methods in other classes in this
-        # file
-        dict_of_dfs = self.get_named_data_objects(data_object_names, kind=kind)
-
-        # @lz - this should be uncommented after
-        # you implement the method
-
-        # dict_of_dfs.update(
-        #     self.get_named_ranges(table_names))
+        # file 
+        dict_of_dfs = self.get_named_data_objects(
+            data_object_names, kind=kind)
 
         return dict_of_dfs
 
