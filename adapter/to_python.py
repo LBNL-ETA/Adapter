@@ -1,6 +1,6 @@
 import numpy as np
 
-from adapter.comm.xlwings_tools import Book, xl2pd, pd2xl
+from adapter.comm.excel import Book, xl2pd, pd2xl
 from adapter.comm.sql import Sql
 
 from tools import process_column_labels
@@ -167,7 +167,7 @@ class Excel(object):
                 msg = "Read in input tables from {}."
                 log.info(msg.format(self.file_path))
             except:
-                # more detailed error data should come from xlwings_tools
+                # more detailed error data should come from excel.py
                 msg = "Failed to read input tables from {}."
 
                 log.error(msg.format(self.file_path))
