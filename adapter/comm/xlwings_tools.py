@@ -228,15 +228,19 @@ def get_tables(wb):
         ```wb```, and the values are the corresponding sheet names.
     """
 
-    # the `api` attribute acts differently for windows and osx. (Linux undeveloped). 
-    # On top of that, OSX excel named ranges attached to a table that implicitly includes headers require a [#all] tag when grabbing the range for the Table. Otherwise the first row of data gets read as headers
     if sys.platform.lower() == 'darwin':
-        return {
-            obj.name(): Table(obj.name(),ws.name + "!" + ws.range(obj.name()+"[#all]" if not obj.name().endswith("[#all]") else obj.name()).address, wb)# Windows: obj.Name, OSX: obj.name(), obj.Range.Address -> ws.range(obj.name()).address
-            for ws in wb.sheets
-            for obj in ws.api.list_objects() # Windows: ListObject, OSX: list_objects?
-            if ws.api.list_objects().__len__() > 0
-        }
+        # the `api` attribute acts differently for windows and osx. (Linux undeveloped). 
+        # On top of that, OSX excel tables that implicitly includes headers require an [#all] tag when grabbing the range for the Table. Otherwise the first row of data gets read as headers
+        # This apparently ONLY works for excel tables, and NOT named ranges on OSX
+        return_dict = dict()
+        for ws in wb.sheets:
+            objects = ws.api.list_objects()
+            if objects: # Can be a mysterious "k.missingvalue" when there are no excel tables, which gets interpreted as False by bool
+                for obj in objects:
+                    return_dict[obj.name()] = Table(obj.name(), # name of table
+                            ws.name + "!" + ws.range(obj.name()+"[#all]" if not obj.name().endswith("[#all]") else obj.name()).address, wb)# Windows: obj.Name, OSX: obj.name(), obj.Range.Address -> ws.range(obj.name()).address
+
+        return return_dict
     elif sys.platform.lower().startswith('win'): 
         return {
             obj.Name: Table(obj.Name, ws.name + "!" + obj.Range.Address, wb)
