@@ -62,16 +62,11 @@ class Excel(object):
                 keys and input table values.
         """
         # *mig please make corresponding
-        # docstrings for the analoguos
+        # docstrings for the analogous
         # methods in other classes in this
-        # file
-        dict_of_dfs = self.get_named_data_objects(data_object_names, kind=kind)
-
-        # @lz - this should be uncommented after
-        # you implement the method
-
-        # dict_of_dfs.update(
-        #     self.get_named_ranges(table_names))
+        # file 
+        dict_of_dfs = self.get_named_data_objects(
+            data_object_names, kind=kind)
 
         return dict_of_dfs
 
@@ -111,7 +106,8 @@ class Excel(object):
             all_input_names = {
                 x.name: x
                 for x in self.wb.names
-                if "_FilterDatabase" not in x.name
+                if "_FilterDatabase" not in x.name and
+                "_xlfn." not in x.name
             }
 
         if kind == "all":
@@ -119,7 +115,8 @@ class Excel(object):
             all_input_ranges = {
                 x.name: x
                 for x in self.wb.names
-                if "_FilterDatabase" not in x.name
+                if "_FilterDatabase" not in x.name and
+                "_xlfn." not in x.name
             }
 
             all_input_tables.update(all_input_ranges)
@@ -155,7 +152,7 @@ class Excel(object):
                 for data_object_name in data_object_names:
                     # prepare labels (strip extra spaces)
                     dict_of_dfs[data_object_name] = self.wb.named_range_to_df(
-                        all_input_names[data_object_name], verbose=True
+                        all_input_names[data_object_name], verbose=True,
                     )
                     dict_of_dfs[
                         data_object_name

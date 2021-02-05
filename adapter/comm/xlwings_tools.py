@@ -120,8 +120,8 @@ class Book(xw.main.Book):
         named_range,
         keep_sheet_name=False,
         sheet_name=None,
-        header_row=None,
-        index_col=None,
+        header_row=0,
+        index_col=0,
         verbose=True,
     ):
         """Turns a named range in Excel into a pandas dataframe.
@@ -169,14 +169,19 @@ class Book(xw.main.Book):
         if type(df_content) == list and type(df_content[0]) == list:
 
             # Get dataframe using ```xl2pd```.
-            df = xl2pd(self, rg, header_row=1, index_col=0)
+            df = xl2pd(self, rg, header_row=1, index_col=index_col)
 
-        # If named range is 1D, assume the first value is a header, and no index
-        if type(df_content) == list and type(df_content[0]) == str:
-            df = pd.DataFrame(df_content[1:], columns=[df_content[0]])
-
+        # If named range is 1D
+        # assume the first value is a header if it is a string, and no index
+        if type(df_content) == list:
+            if type(df_content[0]) == str:
+                df = pd.DataFrame(df_content[1:], columns=[df_content[0]])
+            # Otherwise just treat 1D array as data
+            elif type(df_content[0]) != list and type(df_content[0] in [float,int,bool]):
+                df = pd.DataFrame(df_content)
+            
         # If named range is a single value, use name of the range as header
-        if type(df_content) != list and type(df_content) in [str, float, int]:
+        if type(df_content) != list and type(df_content) in [str, float, int, bool]:
             df = pd.DataFrame({rg.name.name: [df_content]})
 
         # Assign the dataframe to the name.
@@ -430,8 +435,8 @@ def create_named_range(
 def xl2pd(
     workbook,
     myrange,
-    index_col=None,
-    header_row=None,
+    index_col=0,
+    header_row=0,
     formulas=False,
     **kwargs
 ):
@@ -460,13 +465,13 @@ def xl2pd(
             whose name contains a colon, then set named_range=True
             to override this.)
 
-        index_col (int or None): The column number that should be used to create
+        index_col (int ): The column number that should be used to create
             an index for the Pandas dataframe If the first column is the index,
             then set index_col=1 (not zero) The default value is
-            index_col=None: all columns are read in as data, and a separate
+            index_col=0: all columns are read in as data, and a separate
             index is created for the dataframe.
 
-        header_row (int or None): The row number that should be used to create
+        header_row (int): The row number that should be used to create
             column headings. Has similar functionality to index_col.
 
         formulas (bool): If True, read in Excel formulas as strings. Note that
@@ -509,7 +514,8 @@ def xl2pd(
                 ).value
 
             elif sys.platform == 'darwin':
-                ### >>>>> The following code (with a few trivial renamings) comes directly from xlwings source code, and is subject to copyright <<<<<
+                ### >>>>> The following code (with a few trivial renamings) comes directly from xlwings source code, 
+                # and is subject to copyright <<<<<
                 # Copyright (c) 2020, Zoomer Analytics LLC
                 # Subject to BSD-3 License for above copyright holder: https://opensource.org/licenses/BSD-3-Clause
                 if header_row == 1:
@@ -537,7 +543,7 @@ def xl2pd(
                     else:
                         ret_df.columns = pd.Index(range(len(df.columns)))
 
-                ### >>>>> End of snippet <<<<<
+                ### >>>>> End of snippet that comes directly from xlwings <<<<<
     else:
         ret_df = None
 
