@@ -538,7 +538,7 @@ class IO(object):
                     index=False,
                 )
             except:
-                msg = "An error occured when writting {} table " "to a db {}."
+                msg = "An error occurred when writting {} table " "to a db {}."
                 log.error(msg.format(table_name, db_path))
                 raise ValueError
 
