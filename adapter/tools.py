@@ -1,10 +1,14 @@
 import numpy as np
 
-WATER_DENOMINATIONS = ['gal','gal.','gln','gallon','gals','gals.','gallons','m3','m^3']
-WATER_DENOMINATIONS += [x.title() for x in WATER_DENOMINATIONS] + [x.upper() for x in WATER_DENOMINATIONS]
+WATER_UNIT_DENOMINATIONS = ['gal','gal.','gln','gallon','gals','gals.','gallons','m3','m^3']
+WATER_UNIT_DENOMINATIONS += [x.title() for x in WATER_UNIT_DENOMINATIONS] + [x.upper() for x in WATER_UNIT_DENOMINATIONS]
 
-ENERGY_DENOMINATIONS = ['kwh','KWh','twh','TWh','mwh','MWh','gwh','GWh','quad','quads','mmbtu','MMBtu','kj','mj']
-ENERGY_DENOMINATIONS += [x.title() for x in ENERGY_DENOMINATIONS] + [x.upper() for x in ENERGY_DENOMINATIONS] + ['wh','WH','Wh'] + ['btu','BTU','BTu'] + ['j','J'] # small units go at the end so that 'wh' doesn't get stripped from 'kwh', e.g.
+ENERGY_UNIT_DENOMINATIONS = ['kwh','KWh','twh','TWh','mwh','MWh','gwh','GWh','quad','quads','mmbtu','MMBtu','kj','mj']
+ENERGY_UNIT_DENOMINATIONS += [x.title() for x in ENERGY_UNIT_DENOMINATIONS] + [x.upper() for x in ENERGY_UNIT_DENOMINATIONS] + ['wh','WH','Wh'] + ['btu','BTU','BTu'] + ['j','J'] # small units go at the end so that 'wh' doesn't get stripped from 'kwh', e.g.
+
+DOLLAR_UNIT_DENOMINATIONS = ['dollars','dols','dol']
+DOLLAR_UNIT_DENOMINATIONS += [x.title() for x in DOLLAR_UNIT_DENOMINATIONS] + [x.upper() for x in DOLLAR_UNIT_DENOMINATIONS]
+DOLLAR_UNIT_DENOMINATIONS = ['$'] + DOLLAR_UNIT_DENOMINATIONS
 
 def convert_units(x,unit_in, unit_out):
     '''
@@ -23,7 +27,7 @@ def convert_units(x,unit_in, unit_out):
     # Convert amounts:
     #       numerator:      N <B> = M <B> * N/M
     #       denominator:    (1/N <B>) = (1/M <B>) * M/N
-    return x * unit_converter(1,parsed_in['numerator'][1],parsed_out['numerator'][1]) * unit_converter(1,parsed_out['denominator'][1],parsed_out['denominator'][1]) * (parsed_in['numerator'][0]/parsed_out['numerator'][0]) * (parsed_out['denominator'][0]/parsed_in['denominator'][0])
+    return x * unit_converter(1,parsed_in['numerator'][1],parsed_out['numerator'][1]) * unit_converter(1,parsed_out['denominator'][1],parsed_in['denominator'][1]) * (parsed_in['numerator'][0]/parsed_out['numerator'][0]) * (parsed_out['denominator'][0]/parsed_in['denominator'][0])
 
 def parse_units(given_unit):
     '''
@@ -51,19 +55,19 @@ def parse_single_unit(given_unit):
     '''
     For turning something like "1000 gal" into (1000,'gal'), and 'kwh' into (1,'kwh')
     '''
-    unit_denominations = ENERGY_DENOMINATIONS + WATER_DENOMINATIONS
+    unit_denominations = ENERGY_UNIT_DENOMINATIONS + WATER_UNIT_DENOMINATIONS + DOLLAR_UNIT_DENOMINATIONS
 
     for u in unit_denominations:
-            if given_unit.strip().endswith(u):
-                amount = given_unit.strip().strip(u).strip().replace(',','') # '1,000 gal' -> '1000' or 'kwh' -> ''
-                if not amount:
-                    amount = 1 # e.g. original unit was given as "kwh" -> means 1 kwh
-                elif amount.isdigit():
-                    amount = int(amount) # E.g. '1000' -> 1000
-                else:
-                    amount = string_multiplier(amount) # E.g. 'billion' -> 1e9
-                    
-                return amount, u.lower() # 'MMBtu' -> 'mmbtu'
+        if given_unit.strip().endswith(u):
+            amount = given_unit.strip().strip(u).strip().replace(',','') # '1,000 gal' -> '1000' or 'kwh' -> ''
+            if not amount:
+                amount = 1 # e.g. original unit was given as "kwh" -> means 1 kwh
+            elif amount.isdigit():
+                amount = int(amount) # E.g. '1000' -> 1000
+            else:
+                amount = string_multiplier(amount) # E.g. 'billion' -> 1e9
+                
+            return amount, u.lower() # 'MMBtu' -> 'mmbtu'
 
 def unit_converter(x, unit_in, unit_out):
     '''Function to convert between different units.
@@ -104,8 +108,15 @@ def unit_converter(x, unit_in, unit_out):
         'ft3': 1/7.48052,
         'ft^3': 1/7.48052,
     }
+
+    dol_unit_dict = {
+        '$':1,
+        'dollars':1,
+        'dol':1,
+        'dols':1,
+    }
     
-    conversion_dicts = [energy_unit_dict, vol_unit_dict]
+    conversion_dicts = [energy_unit_dict, vol_unit_dict, dol_unit_dict]
 
     unit_in, unit_out = unit_in.strip().replace('.','').lower(), unit_out.strip().replace('.','').lower()
 
