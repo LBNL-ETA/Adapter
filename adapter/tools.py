@@ -3,7 +3,7 @@ import numpy as np
 WATER_UNIT_DENOMINATIONS = ['gal','gal.','gln','gallon','gals','gals.','gallons','m3','m^3']
 WATER_UNIT_DENOMINATIONS += [x.title() for x in WATER_UNIT_DENOMINATIONS] + [x.upper() for x in WATER_UNIT_DENOMINATIONS]
 
-ENERGY_UNIT_DENOMINATIONS = ['kwh','KWh','twh','TWh','mwh','MWh','gwh','GWh','quad','quads','mmbtu','MMBtu','kj','mj']
+ENERGY_UNIT_DENOMINATIONS = ['kwh','kWh','KWh','twh','TWh','mwh','MWh','gwh','GWh','quad','quads','mmbtu','MMBtu','kj','mj']
 ENERGY_UNIT_DENOMINATIONS += [x.title() for x in ENERGY_UNIT_DENOMINATIONS] + [x.upper() for x in ENERGY_UNIT_DENOMINATIONS] + ['wh','WH','Wh'] + ['btu','BTU','BTu'] + ['j','J'] # small units go at the end so that 'wh' doesn't get stripped from 'kwh', e.g.
 
 DOLLAR_UNIT_DENOMINATIONS = ['dollars','dols','dol']
@@ -13,6 +13,16 @@ DOLLAR_UNIT_DENOMINATIONS = ['$'] + DOLLAR_UNIT_DENOMINATIONS
 def convert_units(x,unit_in, unit_out):
     '''
     For converting x, which is in <unit_in> units, to <unit_out> units. Returns a value that represents x in <unit_out> units.
+
+    Examples:
+        > convert_units(1,'kWh','quad')
+        > 100
+
+        > convert_units(1,'$/kwh','$/mwh')
+        > 1000
+
+        > convert_units(1,'$/1000 gal','million $/1000 m3')
+        > 0.000264172
     '''
     
     parsed_in, parsed_out = _parse_units(unit_in), _parse_units(unit_out)
