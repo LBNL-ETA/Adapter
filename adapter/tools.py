@@ -1,7 +1,7 @@
 import numpy as np
 
-WATER_UNIT_DENOMINATIONS = ['gal','gal.','gln','gallon','gals','gals.','gallons','m3','m^3']
-WATER_UNIT_DENOMINATIONS += [x.title() for x in WATER_UNIT_DENOMINATIONS] + [x.upper() for x in WATER_UNIT_DENOMINATIONS]
+VOL_UNIT_DENOMINATIONS = ['gal','gal.','gln','gallon','gals','gals.','gallons','m3','m^3','ft3','ft^3']
+VOL_UNIT_DENOMINATIONS += [x.title() for x in VOL_UNIT_DENOMINATIONS] + [x.upper() for x in VOL_UNIT_DENOMINATIONS]
 
 ENERGY_UNIT_DENOMINATIONS = ['kwh','kWh','KWh','twh','TWh','mwh','MWh','gwh','GWh','quad','quads','therm','mmbtu','MMBtu','kj','mj']
 ENERGY_UNIT_DENOMINATIONS += [x.title() for x in ENERGY_UNIT_DENOMINATIONS] + [x.upper() for x in ENERGY_UNIT_DENOMINATIONS] + ['wh','WH','Wh'] + ['btu','BTU','BTu'] + ['j','J'] # small units go at the end so that 'wh' doesn't get stripped from 'kwh', e.g.
@@ -10,8 +10,14 @@ DOLLAR_UNIT_DENOMINATIONS = ['dollars','dols','dol']
 DOLLAR_UNIT_DENOMINATIONS += [x.title() for x in DOLLAR_UNIT_DENOMINATIONS] + [x.upper() for x in DOLLAR_UNIT_DENOMINATIONS]
 DOLLAR_UNIT_DENOMINATIONS = ['$'] + DOLLAR_UNIT_DENOMINATIONS
 
-TEMP_UNIT_DENOMINATIONS = ['celsius','fahrenheit','kelvin']
+TEMP_UNIT_DENOMINATIONS = ['celsius','fahrenheit','kelvin','degF','degC','degK']
 TEMP_UNIT_DENOMINATIONS += [x.title() for x in TEMP_UNIT_DENOMINATIONS] + [x.upper() for x in TEMP_UNIT_DENOMINATIONS] + ['C','F','K'] # Excluding lowercase c,f,k 
+
+MASS_UNIT_DENOMINATIONS = ['kg','kilogram','kilo','kilos','tonne','tonnes','tons','ton','gram','gramme','grammes','grams']
+MASS_UNIT_DENOMINATIONS += [x.title() for x in MASS_UNIT_DENOMINATIONS] + [x.upper() for x in MASS_UNIT_DENOMINATIONS] + ['g','t']
+
+TIME_UNIT_DENOMINATIONS = ['minute','minutes','min','mins','day','days','hour','hr','hr.','hours','hrs','year','yr','years','yrs','yr.']
+TIME_UNIT_DENOMINATIONS += [x.title() for x in TIME_UNIT_DENOMINATIONS] + [x.upper() for x in TIME_UNIT_DENOMINATIONS] + ['h','s']
 
 def convert_units(x,unit_in, unit_out):
     '''
@@ -60,6 +66,8 @@ def convert_units(x,unit_in, unit_out):
     # Convert amounts:
     #       numerator:      N <B> = M <B> * [N/M]
     #       denominator:    (1/N <B>) = (1/M <B>) * [M/N]
+    if parsed_in['denominator'][1].title() in TEMP_UNIT_DENOMINATIONS or parsed_out['denominator'][1].title() in TEMP_UNIT_DENOMINATIONS:
+        raise Exception(f"Temperature (given {parsed_in['denominator'][1]} and {parsed_out['denominator'][1]}) in denominator is undefined behavior.")
     return _converter(x,parsed_in['numerator'][1],parsed_out['numerator'][1]) * _converter(1,parsed_out['denominator'][1],parsed_in['denominator'][1]) * (parsed_in['numerator'][0]/parsed_out['numerator'][0]) * (parsed_out['denominator'][0]/parsed_in['denominator'][0])
 
 def _parse_units(given_unit):
@@ -81,8 +89,8 @@ def _parse_units(given_unit):
     '''
     given_unit = given_unit.strip()
     for delineator in ["/","per"]:
-        if delineator in given_unit.lower():
-            numerator, denominator = given_unit.lower().split(delineator)
+        if delineator in given_unit:
+            numerator, denominator = given_unit.split(delineator)
             return {
                 'numerator': _parse_single_unit(numerator),
                 'denominator': _parse_single_unit(denominator)
@@ -100,7 +108,12 @@ def _parse_single_unit(given_unit):
     Returns:
         tuple:     A two-tuple with the 0th index being the amount of the base unit (int), and the 1st index being the base unit (str)
     '''
-    unit_denominations = ENERGY_UNIT_DENOMINATIONS + WATER_UNIT_DENOMINATIONS + DOLLAR_UNIT_DENOMINATIONS + TEMP_UNIT_DENOMINATIONS
+    unit_denominations = ENERGY_UNIT_DENOMINATIONS +\
+        VOL_UNIT_DENOMINATIONS + \
+        DOLLAR_UNIT_DENOMINATIONS + \
+        TEMP_UNIT_DENOMINATIONS + \
+        MASS_UNIT_DENOMINATIONS + \
+        TIME_UNIT_DENOMINATIONS
 
     for u in unit_denominations:
         if given_unit.strip().endswith(u):
@@ -127,57 +140,113 @@ def _converter(x, unit_in, unit_out):
     Returns:
         `unit of x`: converted value
     '''
+    kwh = 1.    # Use kwh as the base
+    mj = 3.6            # 1 wh = 3600 j ->      1000 wh = 3600 * 1000 / 1e6 (million joules)
+    btu = 3.41214e3     # 1 wh = 3.41214 btu -> 1000 wh = 3.41214*1000 btu
     energy_unit_dict = {
-        'wh':       1.e3,
-        'kwh':      1.,              # Use kwh as the base
-        'mwh':      1.e-3,
-        'gwh':      1.e-6,
-        'twh':      1.e-9,
-        'quad':     3.41214e-12,
-        'quads':    3.41214e-12,   
-        'btu':      3.41214e3,      # 1 wh = 3.41214 btu -> 1000 wh = 3.41214*1000 btu
-        'mmbtu':    3.41214e-3,     # 1 wh = 3.41214 btu -> 1000 wh = 3.41214*1000 btu = 3.41214*1000/1e6 (million BTU)
-        'j':        3.6e6,          # 1 wh = 3600 j ->      1000 wh = 3600 * 1000 j
-        'kj':       3.6e3,          # 1 wh = 3600 j ->      1000 wh = 3600 (thousand j)
-        'mj':       3.6,            # 1 wh = 3600 j ->      1000 wh = 3600 * 1000 / 1e6 (million joules)
-        'therm':    105.5/3.6,      # 1 MJ = 105.5 therm
+        'quad':     btu/1e15,
+        'quads':    btu/1e15,
+        'mmbtu':    btu/1e6,
+        'btu':      btu,
+        'twh':      kwh/1.e9,
+        'gwh':      kwh/1.e6,
+        'mwh':      kwh/1.e3,
+        'kwh':      kwh,
+        'wh':       kwh*1.e3,
+        'mj':       mj,
+        'kj':       mj*1e3,
+        'j':        mj*1e6,
+        'therm':    105.5/mj,       # 1 MJ = 105.5 therm (ASHRAE)
         }
-
+    
+    gal = 1.    # Use gallon as base unit
+    m3, ft3 = 0.0037854, 0.13368
     vol_unit_dict = {
-        'gal':          1.,
-        'gals':         1.,
-        'gallons':      1.,
-        'm3':           0.0037854,
-        'm^3':          0.0037854,
-        'cubic meter':  0.0037854,
-        'cubic meters': 0.0037854,
-        'cubic feet':   0.13368,
-        'cubic ft':     0.13368,
-        'ft3':          0.13368,
-        'ft^3':         0.13368,
+        'm3':           m3,
+        'm^3':          m3,
+        'cubic meter':  m3,
+        'cubic meters': m3,
+        'cubic feet':   ft3,
+        'cubic ft':     ft3,
+        'ft3':          ft3,
+        'ft^3':         ft3,
+        'gal':          gal,
+        'gals':         gal,
+        'gallon':       gal,
+        'gallons':      gal,
     }
 
+    dollar = 1.  # Use dollar as the base
+    cent = 100.
     dol_unit_dict = {
         # This should only ever hold designations for US currency. Not meant to convert currency. No £, €, ¥, etc. 
-        '$':1.,
-        'dollars':1.,
-        'dol':1.,
-        'dols':1.,
-        'cents': 100.,
-        '¢': 100.,
+        '$':        dollar,
+        'dollars':  dollar,
+        'dol':      dollar,
+        'dols':     dollar,
+        'cents':    cent,
+        '¢':        cent,
     }
 
+    # (freezing point of water at atmospheric pressure, boiling point of water at atmospheric pressure)
+    celsius =       (0., 100.)
+    fahrenheit =    (32., 212.)
+    kelvin =        (273.15, 373.15)
     temp_unit_dict = {
-        # (freezing point of water at atmospheric pressure, boiling point of water at atmospheric pressure)
-        'c':            (0.,        100.),
-        'f':            (32.,       212.),
-        'k':            (273.15,    373.15),
-        'celsius':      (0.,        100.),
-        'fahrenheit':   (32.,       212.),
-        'kelvin':       (273.15,    373.15),
+        'c':            celsius,
+        'f':            fahrenheit,
+        'k':            kelvin,
+        'celsius':      celsius,
+        'fahrenheit':   fahrenheit,
+        'kelvin':       kelvin,
     }
     
-    conversion_dicts = [energy_unit_dict, vol_unit_dict, dol_unit_dict, temp_unit_dict]
+    kg = 1. # Use kg as base
+    gram = 1000. 
+    ton = .001
+    mass_unit_dict = {
+        # NOTE: Imperial notion of "ton" not included, though this is perhaps a bad idea? Unclear.
+        'gram':     gram,
+        'gramme':   gram,
+        'grams':    gram,
+        'grammes':  gram,
+        'g':        gram,
+        'kg':       kg,
+        'kilogram': kg,
+        'kilo':     kg,
+        'kilos':    kg,
+        'tonne':    ton,
+        'tonnes':   ton,
+        'tons':     ton, 
+        'ton':      ton,
+        't':        ton,
+    }
+
+    hour = 1.   # Use hour as base
+    minute = 1/60. 
+    day = 24.
+    year = 365.
+    time_unit_dict = {
+        'minute':   minute,
+        'minutes':  minute,
+        'min':      minute,
+        'mins':     minute,
+        'hour':     hour,
+        'hr':       hour,
+        'hr.':      hour,
+        'hours':    hour,
+        'hrs':      hour,
+        'day':      day,
+        'days':     day,
+        'year':     year,
+        'yr':       year,
+        'years':    year,
+        'yrs':      year,
+        'yr.':      year,
+    }
+
+
+    conversion_dicts = [energy_unit_dict, vol_unit_dict, dol_unit_dict, temp_unit_dict, mass_unit_dict, time_unit_dict]
 
     unit_in, unit_out = unit_in.strip().replace('.','').lower(), unit_out.strip().replace('.','').lower()
 
