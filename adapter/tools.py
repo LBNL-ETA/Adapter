@@ -15,21 +15,21 @@ def convert_units(x,unit_in, unit_out):
     For converting x, which is in <unit_in> units, to <unit_out> units. Returns a value that represents x in <unit_out> units.
     '''
     
-    parsed_in, parsed_out = parse_units(unit_in), parse_units(unit_out)
+    parsed_in, parsed_out = _parse_units(unit_in), _parse_units(unit_out)
 
     if (parsed_in["denominator"][1] is not None and parsed_out["denominator"][1] is None) or (parsed_in["denominator"][1] is None and parsed_out["denominator"][1] is not None):
         raise Exception(f"Right now convert_units does not support translation between explicit unit quotients and singular unit designations (E.g. J/s and W)")
 
     if parsed_in["denominator"][1] is None and parsed_out["denominator"][1] is None:
-        return x * unit_converter(1,parsed_in['numerator'][1],parsed_out['numerator'][1]) * (parsed_in['numerator'][0]/parsed_out['numerator'][0])
+        return x * _converter(1,parsed_in['numerator'][1],parsed_out['numerator'][1]) * (parsed_in['numerator'][0]/parsed_out['numerator'][0])
     # Convert numerator to numerator  X <B> = X <A> * <B>/<A>
     # Convert denominator to denominator (1/ X <B>) = (1 / X<A>) * <A>/<B>
     # Convert amounts:
     #       numerator:      N <B> = M <B> * N/M
     #       denominator:    (1/N <B>) = (1/M <B>) * M/N
-    return x * unit_converter(1,parsed_in['numerator'][1],parsed_out['numerator'][1]) * unit_converter(1,parsed_out['denominator'][1],parsed_in['denominator'][1]) * (parsed_in['numerator'][0]/parsed_out['numerator'][0]) * (parsed_out['denominator'][0]/parsed_in['denominator'][0])
+    return x * _converter(1,parsed_in['numerator'][1],parsed_out['numerator'][1]) * _converter(1,parsed_out['denominator'][1],parsed_in['denominator'][1]) * (parsed_in['numerator'][0]/parsed_out['numerator'][0]) * (parsed_out['denominator'][0]/parsed_in['denominator'][0])
 
-def parse_units(given_unit):
+def _parse_units(given_unit):
     '''
     For turning generic units (N_x <x> / N_y <y>) into normalized objects. When a non-quotient product is given, will return (1,None) as denominator.
     {
@@ -42,16 +42,16 @@ def parse_units(given_unit):
         if delineator in given_unit.lower():
             numerator, denominator = given_unit.lower().split(delineator)
             return {
-                'numerator':parse_single_unit(numerator),
-                'denominator':parse_single_unit(denominator)
+                'numerator': _parse_single_unit(numerator),
+                'denominator': _parse_single_unit(denominator)
             }
     
     return {
-        'numerator':parse_single_unit(given_unit),
+        'numerator': _parse_single_unit(given_unit),
         'denominator':(1,None)
     }
 
-def parse_single_unit(given_unit):
+def _parse_single_unit(given_unit):
     '''
     For turning something like "1000 gal" into (1000,'gal'), and 'kwh' into (1,'kwh')
     '''
@@ -65,11 +65,11 @@ def parse_single_unit(given_unit):
             elif amount.isdigit():
                 amount = int(amount) # E.g. '1000' -> 1000
             else:
-                amount = string_multiplier(amount) # E.g. 'billion' -> 1e9
+                amount = _string_multiplier(amount) # E.g. 'billion' -> 1e9
                 
             return amount, u.lower() # 'MMBtu' -> 'mmbtu'
 
-def unit_converter(x, unit_in, unit_out):
+def _converter(x, unit_in, unit_out):
     '''Function to convert between different units.
     
     Args:
@@ -127,7 +127,7 @@ def unit_converter(x, unit_in, unit_out):
     
     return convert * x
 
-def string_multiplier(string_in):
+def _string_multiplier(string_in):
     string_in = string_in.strip().lower()
 
     d = {'mil':1e6,
