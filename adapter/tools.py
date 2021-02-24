@@ -4,7 +4,7 @@ VOL_UNIT_DENOMINATIONS = ['gal','gal.','gln','gallon','gals','gals.','gallons','
 VOL_UNIT_DENOMINATIONS += [x.title() for x in VOL_UNIT_DENOMINATIONS] + [x.upper() for x in VOL_UNIT_DENOMINATIONS]
 
 ENERGY_UNIT_DENOMINATIONS = ['kwh','kWh','KWh','twh','TWh','mwh','MWh','gwh','GWh','quad','quads','therm','mmbtu','MMBtu','kj','mj']
-ENERGY_UNIT_DENOMINATIONS += [x.title() for x in ENERGY_UNIT_DENOMINATIONS] + [x.upper() for x in ENERGY_UNIT_DENOMINATIONS] + ['wh','WH','Wh'] + ['btu','BTU','BTu'] + ['j','J'] # small units go at the end so that 'wh' doesn't get stripped from 'kwh', e.g.
+ENERGY_UNIT_DENOMINATIONS += [x.title() for x in ENERGY_UNIT_DENOMINATIONS] + [x.upper() for x in ENERGY_UNIT_DENOMINATIONS] + ['j','J'] + ['wh','WH','Wh'] + ['btu','BTU','BTu'] # small units go at the end so that 'wh' doesn't get stripped from 'kwh', e.g.
 
 DOLLAR_UNIT_DENOMINATIONS = ['dollars','dols','dol']
 DOLLAR_UNIT_DENOMINATIONS += [x.title() for x in DOLLAR_UNIT_DENOMINATIONS] + [x.upper() for x in DOLLAR_UNIT_DENOMINATIONS]
@@ -13,11 +13,11 @@ DOLLAR_UNIT_DENOMINATIONS = ['$'] + DOLLAR_UNIT_DENOMINATIONS
 TEMP_UNIT_DENOMINATIONS = ['celsius','fahrenheit','kelvin','degF','degC','degK']
 TEMP_UNIT_DENOMINATIONS += [x.title() for x in TEMP_UNIT_DENOMINATIONS] + [x.upper() for x in TEMP_UNIT_DENOMINATIONS] + ['C','F','K'] # Excluding lowercase c,f,k 
 
-MASS_UNIT_DENOMINATIONS = ['kg','kilogram','kilo','kilos','tonne','tonnes','tons','ton','gram','gramme','grammes','grams']
-MASS_UNIT_DENOMINATIONS += [x.title() for x in MASS_UNIT_DENOMINATIONS] + [x.upper() for x in MASS_UNIT_DENOMINATIONS] + ['g','t']
+MASS_UNIT_DENOMINATIONS = ['kg','kilogram','kilograms','kilo','kilos','tonne','tonnes','tons','ton','gramme','grammes']
+MASS_UNIT_DENOMINATIONS += [x.title() for x in MASS_UNIT_DENOMINATIONS] + [x.upper() for x in MASS_UNIT_DENOMINATIONS] + ['gram','GRAM','Gram','grams','GRAMS','Grams'] + ['g','t'] 
 
-TIME_UNIT_DENOMINATIONS = ['minute','minutes','min','mins','day','days','hour','hr','hr.','hours','hrs','year','yr','years','yrs','yr.']
-TIME_UNIT_DENOMINATIONS += [x.title() for x in TIME_UNIT_DENOMINATIONS] + [x.upper() for x in TIME_UNIT_DENOMINATIONS] + ['h','s']
+TIME_UNIT_DENOMINATIONS = ['minute','minutes','min','mins','day','days','hour','hr','hr.','hours','hrs','year','yr','years','yrs','yr.','sec','second','seconds']
+TIME_UNIT_DENOMINATIONS += [x.title() for x in TIME_UNIT_DENOMINATIONS] + [x.upper() for x in TIME_UNIT_DENOMINATIONS] + ['h']
 
 def convert_units(x,unit_in, unit_out):
     '''
@@ -109,11 +109,11 @@ def _parse_single_unit(given_unit):
         tuple:     A two-tuple with the 0th index being the amount of the base unit (int), and the 1st index being the base unit (str)
     '''
     unit_denominations = ENERGY_UNIT_DENOMINATIONS +\
-        VOL_UNIT_DENOMINATIONS + \
-        DOLLAR_UNIT_DENOMINATIONS + \
+        TIME_UNIT_DENOMINATIONS + \
         TEMP_UNIT_DENOMINATIONS + \
         MASS_UNIT_DENOMINATIONS + \
-        TIME_UNIT_DENOMINATIONS
+        VOL_UNIT_DENOMINATIONS + \
+        DOLLAR_UNIT_DENOMINATIONS
 
     for u in unit_denominations:
         if given_unit.strip().endswith(u):
@@ -124,8 +124,9 @@ def _parse_single_unit(given_unit):
                 amount = int(amount) # E.g. '1000' -> 1000
             else:
                 amount = _string_multiplier(amount) # E.g. 'billion' -> 1e9
-                
-            return amount, u.lower() # (1000,'gal')
+            if amount is not None:
+                return amount, u.lower() # (1000,'gal')
+            
 
 def _converter(x, unit_in, unit_out):
     '''Function to convert between different units.
@@ -171,6 +172,8 @@ def _converter(x, unit_in, unit_out):
         'ft3':          ft3,
         'ft^3':         ft3,
         'gal':          gal,
+        'gln':          gal,
+        'glns':         gal,
         'gals':         gal,
         'gallon':       gal,
         'gallons':      gal,
@@ -199,6 +202,9 @@ def _converter(x, unit_in, unit_out):
         'celsius':      celsius,
         'fahrenheit':   fahrenheit,
         'kelvin':       kelvin,
+        'degf':         fahrenheit,
+        'degc':         celsius,
+        'degk':         kelvin,
     }
     
     kg = 1. # Use kg as base
@@ -213,6 +219,7 @@ def _converter(x, unit_in, unit_out):
         'g':        gram,
         'kg':       kg,
         'kilogram': kg,
+        'kilograms':kg,
         'kilo':     kg,
         'kilos':    kg,
         'tonne':    ton,
@@ -226,7 +233,12 @@ def _converter(x, unit_in, unit_out):
     minute = 1/60. 
     day = 24.
     year = 365.
+    second = minute/60.
+
     time_unit_dict = {
+        'sec':      second,
+        'second':   second,
+        'seconds':  second,
         'minute':   minute,
         'minutes':  minute,
         'min':      minute,
@@ -234,15 +246,18 @@ def _converter(x, unit_in, unit_out):
         'hour':     hour,
         'hr':       hour,
         'hr.':      hour,
+        'h':        hour,
         'hours':    hour,
         'hrs':      hour,
         'day':      day,
         'days':     day,
+        'd':        day,
         'year':     year,
         'yr':       year,
         'years':    year,
         'yrs':      year,
         'yr.':      year,
+        'y':        year,
     }
 
 
@@ -286,6 +301,7 @@ def _string_multiplier(string_in):
          'billion':1e9,
          'billions':1e9,
          'quadrillion':1e12,
+         'quad':1e12,
          'thou':1e3,
          'thsnd':1e3,
          'thousand':1e3,
@@ -296,8 +312,5 @@ def _string_multiplier(string_in):
     if string_in in d.keys():
         return d[string_in]
     else:
-        try:
-            out = int(string_in)
-            return out
-        except:
-            raise Exception(f"Quantity '{string_in}' is not recognized as a numerical string.")
+        # In this case, return None to break unwitting code
+        return None
