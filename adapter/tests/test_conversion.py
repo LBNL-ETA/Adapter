@@ -18,7 +18,7 @@ class ConversionTests(unittest.TestCase):
         
         value = convert_units(value,TEMP_UNIT_DENOMINATIONS[-1],first_unit)
 
-        assert(round(value,6)==1.)
+        assert(round(value,8)==1.)
 
     def test_volume_conversion_fullcircle(self):
         '''
@@ -31,7 +31,7 @@ class ConversionTests(unittest.TestCase):
         
         value = convert_units(value,VOL_UNIT_DENOMINATIONS[-1],first_unit)
 
-        assert(round(value,6)==1.)
+        assert(round(value,8)==1.)
 
     def test_mass_conversion_fullcircle(self):
         '''
@@ -44,7 +44,7 @@ class ConversionTests(unittest.TestCase):
         
         value = convert_units(value,MASS_UNIT_DENOMINATIONS[-1],first_unit)
 
-        assert(round(value,6)==1.)
+        assert(round(value,8)==1.)
 
     def test_energy_conversion_fullcircle(self):
         '''
@@ -57,7 +57,7 @@ class ConversionTests(unittest.TestCase):
         
         value = convert_units(value,ENERGY_UNIT_DENOMINATIONS[-1],first_unit)
 
-        assert(round(value,6)==1.)
+        assert(round(value,8)==1.)
 
     def test_time_conversion_fullcircle(self):
         '''
@@ -70,4 +70,4 @@ class ConversionTests(unittest.TestCase):
         
         value = convert_units(value,TIME_UNIT_DENOMINATIONS[-1],first_unit)
 
-        assert(round(value,6)==1.)
+        assert(round(value,8)==1.)
