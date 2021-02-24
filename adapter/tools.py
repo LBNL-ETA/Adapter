@@ -13,7 +13,7 @@ DOLLAR_UNIT_DENOMINATIONS = ['$'] + DOLLAR_UNIT_DENOMINATIONS
 TEMP_UNIT_DENOMINATIONS = ['celsius','fahrenheit','kelvin','degF','degC','degK']
 TEMP_UNIT_DENOMINATIONS += [x.title() for x in TEMP_UNIT_DENOMINATIONS] + [x.upper() for x in TEMP_UNIT_DENOMINATIONS] + ['C','F','K'] # Excluding lowercase c,f,k 
 
-MASS_UNIT_DENOMINATIONS = ['kg','kilogram','kilograms','kilo','kilos','tonne','tonnes','tons','ton','gramme','grammes']
+MASS_UNIT_DENOMINATIONS = ['kg','kilogram','kilograms','kilo','kilos','tonne','tonnes','tons','ton','gramme','grammes','short tons','short ton','long tons','long ton'] # ton is metric, otherwise must specify short
 MASS_UNIT_DENOMINATIONS += [x.title() for x in MASS_UNIT_DENOMINATIONS] + [x.upper() for x in MASS_UNIT_DENOMINATIONS] + ['gram','GRAM','Gram','grams','GRAMS','Grams'] + ['g','t'] 
 
 TIME_UNIT_DENOMINATIONS = ['minute','minutes','min','mins','day','days','hour','hr','hr.','hours','hrs','year','yr','years','yrs','yr.','sec','second','seconds']
@@ -210,23 +210,29 @@ def _converter(x, unit_in, unit_out):
     kg = 1. # Use kg as base
     gram = 1000. 
     ton = .001
+    short_ton = ton/.907184
+    long_ton = ton/1.016046
     mass_unit_dict = {
         # NOTE: Imperial notion of "ton" not included, though this is perhaps a bad idea? Unclear.
-        'gram':     gram,
-        'gramme':   gram,
-        'grams':    gram,
-        'grammes':  gram,
-        'g':        gram,
-        'kg':       kg,
-        'kilogram': kg,
-        'kilograms':kg,
-        'kilo':     kg,
-        'kilos':    kg,
-        'tonne':    ton,
-        'tonnes':   ton,
-        'tons':     ton, 
-        'ton':      ton,
-        't':        ton,
+        'gram':         gram,
+        'gramme':       gram,
+        'grams':        gram,
+        'grammes':      gram,
+        'g':            gram,
+        'kg':           kg,
+        'kilogram':     kg,
+        'kilograms':    kg,
+        'kilo':         kg,
+        'kilos':        kg,
+        'short ton':    short_ton,
+        'short tons':   short_ton,
+        'long ton':    long_ton,
+        'long tons':   long_ton,
+        'tonne':        ton,
+        'tonnes':       ton,
+        'tons':         ton, 
+        'ton':          ton,
+        't':            ton,
     }
 
     hour = 1.   # Use hour as base
@@ -234,7 +240,6 @@ def _converter(x, unit_in, unit_out):
     day = 24.
     year = 365.
     second = minute/60.
-
     time_unit_dict = {
         'sec':      second,
         'second':   second,
@@ -313,4 +318,5 @@ def _string_multiplier(string_in):
         return d[string_in]
     else:
         # In this case, return None to break unwitting code
+        # This will happen if, for example, "s" for seconds gets caught at the end of "kilograms", and "kilogram" is handed to this function
         return None

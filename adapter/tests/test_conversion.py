@@ -124,3 +124,14 @@ class ConversionTests(unittest.TestCase):
         assert(convert_units(value, unit_in, 'C')==0.)
         assert(convert_units(value, unit_in, 'K')==273.15)
 
+    def test_mass_conversions(self):
+        '''
+        Ensure that mass conversions are exactly as expected
+        '''
+        value = 1.
+        unit_in = 'kg'
+
+        assert(convert_units(1, unit_in, 'short ton')==.001/.907184)
+        assert(convert_units(1, unit_in, 'long ton')==.001/1.016046)
+        assert(convert_units(1, unit_in, 'ton')==.001)
+
