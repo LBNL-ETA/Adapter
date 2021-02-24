@@ -66,9 +66,7 @@ class ConversionTests(unittest.TestCase):
         value = 1.
         first_unit = TIME_UNIT_DENOMINATIONS[0]
         for (unit_in, unit_out) in zip(TIME_UNIT_DENOMINATIONS[:-1], TIME_UNIT_DENOMINATIONS[1:]):
-            out_str = f'{value}: {unit_in} \t-> '
             value = convert_units(value,unit_in,unit_out)
-            print(out_str + f'{value}: {unit_out}')
         
         value = convert_units(value,TIME_UNIT_DENOMINATIONS[-1],first_unit)
 
