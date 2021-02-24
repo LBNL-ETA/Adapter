@@ -18,7 +18,7 @@ class ConversionTests(unittest.TestCase):
         
         value = convert_units(value,TEMP_UNIT_DENOMINATIONS[-1],first_unit)
 
-        assert(round(value,8)==1.)
+        assert(round(value,9)==1.)
 
     def test_volume_conversion_fullcircle(self):
         '''
@@ -31,7 +31,7 @@ class ConversionTests(unittest.TestCase):
         
         value = convert_units(value,VOL_UNIT_DENOMINATIONS[-1],first_unit)
 
-        assert(round(value,8)==1.)
+        assert(round(value,9)==1.)
 
     def test_mass_conversion_fullcircle(self):
         '''
@@ -44,7 +44,7 @@ class ConversionTests(unittest.TestCase):
         
         value = convert_units(value,MASS_UNIT_DENOMINATIONS[-1],first_unit)
 
-        assert(round(value,8)==1.)
+        assert(round(value,9)==1.)
 
     def test_energy_conversion_fullcircle(self):
         '''
@@ -57,7 +57,7 @@ class ConversionTests(unittest.TestCase):
         
         value = convert_units(value,ENERGY_UNIT_DENOMINATIONS[-1],first_unit)
 
-        assert(round(value,8)==1.)
+        assert(round(value,9)==1.)
 
     def test_time_conversion_fullcircle(self):
         '''
@@ -70,4 +70,57 @@ class ConversionTests(unittest.TestCase):
         
         value = convert_units(value,TIME_UNIT_DENOMINATIONS[-1],first_unit)
 
-        assert(round(value,8)==1.)
+        assert(round(value,9)==1.)
+
+    def test_energy_conversions(self):
+        '''
+        Ensure that 1 kwh is being converted correctly to several different common output units
+        '''
+        value = 1
+        unit_in = 'kwh'
+        
+        assert(convert_units(value, unit_in, 'quads')==3.41214/1e12) # from ASHRAE value used by conversion tools
+        assert(convert_units(value, unit_in, 'twh')==1e-9)
+        assert(convert_units(value, unit_in, 'gwh')==1e-6)
+        assert(convert_units(value, unit_in, 'mwh')==1e-3)
+
+    def test_volume_conversions(self):
+        '''
+        Ensure that 1 gallon is being converted correctly to several different common volume (water) units
+        '''
+        value = 1
+        unit_in = 'gal'
+
+        assert(convert_units(value, unit_in, 'billion gallons')==1e-9)
+        assert(convert_units(value, unit_in, 'million gallons')==1e-6)
+        assert(convert_units(value, unit_in, 'm3')==0.0037854)
+        assert(convert_units(value, unit_in, 'ft3')==0.13368)
+
+    def test_temp_conversions(self):
+        '''
+        Ensure that freezing and boiling point conversions are correct
+        '''
+        value = 0.
+        unit_in = 'C'
+
+        assert(convert_units(value, unit_in, 'F')==32.)
+        assert(convert_units(value, unit_in, 'K')==273.15)
+
+        value = 100.
+        unit_in = 'C'
+
+        assert(convert_units(value, unit_in, 'F')==212.)
+        assert(convert_units(value, unit_in, 'K')==373.15)
+
+        value = 212.
+        unit_in = 'F'
+
+        assert(convert_units(value, unit_in, 'C')==100.)
+        assert(convert_units(value, unit_in, 'K')==373.15)
+
+        value = 32.
+        unit_in = 'F'
+
+        assert(convert_units(value, unit_in, 'C')==0.)
+        assert(convert_units(value, unit_in, 'K')==273.15)
+
