@@ -13,8 +13,8 @@ DOLLAR_UNIT_DENOMINATIONS = ['$'] + DOLLAR_UNIT_DENOMINATIONS
 TEMP_UNIT_DENOMINATIONS = ['celsius','fahrenheit','kelvin','degF','degC','degK']
 TEMP_UNIT_DENOMINATIONS += [x.title() for x in TEMP_UNIT_DENOMINATIONS] + [x.upper() for x in TEMP_UNIT_DENOMINATIONS] + ['C','F','K'] # Excluding lowercase c,f,k 
 
-MASS_UNIT_DENOMINATIONS = ['kg','kilogram','kilograms','kilo','kilos','tonne','tonnes','tons','ton','gramme','grammes','short tons','short ton','long tons','long ton'] # ton is metric, otherwise must specify short
-MASS_UNIT_DENOMINATIONS += [x.title() for x in MASS_UNIT_DENOMINATIONS] + [x.upper() for x in MASS_UNIT_DENOMINATIONS] + ['gram','GRAM','Gram','grams','GRAMS','Grams'] + ['g','t'] 
+MASS_UNIT_DENOMINATIONS = ['kg','kilogram','kilograms','kilo','kilos','tonne','tonnes','tons','ton','gramme','grammes','short tons','short ton','mmst','MMsT','mst','long tons','long ton'] # ton is metric, otherwise must specify short
+MASS_UNIT_DENOMINATIONS += [x.title() for x in MASS_UNIT_DENOMINATIONS] + [x.upper() for x in MASS_UNIT_DENOMINATIONS] + ['gram','GRAM','Gram','grams','GRAMS','Grams'] + ['st','sT','g','t'] 
 
 TIME_UNIT_DENOMINATIONS = ['minute','minutes','min','mins','day','days','hour','hr','hr.','hours','hrs','year','yr','years','yrs','yr.','sec','second','seconds']
 TIME_UNIT_DENOMINATIONS += [x.title() for x in TIME_UNIT_DENOMINATIONS] + [x.upper() for x in TIME_UNIT_DENOMINATIONS] + ['h']
@@ -29,8 +29,8 @@ def convert_units(x,unit_in, unit_out):
         unit_in (str):  unit designation of x, can be a quotient designated with '/' or 'per'
         unit_out (str): unit designation of desired representation of x. Can be a quotient designated with '/' or 'per'.
 
-    Outputs:
-        type(x): Returns x in the same type, but whose value has been manipulated to correspond to 'unit_out'
+    Returns:
+        x in the given type, but whose value has been manipulated to correspond to 'unit_out'
 
     Examples:
         > convert_units(1,'kWh','quad')
@@ -40,7 +40,7 @@ def convert_units(x,unit_in, unit_out):
         > 1000
 
         > convert_units(1,'$/1000 gal','million $/1000 m3') # or convert_units(1,'$/1000 gallons','mln $/1000 m^3')
-        > 0.000264172
+        > 264.1728747292228
 
         > convert_units(32,'F','C')                         # or convert_units(32,'fahrenheit','celsius')
         > 0.0
@@ -226,8 +226,11 @@ def _converter(x, unit_in, unit_out):
         'kilos':        kg,
         'short ton':    short_ton,
         'short tons':   short_ton,
-        'long ton':    long_ton,
-        'long tons':   long_ton,
+        'mmst':         short_ton/1e6,
+        'mst':          short_ton/1e3,
+        'st':           short_ton,
+        'long ton':     long_ton,
+        'long tons':    long_ton,
         'tonne':        ton,
         'tonnes':       ton,
         'tons':         ton, 
