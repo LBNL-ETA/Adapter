@@ -31,6 +31,17 @@ class Excel(object):
         log.info("Connected to: {}".format(file_path))
 
     def has_table(self,table_name):
+        '''
+        Checks whether a specific table is in the workbook, by name
+
+        Parameters:
+            table_name: str
+                Name of the table whose existence is being queried
+
+        Returns:
+            True/False
+                Whether or not the table exists in this workbook.
+        '''
         # inefficient: queries all table names to check if one is in the whole list.
         return table_name in self.wb.tables
 
@@ -201,6 +212,17 @@ class Db(object):
         self.file_path = file_path
 
     def has_table(self,table_name):
+        '''
+        Check whether or not a table exists in this database
+
+        Parameters:
+            table_name: str
+                The table name whose existence you're querying for
+
+        Returns:
+            True/False
+                Whether or not this database has the table
+        '''
         return self.db.has_table(table_name)
 
     def load(self, table_names=None, close = True):
@@ -246,7 +268,19 @@ class Db(object):
         '''
         Write a df to this database under the name <table_name>.
 
-        kwargs given to pd.to_sql(...)
+        Parameters:
+            df: pd.DataFrame
+                Table to write
+
+            table_name: str
+                Name under which table will be saved in self.db
+
+            kwargs: dict
+                Handed as keyword arguments to pd.to_sql
+
+        Returns:
+            True or None
+                True if the execution of the save succeeded. 
         '''
         return self.db.pd2table(df,table_name, close = close, **kwargs)
 

@@ -44,10 +44,27 @@ class Sql(object):
             raise ValueError
     
     def has_table(self,table_name):
+        '''
+        Whether or not this db contains table <table_name>
+
+        Parameters:
+            table_name: str
+                The table name whose existence is being queried for.
+
+        Returns:
+            True/False
+                Whether or not table is in this database
+        '''
         return (table_name,) in self.tables
 
     @property
     def tables(self):
+        '''
+        The tables contained in this database.
+
+        Returns:
+            List of tuples in the form [(<name1>,),(<name2>,),...]
+        '''
         cursor = self.db.cursor()
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
         return cursor.fetchall()
@@ -117,6 +134,9 @@ class Sql(object):
 
             close: boolean, default=False
                 If True, closes the connection to db
+
+            kwargs: dict
+                keyword arguments handed to pandas native to_sql method.
         """
 
         df.to_sql(table_name, self.db, **kwargs)
