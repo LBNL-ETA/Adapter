@@ -137,7 +137,12 @@ class Sql(object):
 
             kwargs: dict
                 keyword arguments handed to pandas native to_sql method.
+                will by default always use if_exists='replace' and index=False if not specified, to match previous behavior.
         """
+        kwargs.update({
+            'if_exists': kwargs.get('if_exists','replace'),
+            'index': kwargs.get('index',False)
+        })
 
         df.to_sql(table_name, self.db, **kwargs)
 
