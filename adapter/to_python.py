@@ -30,6 +30,10 @@ class Excel(object):
 
         log.info("Connected to: {}".format(file_path))
 
+    def has_table(self,table_name):
+        # inefficient: queries all table names to check if one is in the whole list.
+        return table_name in self.wb.tables
+
     def load(self, data_object_names=None, kind="all"):
         """Opens the file provided
         through file_path, loads
@@ -196,7 +200,10 @@ class Db(object):
         self.db = Sql(file_path)
         self.file_path = file_path
 
-    def load(self, table_names=None):
+    def has_table(self,table_name):
+        return self.db.has_table(table_name)
+
+    def load(self, table_names=None, close = True):
         """Loads tables
 
         Parameters:
@@ -206,7 +213,7 @@ class Db(object):
                 Default: None = load all tables
         """
         try:
-            all_dict_of_dfs = self.db.tables2dict(close=True)
+            all_dict_of_dfs = self.db.tables2dict(close=close)
 
             dict_of_dfs = dict()
 
@@ -235,6 +242,13 @@ class Db(object):
 
         return dict_of_dfs
 
+    def write_df(self,df,table_name,close=False,**kwargs):
+        '''
+        Write a df to this database under the name <table_name>.
+
+        kwargs given to pd.to_sql(...)
+        '''
+        return self.db.pd2table(df,table_name, close = close, **kwargs)
 
 class Toolbox(object):
     def process_column_labels(self, list_of_labels):

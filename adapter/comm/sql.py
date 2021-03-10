@@ -31,7 +31,7 @@ class Sql(object):
                 self.db = sqlite3.connect(path_OR_dbconn)
             except:
                 # for paths relative to run path
-                path = os.getcwd() + "\\" + path_OR_dbconn
+                path = os.path.join(os.getcwd(),path_OR_dbconn)
                 self.db = sqlite3.connect(path)
 
         elif type(path_OR_dbconn) == sqlite3.Connection:
@@ -42,6 +42,15 @@ class Sql(object):
                 "nor a database connection got passed."
             )
             raise ValueError
+    
+    def has_table(self,table_name):
+        return (table_name,) in self.tables
+
+    @property
+    def tables(self):
+        cursor = self.db.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        return cursor.fetchall()
 
     def tables2dict(self, close=True):
         """Reads all tables contained in a
@@ -60,12 +69,8 @@ class Sql(object):
                 pandas dataframe under a sql table
                 name as a key
         """
-
-        cursor = self.db.cursor()
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-        tables = cursor.fetchall()
         data = dict()
-        for table_name in tables:
+        for table_name in self.tables:
             table_name = table_name[0]
             data[table_name] = pd.read_sql_query(
                 """ SELECT * FROM '{}' """.format(table_name), self.db
@@ -101,7 +106,7 @@ class Sql(object):
 
         return df
 
-    def pd2table(self, df, table_name, close=False):
+    def pd2table(self, df, table_name, close=False,**kwargs):
         """Write a dataframe out to the database.
         If same named table exists, it gets replaced
 
@@ -114,7 +119,7 @@ class Sql(object):
                 If True, closes the connection to db
         """
 
-        df.to_sql(table_name, self.db, if_exists="replace", index=False)
+        df.to_sql(table_name, self.db, **kwargs)
 
         if close:
             self.db.close()
