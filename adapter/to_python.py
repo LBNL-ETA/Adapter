@@ -266,7 +266,7 @@ class Db(object):
 
     def write_df(self,df,table_name,close=False,**kwargs):
         '''
-        Write a df to this database under the name <table_name>.
+        Write a df to self.db under the name <table_name>.
 
         Parameters:
             df: pd.DataFrame
