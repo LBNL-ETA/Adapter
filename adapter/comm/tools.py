@@ -21,15 +21,20 @@ def process_column_labels(list_of_labels):
     return list_of_cleaned_labels
 
 def convert_network_drive_path(str_or_path,mapping = [("X:","/Volumes/my_drive")]):
-    """Convert network drive paths from those formatted for one OS into those formatted for another. (works for Windows <-> OSX)
+    """
+    Convert network drive paths from those formatted for one OS into those formatted for another. (works for Windows <-> OSX)
     If a string that doesn't seem to represent a path in the other OS is given, it will be returned unchanged.
 
-    Args:
-        str_or_path (str): string holding a filepath. 
-        mapping (list): list of 2-tuples where 0th entry of each tuple is the name of a windows network drive location (e.g. "A:") and the 1st entry is OSX network drive location (e.g. "/Volumes/A"). Defaults to [("X:","/Volumes/my_folder")].
+    Parameters:
+        str_or_path: str 
+            string holding a filepath. 
+
+        mapping: list 
+            list of 2-tuples where 0th entry of each tuple is the name of a windows network drive location (e.g. "A:") and the 1st entry is OSX network drive location (e.g. "/Volumes/A"). Defaults to [("X:","/Volumes/my_folder")].
 
     Returns:
-        str_or_path (str): string holding a converted filepath, or original in the case that no mapped network drive was found.
+        str_or_path: str 
+            string holding a converted filepath, or original in the case that no mapped network drive was found.
 
     Raises:
         Exception: When no mapping is given
