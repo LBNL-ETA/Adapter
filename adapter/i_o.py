@@ -5,7 +5,7 @@ import pandas as pd
 from adapter.to_python import Excel, Db
 from adapter.label_map import Labels
 
-from tools import convert_network_drive_path
+from adapter.comm.tools import convert_network_drive_path
 
 from datetime import datetime
 import re
