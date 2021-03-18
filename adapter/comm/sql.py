@@ -31,7 +31,7 @@ class Sql(object):
                 self.db = sqlite3.connect(path_OR_dbconn)
             except:
                 # for paths relative to run path
-                path = os.getcwd() + "\\" + path_OR_dbconn
+                path = os.path.join(os.getcwd(),path_OR_dbconn)
                 self.db = sqlite3.connect(path)
 
         elif type(path_OR_dbconn) == sqlite3.Connection:
