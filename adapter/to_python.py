@@ -1,4 +1,6 @@
 import numpy as np
+import pandas as pd
+import traceback
 
 from adapter.comm.excel import Book, xl2pd, pd2xl
 from adapter.comm.sql import Sql
@@ -236,6 +238,56 @@ class Db(object):
         except:
             msg = "Failed to read input tables from {}."
             log.error(msg.format(self.inpath))
+            raise ValueError
+
+        return dict_of_dfs
+    
+class Db_sqlalchemy(object):
+    """Loads tables from a database using sqlalchemy to python
+    as a dictionary of dataframes.
+
+    Parameters:
+
+        file_path: str
+            Path to an db file
+    """
+    
+    
+    
+    def __init__(self, file_path):
+        # Imports in this class so if you don;t need them it will still work
+        try:
+            from adapter.Secret import database_credentials
+        except:
+            raise ValueError('''You must define your "Secret.py" file within the adapter folder.  
+                                Replace the example "Secret_example.py" with your credentials''')
+        from sqlalchemy import create_engine
+        
+        self.cxn_str = 'postgresql://'+database_credentials["Username"]+':'+database_credentials["Password"]+'@'+file_path
+        self.engine = create_engine(self.cxn_str)
+        self.file_path = file_path
+
+    def load(self, table_names=None):
+        """Loads tables
+
+        Parameters:
+
+            table_names: list
+                List of table names to load.
+                Default: None = load all tables
+        """
+        print (self.cxn_str)
+        print (table_names)
+        try:
+            dict_of_dfs = dict()
+            for table_name in table_names:
+                sql_string = "SELECT * FROM {table}".format(table=table_name)
+                dict_of_dfs[table_name] = pd.read_sql(con=self.engine,sql=sql_string)
+
+        except:
+            traceback.print_exc()
+            msg = "Failed to read input tables from {}."
+            log.error(msg.format(self.file_path))
             raise ValueError
 
         return dict_of_dfs

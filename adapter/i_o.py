@@ -2,7 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from adapter.to_python import Excel, Db
+from adapter.to_python import Excel, Db, Db_sqlalchemy
 from adapter.label_map import Labels
 
 from adapter.comm.tools import convert_network_drive_path
@@ -86,7 +86,12 @@ class IO(object):
 
         elif extns == "csv":
             file_type += "text"
-
+        
+        # If the path contains lbl.gov, it is likely a database that can be used with sqlalchemy
+        elif "lbl.gov" in path:
+            file_type += "sqlalchemy"
+        
+        
         else:
             msg = "Passed an unsupported input file type: {}."
             log.error(msg.format(extns))
@@ -182,7 +187,7 @@ class IO(object):
                 'db_conn' - database connection
         """
         dict_of_dfs = self.get_tables(self.input_path)
-
+        
         # are there any further input files?
         # if that is the case, the file paths and further info
         # should be placed in an `inputs_from_files` table
@@ -464,6 +469,14 @@ class IO(object):
                 dict_of_dfs = Db(
                     file_path).load(
                     table_names=table_names_to_load)
+                    
+            elif file_type == "sqlalchemy":
+                # load all tables found in the
+                # sqlalchemy database as a dict of dataframes
+                
+                dict_of_dfs = Db_sqlalchemy(
+                    file_path).load(
+                    table_names=table_names_for_conn)
 
         else:
             msg="Unsupported value ({}) provided as input file path."
