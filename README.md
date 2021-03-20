@@ -1,6 +1,6 @@
 # Adapter
 
-The `Adapter` software provides a convenient data table loader from various formats such as `xlsx`, `csv`, and `db (database)`. Its main feature is the ability to convert data tables identified in one main and optionally one or more additional input files into `database tables` and `Pandas DataFrames` for downstream usage in any compatible software.
+The `Adapter` software provides a convenient data table loader from various formats such as `xlsx`, `csv`, `db (sqlite database)`, and `sqlalchemy`. Its main feature is the ability to convert data tables identified in one main and optionally one or more additional input files into `database tables` and `Pandas DataFrames` for downstream usage in any compatible software.
 
 `Adapter` builds upon the existing Python packages that allow for the communication between `Python` and `MS Excel`, as well as `databases` and `csv` files. It provides inbuilt capabilities to specify the output location path, as well as a version identifier for a research code run. 
 
@@ -28,6 +28,8 @@ To install a specific version of the `adapter` software you can use:
 pip install git+https://{your bitbucket username}@bitbucket.org/eetd-ees/adapter.git@vX.Y.Z
 ```
 where `vX.Y.Z` is the specific version. To check the available versions please check the repository webpage - the tags are listed right next to the branches - or, if you cloned the repository, use `git tag -n`.
+
+To use the sqlalchemy connections you must edit the example secret file located in `adapter\Secret_example.py` for your database credentials and save it as `Secret.py`.
 
 
 ## Usage
