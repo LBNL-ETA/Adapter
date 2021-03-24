@@ -24,10 +24,25 @@ def convert_units(x,unit_in, unit_out):
     For converting x, which is in <unit_in> units, to <unit_out> units. Returns a value that represents x in <unit_out> units, maintaining the type of x.
     There is no support for converting unit aliases right now (E.g. 1 J/s = 1 W)
 
-    Inputs:
-        x (numeric,pd.Series,np.array): a number or collection of numbers defined in units designated by 'unit_in'. Requires that it can be manipulated with native *, +, and / operators
-        unit_in (str):  unit designation of x, can be a quotient designated with '/' or 'per'
-        unit_out (str): unit designation of desired representation of x. Can be a quotient designated with '/' or 'per'.
+    Order of operations:
+    1)  Call _parse_units() on unit_in and unit_out
+            This should parse each of these into a numerator and denominator, each of which is a (multiplier, unit) tuple. Demoninator can be (1,None) if not present.
+    2)  Return a product of:
+            * _converter() call converting x of numerator of input to numerator of output 
+            * _converter() call converting 1 of denominator of input to denominator of output
+            * Conversion of numerator multipliers with quotient
+            * Conversion of denominator multipliers with quotient
+
+    Parameters:
+        x : numeric,pd.Series,np.array
+            A number or collection of numbers defined in units designated by 'unit_in'. Requires that it can be manipulated with native *, +, and / operators
+
+        unit_in : str  
+            unit designation of x, can be a quotient designated with '/' or 'per'. Can come with multiplier designations as well (e.g. 1000 gal, million btu)
+
+        unit_out : str 
+            unit designation of desired representation of x. Can be a quotient designated with '/' or 'per'. Can come with multiplier designations as well (e.g. 1000 gal, million btu)
+
 
     Returns:
         x in the given type, but whose value has been manipulated to correspond to 'unit_out'
@@ -68,24 +83,29 @@ def convert_units(x,unit_in, unit_out):
     #       denominator:    (1/N <B>) = (1/M <B>) * [M/N]
     if parsed_in['denominator'][1].title() in TEMP_UNIT_DENOMINATIONS or parsed_out['denominator'][1].title() in TEMP_UNIT_DENOMINATIONS:
         raise Exception(f"Temperature (given {parsed_in['denominator'][1]} and {parsed_out['denominator'][1]}) in denominator is undefined behavior.")
-    return _converter(x,parsed_in['numerator'][1],parsed_out['numerator'][1]) * _converter(1,parsed_out['denominator'][1],parsed_in['denominator'][1]) * (parsed_in['numerator'][0]/parsed_out['numerator'][0]) * (parsed_out['denominator'][0]/parsed_in['denominator'][0])
+    return _converter(x,parsed_in['numerator'][1],parsed_out['numerator'][1]) * 
+            _converter(1,parsed_out['denominator'][1],parsed_in['denominator'][1]) * 
+            (parsed_in['numerator'][0]/parsed_out['numerator'][0]) * 
+            (parsed_out['denominator'][0]/parsed_in['denominator'][0])
 
 def _parse_units(given_unit):
     '''
     For parsing a generic unit represented as a string, for example 'kwh','1000 $', or '$/MMBtu'
 
-    Inputs:
-        given_unit (str): String form of generic unit, which may be a quotient designated with "/" or "per".
+    Parameters:
+        given_unit: str 
+            String form of generic unit, which may be a quotient designated with "/" or "per".
 
     Returns:
-        dict:   'numerator' and 'denominator' keys to specify amount of base unit and base unit. If there is no denominator, that key is associated to (1,None)
+        dict:   
+            'numerator' and 'denominator' keys to specify amount of base unit and base unit. If there is no denominator, that key is associated to (1,None)
 
     Example:    
-    For turning generic units (N_x <x> / N_y <y>) into normalized objects. When a non-quotient product is given, will return (1,None) as denominator.
-    {
-        'numerator':(amount,unit),
-        'denominator':(amount,unit)
-    }
+        given_unit = "thousand $/MMBtu" will return:
+        {
+            'numerator':(1000,'$'),
+            'denominator':(1,'mmbtu')
+        }
     '''
     given_unit = given_unit.strip()
     for delineator in ["/","per"]:
@@ -106,7 +126,9 @@ def _parse_single_unit(given_unit):
     For turning something like "1000 gal" into (1000,'gal'), and 'kwh' into (1,'kwh')
 
     Returns:
-        tuple:     A two-tuple with the 0th index being the amount of the base unit (int), and the 1st index being the base unit (str)
+        (amount, unit): tuple     
+            A two-tuple with the 0th index being the amount of the base unit (int), and the 1st index being the base unit (str)
+            If no unit is parsed from the input string, it will return None
     '''
     unit_denominations = ENERGY_UNIT_DENOMINATIONS +\
         TIME_UNIT_DENOMINATIONS + \
@@ -133,17 +155,26 @@ def _converter(x, unit_in, unit_out):
     Factors come from ASHRAE retrieved Feb 19, 2021 
     https://www.ashrae.org/technical-resources/ashrae-handbook/the-si-guide
     
-    Args:
-        x (numeric, pd.Series, np.array): value to convert. Must be compatible with native *, + operations
-        unit_in (str): unit in which `x` is given
-        unit_out (str): unit to which `x` should be converted
+    Each entry in the dictionary represents "how much of the base unit comprises a single unit designated by this key?"
+
+    For temperature, tuples for freezing & boiling point at atmospheric pressure are used instead.
+    Parameters:
+        x : numeric, pd.Series, np.array 
+            value to convert. Must be compatible with native *, + operations
+
+        unit_in : str 
+            unit in which `x` is given
+
+        unit_out : str 
+            unit to which `x` should be converted
+
     
     Returns:
         `unit of x`: converted value
     '''
-    kwh = 1.    # Use kwh as the base
-    mj = 3.6            # 1 wh = 3600 j ->      1000 wh = 3600 * 1000 / 1e6 (million joules)
-    btu = 3.41214e3     # 1 wh = 3.41214 btu -> 1000 wh = 3.41214*1000 btu
+    kwh = 1.             # Use kwh as the  base
+    mj  = 3.6            # 1   wh  =  3600 j ->      1000 wh = 3600 * 1000 / 1e6 (million joules)
+    btu = 3.41214e3      # 1   wh  =  3.41214 btu -> 1000 wh = 3.41214*1000 btu
     energy_unit_dict = {
         'quad':     btu/1e15,
         'quads':    btu/1e15,
@@ -160,8 +191,9 @@ def _converter(x, unit_in, unit_out):
         'therm':    105.5/mj,       # 1 MJ = 105.5 therm (ASHRAE)
         }
     
-    gal = 1.    # Use gallon as base unit
-    m3, ft3 = 0.0037854, 0.13368
+    gal =  1.    # Use gallon as base unit
+    m3  =  0.0037854
+    ft3 =  0.13368
     vol_unit_dict = {
         'm3':           m3,
         'm^3':          m3,
@@ -180,7 +212,7 @@ def _converter(x, unit_in, unit_out):
     }
 
     dollar = 1.  # Use dollar as the base
-    cent = 100.
+    cent   = 100.
     dol_unit_dict = {
         # This should only ever hold designations for US currency. Not meant to convert currency. No £, €, ¥, etc. 
         '$':        dollar,
@@ -192,9 +224,9 @@ def _converter(x, unit_in, unit_out):
     }
 
     # (freezing point of water at atmospheric pressure, boiling point of water at atmospheric pressure)
-    celsius =       (0., 100.)
-    fahrenheit =    (32., 212.)
-    kelvin =        (273.15, 373.15)
+    celsius    =    (0.,     100.)
+    fahrenheit =    (32.,    212.)
+    kelvin     =    (273.15, 373.15)
     temp_unit_dict = {
         'c':            celsius,
         'f':            fahrenheit,
@@ -207,11 +239,11 @@ def _converter(x, unit_in, unit_out):
         'degk':         kelvin,
     }
     
-    kg = 1. # Use kg as base
-    gram = 1000. 
-    ton = .001
+    kg        = 1. # Use kg as base
+    gram      = 1000. 
+    ton       = .001
     short_ton = ton/.907184
-    long_ton = ton/1.016046
+    long_ton  = ton/1.016046
     mass_unit_dict = {
         # NOTE: Imperial notion of "ton" not included, though this is perhaps a bad idea? Unclear.
         'gram':         gram,
@@ -238,10 +270,10 @@ def _converter(x, unit_in, unit_out):
         't':            ton,
     }
 
-    hour = 1.   # Use hour as base
+    hour   = 1.   # Use hour as base
     minute = 1/60. 
-    day = 24.
-    year = 365.
+    day    = 24.
+    year   = 365.
     second = minute/60.
     time_unit_dict = {
         'sec':      second,
