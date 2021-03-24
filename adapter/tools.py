@@ -83,9 +83,9 @@ def convert_units(x,unit_in, unit_out):
     #       denominator:    (1/N <B>) = (1/M <B>) * [M/N]
     if parsed_in['denominator'][1].title() in TEMP_UNIT_DENOMINATIONS or parsed_out['denominator'][1].title() in TEMP_UNIT_DENOMINATIONS:
         raise Exception(f"Temperature (given {parsed_in['denominator'][1]} and {parsed_out['denominator'][1]}) in denominator is undefined behavior.")
-    return _converter(x,parsed_in['numerator'][1],parsed_out['numerator'][1]) * 
-            _converter(1,parsed_out['denominator'][1],parsed_in['denominator'][1]) * 
-            (parsed_in['numerator'][0]/parsed_out['numerator'][0]) * 
+    return _converter(x,parsed_in['numerator'][1],parsed_out['numerator'][1]) * \
+            _converter(1,parsed_out['denominator'][1],parsed_in['denominator'][1]) * \
+            (parsed_in['numerator'][0]/parsed_out['numerator'][0]) * \
             (parsed_out['denominator'][0]/parsed_in['denominator'][0])
 
 def _parse_units(given_unit):
