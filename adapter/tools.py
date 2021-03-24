@@ -3,7 +3,7 @@ import numpy as np
 VOL_UNIT_DENOMINATIONS = ['gal','gal.','gln','gallon','gals','gals.','gallons','m3','m^3','ft3','ft^3']
 VOL_UNIT_DENOMINATIONS += [x.title() for x in VOL_UNIT_DENOMINATIONS] + [x.upper() for x in VOL_UNIT_DENOMINATIONS]
 
-ENERGY_UNIT_DENOMINATIONS = ['kwh','kWh','KWh','twh','TWh','mwh','MWh','gwh','GWh','quad','quads','therm','mmbtu','MMBtu','kj','mj']
+ENERGY_UNIT_DENOMINATIONS = ['kwh','kWh','KWh','twh','TWh','mwh','MWh','gwh','GWh','quad','quads','therm','therms','mmbtu','MMBtu','kj','mj']
 ENERGY_UNIT_DENOMINATIONS += [x.title() for x in ENERGY_UNIT_DENOMINATIONS] + [x.upper() for x in ENERGY_UNIT_DENOMINATIONS] + ['j','J'] + ['wh','WH','Wh'] + ['btu','BTU','BTu'] # small units go at the end so that 'wh' doesn't get stripped from 'kwh', e.g.
 
 DOLLAR_UNIT_DENOMINATIONS = ['dollars','dols','dol']
@@ -173,8 +173,8 @@ def _converter(x, unit_in, unit_out):
         `unit of x`: converted value
     '''
     kwh = 1.             # Use kwh as the  base
-    mj  = 3.6            # 1   wh  =  3600 j ->      1000 wh = 3600 * 1000 / 1e6 (million joules)
-    btu = 3.41214e3      # 1   wh  =  3.41214 btu -> 1000 wh = 3.41214*1000 btu
+    mj  = 3.6            # 1   wh  =  3600 j        -> 1000 wh = 3600 * 1000 J = 3.6 million joules = 3.6 megajoules
+    btu = 3.41214e3      # 1   wh  =  3.41214 btu   -> 1000 wh = 3.41214*1000 btu
     energy_unit_dict = {
         'quad':     btu/1e15,
         'quads':    btu/1e15,
@@ -188,7 +188,8 @@ def _converter(x, unit_in, unit_out):
         'mj':       mj,
         'kj':       mj*1e3,
         'j':        mj*1e6,
-        'therm':    105.5/mj,       # 1 MJ = 105.5 therm (ASHRAE)
+        'therm':    mj*105.5,       # 1 MJ = 105.5 therm (ASHRAE)
+        'therms':   mj*105.5,
         }
     
     gal =  1.    # Use gallon as base unit
@@ -204,9 +205,9 @@ def _converter(x, unit_in, unit_out):
         'ft3':          ft3,
         'ft^3':         ft3,
         'gal':          gal,
+        'gals':         gal,
         'gln':          gal,
         'glns':         gal,
-        'gals':         gal,
         'gallon':       gal,
         'gallons':      gal,
     }
@@ -245,7 +246,7 @@ def _converter(x, unit_in, unit_out):
     short_ton = ton/.907184
     long_ton  = ton/1.016046
     mass_unit_dict = {
-        # NOTE: Imperial notion of "ton" not included, though this is perhaps a bad idea? Unclear.
+        # NOTE: Imperial notion of "ton" not included as short/long ton. Otherwise will assume metric.
         'gram':         gram,
         'gramme':       gram,
         'grams':        gram,

@@ -74,7 +74,7 @@ class ConversionTests(unittest.TestCase):
 
     def test_energy_conversions(self):
         '''
-        Ensure that 1 kwh is being converted correctly to several different common output units
+        Ensure that 1 a selection of units are being converted correctly to several different common output units
         '''
         value = 1
         unit_in = 'kwh'
@@ -83,6 +83,11 @@ class ConversionTests(unittest.TestCase):
         assert(convert_units(value, unit_in, 'twh')==1e-9)
         assert(convert_units(value, unit_in, 'gwh')==1e-6)
         assert(convert_units(value, unit_in, 'mwh')==1e-3)
+
+        value = 1
+        unit_in = 'MJ'
+
+        assert(convert_units(value,unit_in,'therms')==value*105.5) # from ASHRAE: 1 MJ = 105.5 therms
 
     def test_volume_conversions(self):
         '''
