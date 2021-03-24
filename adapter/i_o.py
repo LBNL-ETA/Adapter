@@ -78,7 +78,7 @@ class IO(object):
         if extns == "xlsx":
             file_type += "excel"
 
-        elif extns == "db":
+        elif (extns == "db") or (extns == "sqlite"):
             file_type += "database"
 
             # *mig add more file extension checks
