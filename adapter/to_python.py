@@ -1,8 +1,11 @@
 import numpy as np
 
-from adapter.comm.xlwings_tools import Book, xl2pd, pd2xl
+from adapter.comm.excel import Book, xl2pd, pd2xl
 from adapter.comm.sql import Sql
-import re
+
+from adapter.comm.tools import process_column_labels
+
+import re, sys
 
 import logging
 
@@ -25,6 +28,7 @@ class Excel(object):
     """
 
     def __init__(self, file_path):
+        
         self.wb = Book(file_path)
         self.file_path = file_path
 
@@ -71,7 +75,7 @@ class Excel(object):
         return dict_of_dfs
 
     def get_named_data_objects(self, data_object_names, kind="all"):
-        """Grabs data defined as excel tables.
+        """Grabs data defined as excel tables, named ranges, or both.
 
         Parameters:
 
@@ -156,14 +160,14 @@ class Excel(object):
                     )
                     dict_of_dfs[
                         data_object_name
-                    ].columns = Toolbox().process_column_labels(
+                    ].columns = process_column_labels(
                         dict_of_dfs[data_object_name].columns
                     )
 
                 msg = "Read in input tables from {}."
                 log.info(msg.format(self.file_path))
             except:
-                # more detailed error data should come from xlwings_tools
+                # more detailed error data should come from excel.py
                 msg = "Failed to read input tables from {}."
 
                 log.error(msg.format(self.file_path))
@@ -193,6 +197,7 @@ class Db(object):
     """
 
     def __init__(self, file_path):
+
         self.db = Sql(file_path)
         self.file_path = file_path
 
@@ -234,25 +239,3 @@ class Db(object):
             raise ValueError
 
         return dict_of_dfs
-
-
-class Toolbox(object):
-    def process_column_labels(self, list_of_labels):
-        """Removes undesired spaces.
-
-        Parameters:
-
-            list_of_labels: list
-                list with column labels
-
-        Returns:
-
-            list_of_cleaned_labels: list
-                A list with cleaned lables
-        """
-        list_of_cleaned_labels = [
-            re.sub(" +", " ", lbl.strip()) if lbl is str else lbl
-            for lbl in list_of_labels
-        ]
-
-        return list_of_cleaned_labels

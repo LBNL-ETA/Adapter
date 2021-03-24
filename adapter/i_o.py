@@ -5,6 +5,8 @@ import pandas as pd
 from adapter.to_python import Excel, Db
 from adapter.label_map import Labels
 
+from adapter.comm.tools import convert_network_drive_path
+
 from datetime import datetime
 import re
 import sqlite3
@@ -50,6 +52,8 @@ class IO(object):
 
     def __init__(self, path):
 
+        path = convert_network_drive_path(path)
+
         self.input_path = path
 
         if isinstance(path, str):
@@ -74,7 +78,7 @@ class IO(object):
         if extns == "xlsx":
             file_type += "excel"
 
-        elif extns == "db":
+        elif (extns == "db") or (extns == "sqlite"):
             file_type += "database"
 
             # *mig add more file extension checks
@@ -242,7 +246,7 @@ class IO(object):
                 ]
 
                 if not isinstance(version,str):
-                    # if it was read in as a number, as occurrs in the test_input.xlsx on OSX
+                    # if it was read in as a number, as occurs in the test_input.xlsx on OSX
                     if str(version).endswith('.0'):
                         # Assume that the only case is when version "123" got read in as number "123.0"
                         # period will be removed next
@@ -387,6 +391,8 @@ class IO(object):
                 indicated using the query_only
                 flags, if applicable.
         """
+        file_path = convert_network_drive_path(file_path)
+
         if file_path is None:
 
             dict_of_dfs = dict()
@@ -532,7 +538,7 @@ class IO(object):
                     index=False,
                 )
             except:
-                msg = "An error occured when writting {} table " "to a db {}."
+                msg = "An error occurred when writting {} table " "to a db {}."
                 log.error(msg.format(table_name, db_path))
                 raise ValueError
 
@@ -643,6 +649,8 @@ class IO(object):
         else:
             if outpath is None:
                 outpath = os.getcwd()
+        
+        outpath = convert_network_drive_path(outpath)
 
         if data_as_dict_of_dfs is None:
             msg='No data to write passed.'
