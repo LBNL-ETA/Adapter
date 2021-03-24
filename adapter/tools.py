@@ -270,11 +270,11 @@ def _converter(x, unit_in, unit_out):
         't':            ton,
     }
 
-    hour   = 1.   # Use hour as base
-    minute = 1/60. 
-    day    = 24.
-    year   = 365.
-    second = minute/60.
+    hour   = 1.         # Use hour as base
+    minute = 60.
+    day    = 1/24
+    year   = 1/365/24   # Use 365.25? Might actually make a difference for some rulemakings
+    second = minute*60.
     time_unit_dict = {
         'sec':      second,
         'second':   second,

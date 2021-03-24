@@ -79,7 +79,7 @@ class ConversionTests(unittest.TestCase):
         value = 1
         unit_in = 'kwh'
         
-        assert(convert_units(value, unit_in, 'quads')==3.41214/1e12) # from ASHRAE value used by conversion tools
+        assert(convert_units(value, unit_in, 'quads')==3.41214/1e12) # from ASHRAE, the value that should used by our conversion tools
         assert(convert_units(value, unit_in, 'twh')==1e-9)
         assert(convert_units(value, unit_in, 'gwh')==1e-6)
         assert(convert_units(value, unit_in, 'mwh')==1e-3)
@@ -131,7 +131,18 @@ class ConversionTests(unittest.TestCase):
         value = 1.
         unit_in = 'kg'
 
-        assert(convert_units(1, unit_in, 'short ton')==.001/.907184)
-        assert(convert_units(1, unit_in, 'long ton')==.001/1.016046)
-        assert(convert_units(1, unit_in, 'ton')==.001)
+        assert(convert_units(value, unit_in, 'short ton')==.001/.907184)
+        assert(convert_units(value, unit_in, 'long ton')==.001/1.016046)
+        assert(convert_units(value, unit_in, 'ton')==.001)
+
+    def test_time_conversions(self):
+        '''
+        Ensure that time conversions are as expected
+        '''
+        value = 1.
+        unit_in = 'day'
+
+        assert(convert_units(value,unit_in,'hours')==24)
+        assert(convert_units(value,unit_in,'seconds')==24*3600)
+        assert(convert_units(value,unit_in,'year')==1/365)
 
