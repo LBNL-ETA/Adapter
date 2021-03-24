@@ -1,10 +1,10 @@
 import numpy as np
 
-VOL_UNIT_DENOMINATIONS = ['gal','gal.','gln','gallon','gals','gals.','gallons','m3','m^3','ft3','ft^3']
+VOL_UNIT_DENOMINATIONS = ['gal','gal.','gln','gallon','gals','gals.','gallons','m3','m^3','ft3','ft^3','liter','liters','litre','litres']
 VOL_UNIT_DENOMINATIONS += [x.title() for x in VOL_UNIT_DENOMINATIONS] + [x.upper() for x in VOL_UNIT_DENOMINATIONS]
 
-ENERGY_UNIT_DENOMINATIONS = ['kwh','kWh','KWh','twh','TWh','mwh','MWh','gwh','GWh','quad','quads','therm','therms','mmbtu','MMBtu','kj','mj']
-ENERGY_UNIT_DENOMINATIONS += [x.title() for x in ENERGY_UNIT_DENOMINATIONS] + [x.upper() for x in ENERGY_UNIT_DENOMINATIONS] + ['j','J'] + ['wh','WH','Wh'] + ['btu','BTU','BTu'] # small units go at the end so that 'wh' doesn't get stripped from 'kwh', e.g.
+ENERGY_UNIT_DENOMINATIONS = ['kwh','kWh','KWh','twh','TWh','mwh','MWh','gwh','GWh','quad','quads','therm','therms','mmbtu','MMBtu','kj','kJ','mJ','mj','gj','gJ','tJ','tj','pj','pJ','ej','eJ']
+ENERGY_UNIT_DENOMINATIONS += [x.title() for x in ENERGY_UNIT_DENOMINATIONS] + [x.upper() for x in ENERGY_UNIT_DENOMINATIONS] + ['j','J'] + ['wh','WH','Wh'] + ['btu','BTU','BTu','Btu'] # small units go at the end so that 'wh' doesn't get stripped from 'kwh', e.g.
 
 DOLLAR_UNIT_DENOMINATIONS = ['dollars','dols','dol']
 DOLLAR_UNIT_DENOMINATIONS += [x.title() for x in DOLLAR_UNIT_DENOMINATIONS] + [x.upper() for x in DOLLAR_UNIT_DENOMINATIONS]
@@ -13,7 +13,7 @@ DOLLAR_UNIT_DENOMINATIONS = ['$'] + DOLLAR_UNIT_DENOMINATIONS
 TEMP_UNIT_DENOMINATIONS = ['celsius','fahrenheit','kelvin','degF','degC','degK']
 TEMP_UNIT_DENOMINATIONS += [x.title() for x in TEMP_UNIT_DENOMINATIONS] + [x.upper() for x in TEMP_UNIT_DENOMINATIONS] + ['C','F','K'] # Excluding lowercase c,f,k 
 
-MASS_UNIT_DENOMINATIONS = ['kg','kilogram','kilograms','kilo','kilos','tonne','tonnes','tons','ton','gramme','grammes','short tons','short ton','mmst','MMsT','mst','long tons','long ton'] # ton is metric, otherwise must specify short
+MASS_UNIT_DENOMINATIONS = ['kg','kilogram','kilograms','kilo','kilos','tonne','tonnes','tons','ton','gramme','grammes','short tons','short ton','mmst','MMsT','mst','long tons','long ton','lb','lbs','pound','pounds'] # ton is metric, otherwise must specify short
 MASS_UNIT_DENOMINATIONS += [x.title() for x in MASS_UNIT_DENOMINATIONS] + [x.upper() for x in MASS_UNIT_DENOMINATIONS] + ['gram','GRAM','Gram','grams','GRAMS','Grams'] + ['st','sT','g','t'] 
 
 TIME_UNIT_DENOMINATIONS = ['minute','minutes','min','mins','day','days','hour','hr','hr.','hours','hrs','year','yr','years','yrs','yr.','sec','second','seconds']
@@ -185,16 +185,21 @@ def _converter(x, unit_in, unit_out):
         'mwh':      kwh/1.e3,
         'kwh':      kwh,
         'wh':       kwh*1.e3,
+        'ej':       mj/1e12,
+        'pj':       mj/1e9,
+        'tj':       mj/1e6,
+        'gj':       mj/1e3,
         'mj':       mj,
         'kj':       mj*1e3,
         'j':        mj*1e6,
-        'therm':    mj*105.5,       # 1 MJ = 105.5 therm (ASHRAE)
-        'therms':   mj*105.5,
+        'therm':    mj/105.5,       # 1 Therm = 105.5 MJ (ASHRAE)
+        'therms':   mj/105.5,
         }
     
-    gal =  1.    # Use gallon as base unit
-    m3  =  0.0037854
-    ft3 =  0.13368
+    gal   =  1.    # Use gallon as base unit
+    m3    =  0.0037854
+    ft3   =  0.13368
+    liter =  3.785412
     vol_unit_dict = {
         'm3':           m3,
         'm^3':          m3,
@@ -210,6 +215,10 @@ def _converter(x, unit_in, unit_out):
         'glns':         gal,
         'gallon':       gal,
         'gallons':      gal,
+        'liter':        liter,
+        'liters':       liter,
+        'litre':        liter,
+        'litres':       liter,
     }
 
     dollar = 1.  # Use dollar as the base
@@ -241,7 +250,8 @@ def _converter(x, unit_in, unit_out):
     }
     
     kg        = 1. # Use kg as base
-    gram      = 1000. 
+    gram      = 1000.
+    pound     = 2.20462
     ton       = .001
     short_ton = ton/.907184
     long_ton  = ton/1.016046
@@ -252,6 +262,10 @@ def _converter(x, unit_in, unit_out):
         'grams':        gram,
         'grammes':      gram,
         'g':            gram,
+        'lb':           pound,
+        'lbs':          pound,
+        'pound':        pound,
+        'pounds':       pound,
         'kg':           kg,
         'kilogram':     kg,
         'kilograms':    kg,

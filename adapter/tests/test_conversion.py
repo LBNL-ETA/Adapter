@@ -74,7 +74,7 @@ class ConversionTests(unittest.TestCase):
 
     def test_energy_conversions(self):
         '''
-        Ensure that 1 a selection of units are being converted correctly to several different common output units
+        Ensure that a selection of units are being converted correctly to several different common output units
         '''
         value = 1
         unit_in = 'kwh'
@@ -87,7 +87,7 @@ class ConversionTests(unittest.TestCase):
         value = 1
         unit_in = 'MJ'
 
-        assert(convert_units(value,unit_in,'therms')==value*105.5) # from ASHRAE: 1 MJ = 105.5 therms
+        self.assertAlmostEqual(convert_units(value,unit_in,'therms'),value/105.5,17) # from ASHRAE: 1 therm = 105.5 MJ
 
     def test_volume_conversions(self):
         '''
@@ -151,3 +151,43 @@ class ConversionTests(unittest.TestCase):
         assert(convert_units(value,unit_in,'seconds')==24*3600)
         assert(convert_units(value,unit_in,'year')==1/365)
 
+
+    def test_ashrae_handbook(self):
+        '''
+        Test every relevant conversion listed in the ASHRAE handbook
+        Precisions are about as best as can be gathered from combining the listed ASHRAE conversion factors.
+
+        Some conversions are altered to be translatable by the code (E.g instead of 'btu/h' to 'W', 'btu/h' to 'J/s')
+
+        In general, ft^3 -> m^3 conversions are the poorest (~.1% off when in the denominator), though it may only have to do with the choice of gallons as a central unit.
+        Some of these conversions have been excluded, but should be re-introduced if they become part of regular use.
+        '''
+
+        assert(abs(convert_units(1,'Btu','J') -  1055.056)/1055.056 < 1e-5)            # ("International Table" listing rather than thermochemical)
+        assert(abs(convert_units(1,'Btu/ft^3','J/m^3') -  37258.951)/37258.951 < 1e-5)
+        assert(abs(convert_units(1,'Btu/gal','J/m^3') -  278717.1765)/278717.1765 < 1e-5)
+        assert(abs(convert_units(1,'Btu/h','J/sec') -  0.2930711)/0.2930711 < 1e-5)
+        assert(abs(convert_units(1,'Btu/lb','kJ/kg') -  2.326)/2.326 < 1e-5)
+
+        assert(abs(convert_units(1,'gal','liter') - 3.785412)/3.785412 < 1e-5)
+        assert(abs(convert_units(1,'ft^3','liter') - 28.316846)/28.316846 < 1e-5)
+        assert(abs(convert_units(1,'ft^3','m^3') - .02832)/.02832 < 1e-3)
+
+        assert(abs(convert_units(1,'gal/min','liter/sec') - 0.0631)/0.0631 < 1e-3)
+
+        assert(abs(convert_units(1,'kwh','MJ') - 3.60)/3.60 < 1e-5)
+
+        assert(abs(convert_units(1,'litre','m^3') - .001)/.001 < 1e-5)
+
+        assert(abs(convert_units(1,'lb','kg') -  .453592)/.453592 < 1e-5)
+
+        assert(abs(convert_units(1,'lb/h','kg/sec') - 0.000126)/.000126 < 1e-4)
+        assert(abs(convert_units(1,'lb/min','kg/sec') - 0.007559)/.007559 < 1e-3)
+
+        assert(abs(convert_units(1,'quad','EJ') - 1.055)/1.055 < 1e-4)
+
+        assert(abs(convert_units(1,'therm','MJ') - 105.5)/105.5 < 1e-5)
+
+        assert(abs(convert_units(1,'short ton','t') - 0.907184)/0.907184 < 1e-5)
+        assert(abs(convert_units(1,'long ton','t') - 1.0160046)/1.0160046 < 1e-4)
+        
