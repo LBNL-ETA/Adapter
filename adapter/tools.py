@@ -22,7 +22,7 @@ TIME_UNIT_DENOMINATIONS += [x.title() for x in TIME_UNIT_DENOMINATIONS] + [x.upp
 def convert_units(x,unit_in, unit_out):
     '''
     For converting x, which is in <unit_in> units, to <unit_out> units. Returns a value that represents x in <unit_out> units, maintaining the type of x.
-    There is no support for converting unit aliases right now (E.g. 1 J/s = 1 W)
+    There is no support for converting unit aliases right now (E.g. 1 J/s = 1 W is not possible)
 
     Order of operations:
     1)  Call _parse_units() on unit_in and unit_out
@@ -106,9 +106,15 @@ def _parse_units(given_unit):
             'numerator':(1000,'$'),
             'denominator':(1,'mmbtu')
         }
+
+        given_unit = "billion $" will return:
+        {
+            'numerator': (1e9,'$'),
+            'denominator': (1,None),
+        }
     '''
     given_unit = given_unit.strip()
-    for delineator in ["/","per"]:
+    for delineator in ["/","per",":"]:
         if delineator in given_unit:
             numerator, denominator = given_unit.split(delineator)
             return {
@@ -148,6 +154,12 @@ def _parse_single_unit(given_unit):
                 amount = _string_multiplier(amount) # E.g. 'billion' -> 1e9
             if amount is not None:
                 return amount, u.lower() # (1000,'gal')
+            else:
+                msg = f"The amount in unit '{given_unit}' couldn't be parsed after having detected unit '{u}' within it. Amount string was parsed as '{amount}'."
+                raise Exception(msg)
+    
+    msg = f"Could not detect any listed energy, time, temperature, mass, volume, or dollar unit in {given_unit}. Check constants for whether or not the unit appears there."
+    raise Exception(msg)
             
 
 def _converter(x, unit_in, unit_out):
@@ -364,9 +376,4 @@ def _string_multiplier(string_in):
          'one':1,
          'ones':1}
 
-    if string_in in d.keys():
-        return d[string_in]
-    else:
-        # In this case, return None to break unwitting code
-        # This will happen if, for example, "s" for seconds gets caught at the end of "kilograms", and "kilogram" is handed to this function
-        return None
+    return d.get(string_in)
