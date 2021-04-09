@@ -40,5 +40,7 @@ setup(
     classifiers=["Programming Language :: Python :: 3.8",],
     keywords="i/o lcc nia shipments aps standards",
     packages=find_packages(exclude=["*.tests", "*.tests"]),
-    install_requires=["pandas>=1.0.4", "xlwings>=0.19.4",],
+    install_requires=["pandas>=1.0.4", 
+                      "xlwings>=0.19.4",
+                      "psycopg2-binary>=2.8.6"],
 )

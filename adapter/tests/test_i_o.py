@@ -31,6 +31,26 @@ class IOTests(unittest.TestCase):
 
         self.assertFalse("db_path" in res_no_db.keys())
 
+    # uncomment only if you have a haggis connection set up with a 
+    # Secret.py file based on the Secret_example.py
+    # def test_load_from_excel_w_sqalchemy(self):
+    #     """Tests the typical LCC analysis case
+    #     where all input tables are saved as
+    #     named tables in an excel input sheet.
+    #     """
+    #     path = os.path.join(os.getcwd(), 
+    #         r"adapter/tests/test_w_inputs_from_files_table_sqlalchemy.xlsx")
+
+    #     i_o = IO(path)
+
+    #     res = i_o.load()
+
+    #     self.assertTrue(
+    #         set(['adapter_example_table1',
+    #              'adapter_example_table2', 
+    #              'adapter_example_table3']).issubset(
+    #                  set(res['tables_as_dict_of_dfs'].keys())))
+
     def test_load_from_excel_w_input_from_files(self):
         """Tests the ability to load in input tables
         from various additional files based on an info provided
