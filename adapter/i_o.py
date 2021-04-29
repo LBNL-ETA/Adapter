@@ -207,10 +207,9 @@ class IO(object):
                     table_names = re.split(",", table_names)
                     table_names = [i.strip() for i in table_names]
 
-                # @as : Please figure out an appropriate
-                # data format to pass the info on to the
-                # main analysis.
-                qry_flags[file_path] = extra_files.loc[inx, self.la["query"]]
+
+                qry_flags[file_path] = extra_files.loc[
+                    inx, self.la["query"]]
 
                 if (qry_flags[file_path] is not None) and isinstance(
                     table_names, str):
@@ -235,18 +234,47 @@ class IO(object):
 
         if quick_db_out_filename is None:
             # look for `run_parameters` table to extract the outpath
-            # note that `run_parameters` table should occur only in one
-            # of the input files
-            if self.la["run_pars"] in dict_of_dfs.keys():
+            # and the version
+            # `run_parameters` table should occur only in one
+            # of the input files, and only once, so if multiple 
+            # run_parameters{any_text} tables are found, then
+            # the first one, when names sorted alphabetically,
+            # will be used
+
+            run_params_table = []
+
+            for key in dict_of_dfs.keys():
+ 
+                if self.la["run_pars"] in key:
+
+                    msg = "Identified run parameters table named {}"
+                    log.info(msg.format(key))
+
+                    run_params_table.append(key)
+
+            if len(run_params_table) > 1:
+                run_params_table.sort()
+
+                msg = "Run parameters table {} will be used to set the "\
+                    "outpath and the version. " \
+                    "The run parameters table named: {} "\
+                    "will be ignored. Please make sure to remove any"\
+                    " unwanted run_parameters tables from the inputs."
+
+                log.warning(msg.format(
+                    run_params_table[0], 
+                    run_params_table[1:]))
+            
+            if len(run_params_table) != 0:
 
                 outpath_base = os.path.join(
                     os.getcwd(),
-                    dict_of_dfs[self.la["run_pars"]].loc[
+                    dict_of_dfs[run_params_table[0]].loc[
                         0, self.la["outpath"]
                     ],
                 )
 
-                version = dict_of_dfs[self.la["run_pars"]].loc[
+                version = dict_of_dfs[run_params_table[0]].loc[
                     0, self.la["version"]
                 ]
 
