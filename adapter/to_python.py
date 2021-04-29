@@ -156,27 +156,40 @@ class Excel(object):
 
             try:
                 for data_object_name in data_object_names:
-                    # prepare labels (strip extra spaces)
-                    dict_of_dfs[data_object_name] = self.wb.named_range_to_df(
-                        all_input_names[data_object_name], verbose=True,
-                    )
-                    dict_of_dfs[
-                        data_object_name
-                    ].columns = process_column_labels(
-                        dict_of_dfs[data_object_name].columns
-                    )
+                    try:
+                        # prepare labels (strip extra spaces)
+                        dict_of_dfs[data_object_name] = self.wb.named_range_to_df(
+                            all_input_names[data_object_name], 
+                            verbose=True,
+                        )
 
-                msg = "Read in input tables from {}."
+                        dict_of_dfs[data_object_name
+                            ].columns = process_column_labels(
+                            dict_of_dfs[data_object_name].columns
+                        )
+
+                    except:
+                        msg = (
+                            "Failed to read input table named {}"
+                            " from input file {}. "
+                            "If the data contained in the table "
+                            "is needed in the analysis please attempt"
+                            " to rename the table/range using strings and numerals "
+                            "and/or further check the data range or table "
+                            "definition."
+                        )
+
+                        log.error(msg.format(data_object_name, self.file_path))
+                        raise ValueError
+
+                msg = "Read in input tables and ranges from {}."
                 log.info(msg.format(self.file_path))
+
             except:
-                # more detailed error data should come from excel.py
                 msg = "Failed to read input tables from {}."
 
                 log.error(msg.format(self.file_path))
                 raise ValueError
-
-            msg = "Loaded named tables from {}."
-            log.info(msg.format(self.file_path))
 
         else:
             msg = (
