@@ -255,11 +255,13 @@ class IO(object):
             if len(run_params_table) > 1:
                 run_params_table.sort()
 
-                msg = "Run parameters table {} will be used to set the "\
-                    "outpath and the version. " \
-                    "The run parameters table named: {} "\
-                    "will be ignored. Please make sure to remove any"\
+                msg = ( 
+                    "Run parameters table named {} will be used to set the "
+                    "outpath and the version. "
+                    "Additional run parameters table(s) named: {} "
+                    "will be ignored. Please make sure to remove any"
                     " unwanted run_parameters tables from the inputs."
+                )
 
                 log.warning(msg.format(
                     run_params_table[0], 

@@ -64,7 +64,7 @@ class IOTests(unittest.TestCase):
 
         res = i_o.load()
 
-        self.assertEqual(len(res["tables_as_dict_of_dfs"].keys()), 9)
+        self.assertEqual(len(res["tables_as_dict_of_dfs"].keys()), 10)
 
         # tear down
         shutil.rmtree(res["outpath"])
