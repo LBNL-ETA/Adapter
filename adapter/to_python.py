@@ -171,16 +171,8 @@ class Excel(object):
                 raise ValueError
 
             try:
+                
                 for data_object_name in data_object_names:
-                    if data_object_name in dict_of_dfs.keys():
-                        msg = (
-                            "An identically named table/range"
-                            " {} was already read in. "
-                            "Please rename all tables and ranges"
-                            " in the inputs uniquely."
-                        )
-                        log.error(msg.format(data_object_name))
-                        raise ValueError
 
                     try:
                         # prepare labels (strip extra spaces)
