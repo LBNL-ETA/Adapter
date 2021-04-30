@@ -2,7 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from adapter.to_python import Excel, Db, Db_sqlalchemy
+from adapter.to_python import Excel, Db, Db_sqlalchemy, Debugger
 from adapter.label_map import Labels
 
 from adapter.comm.tools import convert_network_drive_path
@@ -218,12 +218,13 @@ class IO(object):
                     qry_flags[file_path] = [
                         i.strip() for i in qry_flags[file_path]
                     ]
-
+                
                 dict_of_dfs.update(
                     self.get_tables(
                         file_path,
                         table_names=table_names,
                         query_only=qry_flags[file_path],
+                        pre_existing_keys=dict_of_dfs.keys()
                     )
                 )
 
@@ -389,7 +390,12 @@ class IO(object):
 
         return res
 
-    def get_tables(self, file_path, table_names=None, query_only=None):
+
+    def get_tables(self, 
+        file_path, 
+        table_names=None, 
+        query_only=None,
+        pre_existing_keys=None):
         """Gets all tables from an input
         file. Creates a dictionary
         of pandas dataframes, with each dataframe
@@ -416,6 +422,10 @@ class IO(object):
                 all tables get loaded (
                 unless all need to be
                 queried)
+
+            pre_existing_keys: dictionary key index
+                Keys is the previously loaded 
+                dictionary of dataframes
 
         Returns:
 
@@ -470,12 +480,11 @@ class IO(object):
                 table_names_to_load = table_names
                 table_names_for_conn = None
 
-            # @as or @lz see what to do about db connections
-
             if file_type == "excel":
                 # load all tables found in the
                 # file as a dict of dataframes
-                dict_of_dfs = Excel(file_path).load(
+                
+                dict_of_dfs = Excel(file_path, pre_existing_keys).load(
                     data_object_names=table_names_to_load
                 )
 
@@ -486,18 +495,23 @@ class IO(object):
                 filename_to_tablename = re.split(
                     "\.", filename_to_tablename)[0]
 
+                Debugger.check_for_duplicates( 
+                    pre_existing_keys,
+                    filename_to_tablename)
+
                 # get rid of the version substring
                 if self.la["extra_files"] in filename_to_tablename:
                     filename_to_tablename = self.la["extra_files"]
-                
+
                 dict_of_dfs[filename_to_tablename] = pd.read_csv(file_path)
+                
 
             elif file_type == "database":
                 # load all tables found in the
                 # file as a dict of dataframes
 
                 dict_of_dfs = Db(
-                    file_path).load(
+                    file_path, pre_existing_keys).load(
                     table_names=table_names_to_load)
                     
             elif file_type == "sqlalchemy":
@@ -505,7 +519,7 @@ class IO(object):
                 # sqlalchemy database as a dict of dataframes
                 
                 dict_of_dfs = Db_sqlalchemy(
-                    file_path).load(
+                    file_path, pre_existing_keys).load(
                     table_names=table_names_for_conn)
 
         else:
@@ -513,6 +527,9 @@ class IO(object):
             log.error(msg.format(file_path))
 
         return dict_of_dfs
+
+
+
 
     def create_db(
         self,

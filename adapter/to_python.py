@@ -27,16 +27,25 @@ class Excel(object):
 
         file_path: str
             Path to an excel sheet
+
+        pre_existing_keys: list or None
+            *mg add
     """
 
-    def __init__(self, file_path):
+    def __init__(self, 
+        file_path,
+        pre_existing_keys=None):
         
         self.wb = Book(file_path)
         self.file_path = file_path
+        self.pre_existing_keys = pre_existing_keys
 
         log.info("Connected to: {}".format(file_path))
 
-    def load(self, data_object_names=None, kind="all"):
+    def load(self, 
+             data_object_names=None, 
+             kind="all",
+            ):
         """Opens the file provided
         through file_path, loads
         all or a subset of tables
@@ -67,10 +76,6 @@ class Excel(object):
                 Python dictionary with table name
                 keys and input table values.
         """
-        # *mig please make corresponding
-        # docstrings for the analogous
-        # methods in other classes in this
-        # file 
         dict_of_dfs = self.get_named_data_objects(
             data_object_names, kind=kind)
 
@@ -81,7 +86,7 @@ class Excel(object):
 
         Parameters:
 
-            data_object_names: list
+            data_object_names: list or None
                 List of string data object names
                 to load. Data objects can be 
                 named tables and named ranges, see 
@@ -102,14 +107,14 @@ class Excel(object):
                 Python dictionary with table name/
                 named range as keys and contents of 
                 the corresponding named data object
-                 values.
+                values.
         """
         if kind == "tables":
             # grab all the input tables/named ranges
-            all_input_names = self.wb.tables
+            all_input_objects = self.wb.tables
 
         if kind == "ranges":
-            all_input_names = {
+            all_input_objects = {
                 x.name: x
                 for x in self.wb.names
                 if "_FilterDatabase" not in x.name and
@@ -127,27 +132,37 @@ class Excel(object):
 
             all_input_tables.update(all_input_ranges)
 
-            all_input_names = all_input_tables.copy()
+            all_input_objects = all_input_tables.copy()
 
         elif kind not in ["all", "ranges", "tables"]:
             msg = "An unsupported value provided for kwarg kind {}."
             log.error(msg.format(kind))
             raise ValueError
 
+        if self.pre_existing_keys is not None:
+
+            Debugger.check_for_duplicates( 
+                self.pre_existing_keys,
+                all_input_objects.keys())
+
         # initiate dictionaries of input table dataframes
         # and populate
         dict_of_dfs = dict()
 
-        if len(all_input_names.keys()) > 0:
+        if len(all_input_objects.keys()) > 0:
+            
             if type(data_object_names) == list:
                 for data_object_name in data_object_names:
-                    if data_object_name not in all_input_names.keys():
+                    if data_object_name not in all_input_objects.keys():
                         msg = "{} not found in the input file {}."
                         log.error(msg.format(data_object_name, self.file_path))
                         raise ValueError
 
-            elif (data_object_names is None) or (data_object_names is np.nan):
-                data_object_names = all_input_names.keys()
+            elif (data_object_names is None) or (
+                    data_object_names is np.nan) or (
+                    np.isnan(data_object_names)
+                ):
+                data_object_names = all_input_objects.keys()
 
             else:
                 msg = "Unsupported type ({}) passed for table names, {}."
@@ -156,10 +171,20 @@ class Excel(object):
 
             try:
                 for data_object_name in data_object_names:
+                    if data_object_name in dict_of_dfs.keys():
+                        msg = (
+                            "An identically named table/range"
+                            " {} was already read in. "
+                            "Please rename all tables and ranges"
+                            " in the inputs uniquely."
+                        )
+                        log.error(msg.format(data_object_name))
+                        raise ValueError
+
                     try:
                         # prepare labels (strip extra spaces)
                         dict_of_dfs[data_object_name] = self.wb.named_range_to_df(
-                            all_input_names[data_object_name], 
+                            all_input_objects[data_object_name], 
                             verbose=True,
                         )
 
@@ -179,7 +204,7 @@ class Excel(object):
                             "definition."
                         )
 
-                        log.error(msg.format(data_object_name, self.file_path))
+                        log.warning(msg.format(data_object_name, self.file_path))
                         raise ValueError
 
                 msg = "Read in input tables and ranges from {}."
@@ -209,12 +234,18 @@ class Db(object):
 
         file_path: str
             Path to an db file
+
+        pre_existing_keys: list or None
+            *mg add
     """
 
-    def __init__(self, file_path):
+    def __init__(self, 
+        file_path,
+        pre_existing_keys=None):
 
         self.db = Sql(file_path)
         self.file_path = file_path
+        self.pre_existing_keys = pre_existing_keys
 
     def load(self, table_names=None):
         """Loads tables
@@ -248,10 +279,18 @@ class Db(object):
                 else:
                     dict_of_dfs = all_dict_of_dfs
 
+            if self.pre_existing_keys is not None:
+                
+                Debugger.check_for_duplicates(
+                    self.pre_existing_keys,
+                    dict_of_dfs.keys())
+
         except:
             msg = "Failed to read input tables from {}."
             log.error(msg.format(self.inpath))
             raise ValueError
+
+
 
         return dict_of_dfs
     
@@ -263,11 +302,13 @@ class Db_sqlalchemy(object):
 
         file_path: str
             Path to an db file
+
+        pre_existing_keys: list or None
+            *mg add
     """
-    
-    
-    
-    def __init__(self, file_path):
+    def __init__(self, 
+        file_path,
+        pre_existing_keys=None):
         # Imports in this class so if you don;t need them it will still work
         try:
             from adapter.Secret import database_credentials
@@ -279,6 +320,8 @@ class Db_sqlalchemy(object):
         self.cxn_str = 'postgresql://'+database_credentials["Username"]+':'+database_credentials["Password"]+'@'+file_path
         self.engine = create_engine(self.cxn_str)
         self.file_path = file_path
+        self.pre_existing_keys = pre_existing_keys
+
 
     def load(self, table_names=None):
         """Loads tables
@@ -289,13 +332,18 @@ class Db_sqlalchemy(object):
                 List of table names to load.
                 Default: None = load all tables
         """
-        print (self.cxn_str)
-        print (table_names)
+        
         try:
             dict_of_dfs = dict()
             for table_name in table_names:
                 sql_string = "SELECT * FROM {table}".format(table=table_name)
                 dict_of_dfs[table_name] = pd.read_sql(con=self.engine,sql=sql_string)
+
+            if self.pre_existing_keys is not None:
+
+                Debugger.check_for_duplicates(
+                    self.pre_existing_keys,
+                    dict_of_dfs.keys())
 
         except:
             traceback.print_exc()
@@ -304,3 +352,50 @@ class Db_sqlalchemy(object):
             raise ValueError
 
         return dict_of_dfs
+
+
+class Debugger(object):
+
+    @staticmethod
+    def check_for_duplicates(
+        pre_existing_keys,
+        table_names):
+        """Checks if among data tables already 
+        added to the dict_of_dfs there exists 
+        a table of a same name with any of the
+        tables being added to the dict_of_dfs.
+
+        Parameters:
+
+            pre_existing_keys: dictionary key index
+                Keys is the previously loaded 
+                dictionary of dataframes
+
+            table_names: list or string
+                List of table names; or a 
+                single string table name.
+        """
+        msg = (
+                "An identically name table/range"
+                " {} was already read in. "
+                "Please rename all tables and ranges"
+                " in the inputs uniquely. "
+                "It may be that the same-named "
+                "table came from a different input file."
+                )
+
+        if not isinstance(table_names, str):
+            for name in table_names:
+                if name in pre_existing_keys:
+                    log.error(msg.format(name))
+                    raise ValueError(msg.format(name))
+
+        else:
+            try:
+                if pre_existing_keys is not None:
+                    if table_names in pre_existing_keys:
+                        log.error(msg.format(name))
+                        raise ValueError
+            except:
+                msg = "Unexpected table_name ({}) format."
+                log.error(msg.format(table_names))
