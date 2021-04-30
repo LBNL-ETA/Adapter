@@ -171,7 +171,7 @@ class Excel(object):
                 raise ValueError
 
             try:
-                
+
                 for data_object_name in data_object_names:
 
                     try:
@@ -316,7 +316,6 @@ class Db_sqlalchemy(object):
         self.engine = create_engine(self.cxn_str)
         self.file_path = file_path
         self.pre_existing_keys = pre_existing_keys
-
 
     def load(self, table_names=None):
         """Loads tables
