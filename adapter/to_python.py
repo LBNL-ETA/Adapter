@@ -28,8 +28,9 @@ class Excel(object):
         file_path: str
             Path to an excel sheet
 
-        pre_existing_keys: list or None
-            *mg add
+        pre_existing_keys: dictionary key index
+            Keys is the previously loaded 
+            dictionary of dataframes
     """
 
     def __init__(self, 
@@ -235,8 +236,9 @@ class Db(object):
         file_path: str
             Path to an db file
 
-        pre_existing_keys: list or None
-            *mg add
+        pre_existing_keys: dictionary key index
+            Keys is the previously loaded 
+            dictionary of dataframes
     """
 
     def __init__(self, 
@@ -303,8 +305,9 @@ class Db_sqlalchemy(object):
         file_path: str
             Path to an db file
 
-        pre_existing_keys: list or None
-            *mg add
+        pre_existing_keys: dictionary key index
+            Keys is the previously loaded 
+            dictionary of dataframes
     """
     def __init__(self, 
         file_path,
