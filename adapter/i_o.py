@@ -2,7 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from adapter.to_python import Excel, Db, Db_sqlalchemy
+from adapter.to_python import Excel, Db, Db_sqlalchemy, Debugger
 from adapter.label_map import Labels
 
 from adapter.comm.tools import convert_network_drive_path
@@ -207,10 +207,9 @@ class IO(object):
                     table_names = re.split(",", table_names)
                     table_names = [i.strip() for i in table_names]
 
-                # @as : Please figure out an appropriate
-                # data format to pass the info on to the
-                # main analysis.
-                qry_flags[file_path] = extra_files.loc[inx, self.la["query"]]
+
+                qry_flags[file_path] = extra_files.loc[
+                    inx, self.la["query"]]
 
                 if (qry_flags[file_path] is not None) and isinstance(
                     table_names, str):
@@ -219,12 +218,13 @@ class IO(object):
                     qry_flags[file_path] = [
                         i.strip() for i in qry_flags[file_path]
                     ]
-
+                
                 dict_of_dfs.update(
                     self.get_tables(
                         file_path,
                         table_names=table_names,
                         query_only=qry_flags[file_path],
+                        pre_existing_keys=dict_of_dfs.keys()
                     )
                 )
 
@@ -235,18 +235,49 @@ class IO(object):
 
         if quick_db_out_filename is None:
             # look for `run_parameters` table to extract the outpath
-            # note that `run_parameters` table should occur only in one
-            # of the input files
-            if self.la["run_pars"] in dict_of_dfs.keys():
+            # and the version
+            # `run_parameters` table should occur only in one
+            # of the input files, and only once, so if multiple 
+            # run_parameters{any_text} tables are found, then
+            # the first one, when names sorted alphabetically,
+            # will be used
+
+            run_params_table = []
+
+            for key in dict_of_dfs.keys():
+ 
+                if self.la["run_pars"] in key:
+
+                    msg = "Identified run parameters table named {}"
+                    log.info(msg.format(key))
+
+                    run_params_table.append(key)
+
+            if len(run_params_table) > 1:
+                run_params_table.sort()
+
+                msg = ( 
+                    "Run parameters table named {} will be used to set the "
+                    "outpath and the version. "
+                    "Additional run parameters table(s) named: {} "
+                    "will be ignored. Please make sure to remove any"
+                    " unwanted run_parameters tables from the inputs."
+                )
+
+                log.warning(msg.format(
+                    run_params_table[0], 
+                    run_params_table[1:]))
+            
+            if len(run_params_table) != 0:
 
                 outpath_base = os.path.join(
                     os.getcwd(),
-                    dict_of_dfs[self.la["run_pars"]].loc[
+                    dict_of_dfs[run_params_table[0]].loc[
                         0, self.la["outpath"]
                     ],
                 )
 
-                version = dict_of_dfs[self.la["run_pars"]].loc[
+                version = dict_of_dfs[run_params_table[0]].loc[
                     0, self.la["version"]
                 ]
 
@@ -359,7 +390,12 @@ class IO(object):
 
         return res
 
-    def get_tables(self, file_path, table_names=None, query_only=None):
+
+    def get_tables(self, 
+        file_path, 
+        table_names=None, 
+        query_only=None,
+        pre_existing_keys=None):
         """Gets all tables from an input
         file. Creates a dictionary
         of pandas dataframes, with each dataframe
@@ -386,6 +422,10 @@ class IO(object):
                 all tables get loaded (
                 unless all need to be
                 queried)
+
+            pre_existing_keys: dictionary key index
+                Keys is the previously loaded 
+                dictionary of dataframes
 
         Returns:
 
@@ -440,12 +480,11 @@ class IO(object):
                 table_names_to_load = table_names
                 table_names_for_conn = None
 
-            # @as or @lz see what to do about db connections
-
             if file_type == "excel":
                 # load all tables found in the
                 # file as a dict of dataframes
-                dict_of_dfs = Excel(file_path).load(
+                
+                dict_of_dfs = Excel(file_path, pre_existing_keys).load(
                     data_object_names=table_names_to_load
                 )
 
@@ -456,18 +495,23 @@ class IO(object):
                 filename_to_tablename = re.split(
                     "\.", filename_to_tablename)[0]
 
+                Debugger.check_for_duplicates( 
+                    pre_existing_keys,
+                    filename_to_tablename)
+
                 # get rid of the version substring
                 if self.la["extra_files"] in filename_to_tablename:
                     filename_to_tablename = self.la["extra_files"]
-                
+
                 dict_of_dfs[filename_to_tablename] = pd.read_csv(file_path)
+                
 
             elif file_type == "database":
                 # load all tables found in the
                 # file as a dict of dataframes
 
                 dict_of_dfs = Db(
-                    file_path).load(
+                    file_path, pre_existing_keys).load(
                     table_names=table_names_to_load)
                     
             elif file_type == "sqlalchemy":
@@ -475,7 +519,7 @@ class IO(object):
                 # sqlalchemy database as a dict of dataframes
                 
                 dict_of_dfs = Db_sqlalchemy(
-                    file_path).load(
+                    file_path, pre_existing_keys).load(
                     table_names=table_names_for_conn)
 
         else:
@@ -483,6 +527,9 @@ class IO(object):
             log.error(msg.format(file_path))
 
         return dict_of_dfs
+
+
+
 
     def create_db(
         self,

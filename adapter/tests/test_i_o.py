@@ -51,6 +51,18 @@ class IOTests(unittest.TestCase):
     #              'adapter_example_table3']).issubset(
     #                  set(res['tables_as_dict_of_dfs'].keys())))
 
+    def test_throws_error_at_duplication(self):
+        """Errors when same-named table is identified.
+        """
+        path = os.path.join(
+            os.getcwd(), 
+            r"adapter/tests/inputs_from_files_vDuplicationError.csv"
+        )
+
+        i_o = IO(path)
+
+        self.assertRaises(ValueError, i_o.load)
+
     def test_load_from_excel_w_input_from_files(self):
         """Tests the ability to load in input tables
         from various additional files based on an info provided
@@ -64,7 +76,7 @@ class IOTests(unittest.TestCase):
 
         res = i_o.load()
 
-        self.assertEqual(len(res["tables_as_dict_of_dfs"].keys()), 9)
+        self.assertEqual(len(res["tables_as_dict_of_dfs"].keys()), 10)
 
         # tear down
         shutil.rmtree(res["outpath"])
