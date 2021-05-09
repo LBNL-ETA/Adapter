@@ -11,6 +11,7 @@ from functools import reduce
 
 import sys
 
+
 class Name(xw.main.Name):
     """Class used in the definition of the class ```Names```."""
 
@@ -92,9 +93,10 @@ class Book(xw.main.Book):
     def range(self, address, sheet_name=None, verbose=True):
         return get_range(self, address, sheet_name, verbose)
 
-    def all_names_to_df(self, keep_sheet_name=False, verbose=True, header_row = 1, index_col = 0):
-        """Turn all names in an Excel workbook to pandas dataframes.
-        """
+    def all_names_to_df(
+        self, keep_sheet_name=False, verbose=True, header_row=1, index_col=0
+    ):
+        """Turn all names in an Excel workbook to pandas dataframes."""
         # Excel includes solver-type objects as named ranges. Those shouldn't be
         # read in.
         named_ranges = [
@@ -106,8 +108,8 @@ class Book(xw.main.Book):
                 self.named_range_to_df(
                     named_range,
                     keep_sheet_name=keep_sheet_name,
-                    header_row = header_row,
-                    index_col = index_col,
+                    header_row=header_row,
+                    index_col=index_col,
                     verbose=verbose,
                 )
             except:
@@ -177,11 +179,18 @@ class Book(xw.main.Book):
             if type(df_content[0]) == str:
                 df = pd.DataFrame(df_content[1:], columns=[df_content[0]])
             # Otherwise just treat 1D array as data
-            elif type(df_content[0]) != list and type(df_content[0] in [float,int,bool]):
+            elif type(df_content[0]) != list and type(
+                df_content[0] in [float, int, bool]
+            ):
                 df = pd.DataFrame(df_content)
-            
+
         # If named range is a single value, use name of the range as header
-        if type(df_content) != list and type(df_content) in [str, float, int, bool]:
+        if type(df_content) != list and type(df_content) in [
+            str,
+            float,
+            int,
+            bool,
+        ]:
             df = pd.DataFrame({rg.name.name: [df_content]})
 
         # Assign the dataframe to the name.
@@ -233,20 +242,31 @@ def get_tables(wb):
         ```wb```, and the values are the corresponding sheet names.
     """
 
-    if sys.platform.lower() == 'darwin':
-        # the `api` attribute acts differently for windows and osx. (Linux undeveloped). 
+    if sys.platform.lower() == "darwin":
+        # the `api` attribute acts differently for windows and osx. (Linux undeveloped).
         # On top of that, OSX excel tables that implicitly includes headers require an [#all] tag when grabbing the range for the Table. Otherwise the first row of data gets read as headers
         # This apparently ONLY works for excel tables, and NOT named ranges on OSX
         return_dict = dict()
         for ws in wb.sheets:
             objects = ws.api.list_objects()
-            if objects: # Can be a mysterious "k.missingvalue" when there are no excel tables, which gets interpreted as False by bool
+            if (
+                objects
+            ):  # Can be a mysterious "k.missingvalue" when there are no excel tables, which gets interpreted as False by bool
                 for obj in objects:
-                    return_dict[obj.name()] = Table(obj.name(), # name of table
-                            ws.name + "!" + ws.range(obj.name()+"[#all]" if not obj.name().endswith("[#all]") else obj.name()).address, wb)# Windows: obj.Name, OSX: obj.name(), obj.Range.Address -> ws.range(obj.name()).address
+                    return_dict[obj.name()] = Table(
+                        obj.name(),  # name of table
+                        ws.name
+                        + "!"
+                        + ws.range(
+                            obj.name() + "[#all]"
+                            if not obj.name().endswith("[#all]")
+                            else obj.name()
+                        ).address,
+                        wb,
+                    )  # Windows: obj.Name, OSX: obj.name(), obj.Range.Address -> ws.range(obj.name()).address
 
         return return_dict
-    elif sys.platform.lower().startswith('win'): 
+    elif sys.platform.lower().startswith("win"):
         return {
             obj.Name: Table(obj.Name, ws.name + "!" + obj.Range.Address, wb)
             for ws in wb.sheets
@@ -328,18 +348,22 @@ def get_named_range(wb, range_name, sheet_name=None, verbose=True, **kwargs):
     if not sheet_name:
         sheet_name = kwargs.get(sheet_name)
     try:
-        if sys.platform.lower().startswith('win'):
+        if sys.platform.lower().startswith("win"):
             if sheet_name:
                 obj = wb.sheets(sheet_name)
             else:
                 obj = wb
             return obj.names[range_name].refers_to_range
-        elif sys.platform.lower()=='darwin':
+        elif sys.platform.lower() == "darwin":
             # This is a ridiculous way to do it, I know. But if you try to get a range from a workbook by name, or sheet that doesn't have it, it breaks
             for ws in wb.sheets:
                 for obj in ws.api.list_objects():
-                    if obj.name()==range_name:
-                        return ws.range(range_name+"[#all]" if not range_name.endswith("[#all]") else range_name)
+                    if obj.name() == range_name:
+                        return ws.range(
+                            range_name + "[#all]"
+                            if not range_name.endswith("[#all]")
+                            else range_name
+                        )
     except:
         if verbose:
             print("Warning: unable to find a range named " + range_name + ".")
@@ -378,8 +402,7 @@ def create_named_range(
 
     Returns:
         xw.main.Range: An xlwings range corresponding to the range name
-            created.
-"""
+            created."""
     rg = None
 
     if type(range_name) in (str, unicode):
@@ -433,12 +456,7 @@ def create_named_range(
 
 
 def xl2pd(
-    workbook,
-    myrange,
-    index_col=0,
-    header_row=0,
-    formulas=False,
-    **kwargs
+    workbook, myrange, index_col=0, header_row=0, formulas=False, **kwargs
 ):
     """Turn a named range from an Excel workbook into a Pandas dataframe.
 
@@ -507,14 +525,14 @@ def xl2pd(
             ret_df = pd.DataFrame(list(data[1:]), columns=cols)
             ret_df.set_index("convert_to_index", drop=True, inplace=True)
         else:
-            if sys.platform.startswith('win'):
+            if sys.platform.startswith("win"):
                 # Convert directly to dataframe using xlwings
                 ret_df = rng.options(
                     pd.DataFrame, header=header_row, index=index_col
                 ).value
 
-            elif sys.platform == 'darwin':
-                ### >>>>> The following code (with a few trivial renamings) comes directly from xlwings source code, 
+            elif sys.platform == "darwin":
+                ### >>>>> The following code (with a few trivial renamings) comes directly from xlwings source code,
                 # and is subject to copyright <<<<<
                 # Copyright (c) 2020, Zoomer Analytics LLC
                 # Subject to BSD-3 License for above copyright holder: https://opensource.org/licenses/BSD-3-Clause
@@ -525,7 +543,12 @@ def xl2pd(
                 else:
                     columns = None
 
-                ret_df = pd.DataFrame(rng.value[header_row:], columns=columns, dtype = None, copy = False)
+                ret_df = pd.DataFrame(
+                    rng.value[header_row:],
+                    columns=columns,
+                    dtype=None,
+                    copy=False,
+                )
 
                 # handle index by resetting the index to the index first columns
                 # and renaming the index according to the name in the last row
@@ -534,9 +557,15 @@ def xl2pd(
                     # we do not use the column name directly as it would cause issues if several
                     # columns have the same name
                     ret_df.columns = pd.Index(range(len(ret_df.columns)))
-                    ret_df.set_index(list(ret_df.columns)[:index_col], inplace=True)
+                    ret_df.set_index(
+                        list(ret_df.columns)[:index_col], inplace=True
+                    )
 
-                    ret_df.index.names = pd.Index(value[header_row - 1][:index_col] if header_row else [None]*index_col)
+                    ret_df.index.names = pd.Index(
+                        value[header_row - 1][:index_col]
+                        if header_row
+                        else [None] * index_col
+                    )
 
                     if header_row:
                         ret_df.columns = columns[index_row:]

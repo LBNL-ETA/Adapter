@@ -37,10 +37,14 @@ setup(
     # Choose your license
     license="ETA EAEI EES software",
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
-    classifiers=["Programming Language :: Python :: 3.8",],
+    classifiers=[
+        "Programming Language :: Python :: 3.8",
+    ],
     keywords="i/o lcc nia shipments aps standards",
     packages=find_packages(exclude=["*.tests", "*.tests"]),
-    install_requires=["pandas>=1.0.4", 
-                      "xlwings>=0.19.4",
-                      "psycopg2-binary>=2.8.6"],
+    install_requires=[
+        "pandas>=1.0.4",
+        "xlwings>=0.19.4",
+        "psycopg2-binary>=2.8.6",
+    ],
 )

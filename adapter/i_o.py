@@ -86,12 +86,11 @@ class IO(object):
 
         elif extns == "csv":
             file_type += "text"
-        
+
         # If the path contains lbl.gov, it is likely a database that can be used with sqlalchemy
         elif "lbl.gov" in path:
             file_type += "sqlalchemy"
-        
-        
+
         else:
             msg = "Passed an unsupported input file type: {}."
             log.error(msg.format(extns))
@@ -187,7 +186,7 @@ class IO(object):
                 'db_conn' - database connection
         """
         dict_of_dfs = self.get_tables(self.input_path)
-        
+
         # are there any further input files?
         # if that is the case, the file paths and further info
         # should be placed in an `inputs_from_files` table
@@ -202,29 +201,28 @@ class IO(object):
                 file_path = extra_files.loc[inx, self.la["inpath"]].strip()
 
                 table_names = extra_files.loc[inx, self.la["tbl_nam"]]
-                
+
                 if isinstance(table_names, str):
                     table_names = re.split(",", table_names)
                     table_names = [i.strip() for i in table_names]
 
-
-                qry_flags[file_path] = extra_files.loc[
-                    inx, self.la["query"]]
+                qry_flags[file_path] = extra_files.loc[inx, self.la["query"]]
 
                 if (qry_flags[file_path] is not None) and isinstance(
-                    table_names, str):
+                    table_names, str
+                ):
 
                     qry_flags[file_path] = re.split(",", qry_flags[file_path])
                     qry_flags[file_path] = [
                         i.strip() for i in qry_flags[file_path]
                     ]
-                
+
                 dict_of_dfs.update(
                     self.get_tables(
                         file_path,
                         table_names=table_names,
                         query_only=qry_flags[file_path],
-                        pre_existing_keys=dict_of_dfs.keys()
+                        pre_existing_keys=dict_of_dfs.keys(),
                     )
                 )
 
@@ -237,7 +235,7 @@ class IO(object):
             # look for `run_parameters` table to extract the outpath
             # and the version
             # `run_parameters` table should occur only in one
-            # of the input files, and only once, so if multiple 
+            # of the input files, and only once, so if multiple
             # run_parameters{any_text} tables are found, then
             # the first one, when names sorted alphabetically,
             # will be used
@@ -245,7 +243,7 @@ class IO(object):
             run_params_table = []
 
             for key in dict_of_dfs.keys():
- 
+
                 if self.la["run_pars"] in key:
 
                     msg = "Identified run parameters table named {}"
@@ -256,7 +254,7 @@ class IO(object):
             if len(run_params_table) > 1:
                 run_params_table.sort()
 
-                msg = ( 
+                msg = (
                     "Run parameters table named {} will be used to set the "
                     "outpath and the version. "
                     "Additional run parameters table(s) named: {} "
@@ -264,10 +262,10 @@ class IO(object):
                     " unwanted run_parameters tables from the inputs."
                 )
 
-                log.warning(msg.format(
-                    run_params_table[0], 
-                    run_params_table[1:]))
-            
+                log.warning(
+                    msg.format(run_params_table[0], run_params_table[1:])
+                )
+
             if len(run_params_table) != 0:
 
                 outpath_base = os.path.join(
@@ -281,12 +279,12 @@ class IO(object):
                     0, self.la["version"]
                 ]
 
-                if not isinstance(version,str):
+                if not isinstance(version, str):
                     # if it was read in as a number, as occurs in the test_input.xlsx on OSX
-                    if str(version).endswith('.0'):
+                    if str(version).endswith(".0"):
                         # Assume that the only case is when version "123" got read in as number "123.0"
                         # period will be removed next
-                        version = str(version).rstrip('0')
+                        version = str(version).rstrip("0")
 
                 # Removing '.', '\', '/' characters from version
                 # to avoid any errors during writing output
@@ -354,16 +352,17 @@ class IO(object):
             if isinstance(to_numeric, list):
                 pass
             else:
-                msg = "{} passed for to_numeric kwarg."\
-                "Only None or a list of strings are supported."
+                msg = (
+                    "{} passed for to_numeric kwarg."
+                    "Only None or a list of strings are supported."
+                )
                 log.error(msg.format(to_numeric))
 
             for key in dict_of_dfs.keys():
                 if any([key in tb_nm for tb_nm in to_numeric]):
-                    dict_of_dfs[key] = dict_of_dfs[
-                        key].apply(pd.to_numeric,
-                        errors='ignore',
-                        axis=1)
+                    dict_of_dfs[key] = dict_of_dfs[key].apply(
+                        pd.to_numeric, errors="ignore", axis=1
+                    )
 
         res = dict()
         res["tables_as_dict_of_dfs"] = dict_of_dfs
@@ -390,12 +389,13 @@ class IO(object):
 
         return res
 
-
-    def get_tables(self, 
-        file_path, 
-        table_names=None, 
+    def get_tables(
+        self,
+        file_path,
+        table_names=None,
         query_only=None,
-        pre_existing_keys=None):
+        pre_existing_keys=None,
+    ):
         """Gets all tables from an input
         file. Creates a dictionary
         of pandas dataframes, with each dataframe
@@ -424,7 +424,7 @@ class IO(object):
                 queried)
 
             pre_existing_keys: dictionary key index
-                Keys is the previously loaded 
+                Keys is the previously loaded
                 dictionary of dataframes
 
         Returns:
@@ -447,7 +447,7 @@ class IO(object):
             file_type = self.get_file_type(file_path)
 
             if isinstance(query_only, str):
-                
+
                 query_only = re.split(",", query_only)
                 query_only = [i.strip() for i in query_only]
 
@@ -461,8 +461,8 @@ class IO(object):
                             "of the same length."
                         )
                         log.error(msg)
-                    
-                    elif query_only[0] == 'Y':
+
+                    elif query_only[0] == "Y":
                         # query all tables
                         table_names_to_load = None
                         table_names_for_conn = table_names
@@ -474,7 +474,9 @@ class IO(object):
                     table_names_to_load = np.array(table_names)[inx].tolist()
                     # others should be just connected to
                     not_inx = [not i for i in inx]
-                    table_names_for_conn = np.array(table_names)[not_inx].tolist()
+                    table_names_for_conn = np.array(table_names)[
+                        not_inx
+                    ].tolist()
 
             else:
                 table_names_to_load = table_names
@@ -483,7 +485,7 @@ class IO(object):
             if file_type == "excel":
                 # load all tables found in the
                 # file as a dict of dataframes
-                
+
                 dict_of_dfs = Excel(file_path, pre_existing_keys).load(
                     data_object_names=table_names_to_load
                 )
@@ -492,44 +494,41 @@ class IO(object):
                 dict_of_dfs = dict()
 
                 filename_to_tablename = ntpath.basename(file_path)
-                filename_to_tablename = re.split(
-                    "\.", filename_to_tablename)[0]
+                filename_to_tablename = re.split("\.", filename_to_tablename)[
+                    0
+                ]
 
-                Debugger.check_for_duplicates( 
-                    pre_existing_keys,
-                    filename_to_tablename)
+                Debugger.check_for_duplicates(
+                    pre_existing_keys, filename_to_tablename
+                )
 
                 # get rid of the version substring
                 if self.la["extra_files"] in filename_to_tablename:
                     filename_to_tablename = self.la["extra_files"]
 
                 dict_of_dfs[filename_to_tablename] = pd.read_csv(file_path)
-                
 
             elif file_type == "database":
                 # load all tables found in the
                 # file as a dict of dataframes
 
-                dict_of_dfs = Db(
-                    file_path, pre_existing_keys).load(
-                    table_names=table_names_to_load)
-                    
+                dict_of_dfs = Db(file_path, pre_existing_keys).load(
+                    table_names=table_names_to_load
+                )
+
             elif file_type == "sqlalchemy":
                 # load all tables found in the
                 # sqlalchemy database as a dict of dataframes
-                
-                dict_of_dfs = Db_sqlalchemy(
-                    file_path, pre_existing_keys).load(
-                    table_names=table_names_for_conn)
+
+                dict_of_dfs = Db_sqlalchemy(file_path, pre_existing_keys).load(
+                    table_names=table_names_for_conn
+                )
 
         else:
-            msg="Unsupported value ({}) provided as input file path."
+            msg = "Unsupported value ({}) provided as input file path."
             log.error(msg.format(file_path))
 
         return dict_of_dfs
-
-
-
 
     def create_db(
         self,
@@ -612,14 +611,16 @@ class IO(object):
 
         return res
 
-    def write(self,
-        type='db',
+    def write(
+        self,
+        type="db",
         data_connection=None,
         data_as_dict_of_dfs=None,
         outpath=None,
         run_tag="",
         db_conn=None,
-        close_db=True):
+        close_db=True,
+    ):
         """Writes all dataframes from a dictionary of dataframes
         out into an existing database.
 
@@ -694,42 +695,35 @@ class IO(object):
         if data_connection is not None:
 
             if data_as_dict_of_dfs is None:
-                data_as_dict_of_dfs = data_connection[
-                "tables_as_dict_of_dfs"]
+                data_as_dict_of_dfs = data_connection["tables_as_dict_of_dfs"]
 
-            db_conn = data_connection[
-                "db_conn"]
+            db_conn = data_connection["db_conn"]
 
             if outpath is None:
-                outpath = data_connection[
-                    "outpath"]
+                outpath = data_connection["outpath"]
 
-            run_tag = data_connection[
-                "run_tag"]
+            run_tag = data_connection["run_tag"]
         else:
             if outpath is None:
                 outpath = os.getcwd()
-        
+
         outpath = convert_network_drive_path(outpath)
 
         if data_as_dict_of_dfs is None:
-            msg='No data to write passed.'
+            msg = "No data to write passed."
             log.error(msg)
             raise ValueError
-        elif not isinstance(
-            data_as_dict_of_dfs, dict
-        ):
-            msg='Data needs to be in a '\
-            "dictionary of dataframes format."
+        elif not isinstance(data_as_dict_of_dfs, dict):
+            msg = "Data needs to be in a " "dictionary of dataframes format."
             log.error(msg)
             raise ValueError
 
-        if 'db' in type:
+        if "db" in type:
 
-            close=close_db
+            close = close_db
 
             if db_conn is None:
-                msg = 'Missing db connection.'
+                msg = "Missing db connection."
                 log.error(msg)
                 raise ValueError
 
@@ -742,7 +736,7 @@ class IO(object):
                 close=close_db,
             )
 
-        if 'csv' in type:
+        if "csv" in type:
 
             if not os.path.exists(outpath):
                 os.mkdir(outpath)
@@ -753,7 +747,7 @@ class IO(object):
                 df_to_write.to_csv(
                     path_or_buf=os.path.join(
                         outpath,
-                        key + '_' + run_tag + ".csv",
+                        key + "_" + run_tag + ".csv",
                     )
                 )
 

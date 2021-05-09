@@ -13,8 +13,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 # has setUpClass method, thus run the test on the entire class
 class SqlTests(unittest.TestCase):
-    """Tests the db-python read-write capabilities.
-    """
+    """Tests the db-python read-write capabilities."""
 
     @classmethod
     def setUpClass(cls):
@@ -85,14 +84,12 @@ PRIMARY KEY (Component)
         self.sql_api.csv2table(self.path_to_csv, "csv2table")
 
     def test_c_table2pd(self):
-        """Reads a single table from db as a pd.df
-        """
+        """Reads a single table from db as a pd.df"""
         df = self.sql_api.table2pd("pd2table")
         self.assertTrue((df == self.df).all().all())
 
     def test_d_commit(self):
-        """Use sql to write to db (e.g. create, alter)
-        """
+        """Use sql to write to db (e.g. create, alter)"""
         self.assertTrue(self.sql_api.commit(self.raw_sql))
 
     def test_e_tables2dict(self):

@@ -8,8 +8,7 @@ class Labels(object):
         pass
 
     def set_labels(self):
-        """Table names and column labels
-        """
+        """Table names and column labels"""
         self.labels = {
             # table names
             "run_pars": "run_parameters",
