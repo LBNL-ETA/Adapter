@@ -55,7 +55,7 @@ PRIMARY KEY (Component)
 
     @classmethod
     def tearDownClass(cls):
-        """Clean up for any reinitiation of the test,
+        """Clean up for any re-initiation of the test,
         but keep the result. Any new run will overwrite
         the result.
         """

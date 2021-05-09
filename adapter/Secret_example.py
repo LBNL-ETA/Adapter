@@ -1,5 +1,5 @@
 database_credentials = {
     "Username": "my_username",
     "Password": "my_password",
-    "IP": "haggis.lbl.gov",
+    "IP": "my_server_address",
 }

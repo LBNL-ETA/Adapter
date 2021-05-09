@@ -30,7 +30,8 @@ class IOTests(unittest.TestCase):
 
         self.assertFalse("db_path" in res_no_db.keys())
 
-    # uncomment only if you have a haggis connection set up with a
+    # uncomment only if you have a haggis   
+    # server connection set up with a
     # Secret.py file based on the Secret_example.py
     # def test_load_from_excel_w_sqalchemy(self):
     #     """Tests the typical LCC analysis case

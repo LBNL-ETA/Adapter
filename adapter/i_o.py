@@ -109,7 +109,7 @@ class IO(object):
         to_numeric=None,
     ):
         """Loads tables from the input file
-        as a dictinary of python dataframes.
+        as a dictionary of python dataframes.
 
         Recognizes any special table names, such
         as:
@@ -456,7 +456,7 @@ class IO(object):
                         msg = (
                             "All tables need to be loaded."
                             "It is unclear which tables need to "
-                            "only be querried. Please provide a "
+                            "only be queried. Please provide a "
                             "list of table names and query flags "
                             "of the same length."
                         )
