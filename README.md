@@ -99,7 +99,7 @@ provided in this example input file [`adapter/tests/inputs_from_files_vTest.csv`
 
 To learn more about how to user the `adapter` software it may be useful to read the [Use cases provided in the Functional Requirements](https://bitbucket.org/eetd-ees/adapter/wiki/Functional%20Requirements).
 
-Those with LBNL VPN access can also use [`API documentation`](https://atcd.lbl.gov/source/adapter.html) to explore the full functionality of the modules.  
+Those with LBNL VPN access can also use [`API documentation`](https://atcd.lbl.gov/source/adapter.html) to explore the functionality of the modules.  
 
 
 ## Testing
