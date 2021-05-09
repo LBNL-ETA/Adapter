@@ -29,7 +29,7 @@ pip install git+https://{your bitbucket username}@bitbucket.org/eetd-ees/adapter
 ```
 where `vX.Y.Z` is the specific version. To check the available versions please check the repository webpage - the tags are listed right next to the branches - or, if you cloned the repository, use `git tag -n`.
 
-To use the sqlalchemy connections you must edit the example secret file located in `adapter\Secret_example.py` for your database credentials and save it as `Secret.py`.
+To use the `sqlalchemy` connections you must edit the example secret file located in `adapter\Secret_example.py` for your database credentials and save it as `Secret.py`.
 
 
 ## Usage
@@ -99,7 +99,7 @@ provided in this example input file [`adapter/tests/inputs_from_files_vTest.csv`
 
 To learn more about how to user the `adapter` software it may be useful to read the [Use cases provided in the Functional Requirements](https://bitbucket.org/eetd-ees/adapter/wiki/Functional%20Requirements).
 
-Please see the `API documentation`[*mg add link to gh-pages later] to explore the full functionality of the modules.  
+Those with LBNL VPN access can also use [`API documentation`](https://atcd.lbl.gov/source/adapter.html) to explore the full functionality of the modules.  
 
 
 ## Testing
@@ -116,7 +116,7 @@ python -m unittest adapter.tests.test_i_o
 
 ## Contributing
 
-Guidelines for contributors are provided [here](https://bitbucket.org/eetd-ees/adapter/src/master/adapter/contributing.md).
+Guidelines for contributors are provided [here](https://bitbucket.org/eetd-ees/adapter/src/master/adapter/contributing.md). 
 
 
 ## Acknowledgements
