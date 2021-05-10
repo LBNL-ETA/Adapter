@@ -15,26 +15,21 @@ The package is supported on `Windows` and `macOS`, as well as for `Linux` for th
 
 To install the package use:
 ```
-pip install git+https://{your bitbucket username}@bitbucket.org/eetd-ees/adapter.git
+pip install git+https://github.com/LBNL-ETA/Adapter.git@vX.Y.Z
 ```
+where `@X.Y.Z` is optional and represents the tag version. Available tags can be listed using a command `git tag -n` from the repo root folder or one can see them on the github repo.
 
 Alternatively, you may clone the repository and from its root folder run:
 ```
 python setup.py
 ```
 
-To install a specific version of the `adapter` software you can use:
-```
-pip install git+https://{your bitbucket username}@bitbucket.org/eetd-ees/adapter.git@vX.Y.Z
-```
-where `vX.Y.Z` is the specific version. To check the available versions please check the repository webpage - the tags are listed right next to the branches - or, if you cloned the repository, use `git tag -n`.
-
-To use the `sqlalchemy` connections you must edit the example secret file located in `adapter\Secret_example.py` for your database credentials and save it as `Secret.py`.
+To use the `sqlalchemy` connections to remote server(s) you must edit the example secret file located in `adapter\Secret_example.py` for your database credentials and save it as `adapter\Secret.py`.
 
 
 ## Usage
 
-The examples on how to conveniently utilize adapter as your IO tool can be found in [the tests for the `i_o.py` module](https://bitbucket.org/eetd-ees/adapter/src/master/adapter/tests/test_i_o.py). The same examples are provided below. We assume that the user is running the commands from the repo root folder.
+The examples on how to conveniently utilize adapter as your IO tool can be found in [the tests for the `i_o.py` module](https://github.com/LBNL-ETA/Adapter/blob/master/adapter/tests/test_i_o.py). The same examples are provided below. We assume that the user is running the commands from the repo root folder.
 
 The simplest example of how to use the package is:
 ```
@@ -44,7 +39,7 @@ input_loader = IO(<fullpath_to_the_main_input_file>)
 df_of_input_DataFrames = input_loader.load()
 ```
 
-The input tables may be specified in a single `xlsx`, a `database` file, or a `csv` file, or any combination of those. The `Adapter` standardizes the way to provide inputs from additional files through using either a table named `inputs_from_files`, or by having the string `inputs_from_files` be the start of the main `csv` input file name. The example inputs files, also used in the unit tests, are located in [the test suite folder](https://bitbucket.org/eetd-ees/adapter/src/master/adapter/tests/). One can take the test input files as examples and guides on how to structure the main input file such that one can fetch either all the data from the main input file or, in addition to those, fetch data from other input files as specified in the standardized `inputs_from_files` table.
+The input tables may be specified in a single `xlsx`, a `database` file, or a `csv` file, or any combination of those. The `Adapter` standardizes the way to provide inputs from additional files through using either a table named `inputs_from_files`, or by having the string `inputs_from_files` be the start of the main `csv` input file name. The example inputs files, also used in the unit tests, are located in [the test suite folder](https://github.com/LBNL-ETA/Adapter/tree/master/adapter/tests). One can take the test input files as examples and guides on how to structure the main input file such that one can fetch either all the data from the main input file or, in addition to those, fetch data from other input files as specified in the standardized `inputs_from_files` table.
 
 For example, to load all objects defined as data tables and named ranges specified in an excel input file, as a
 `Python dictionary` of `Pandas DataFrames`:
