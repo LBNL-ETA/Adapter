@@ -95,16 +95,14 @@ Depending on the `type` flag, there is an option to writhe only a `db` or a `csv
 
 The `Adapter` also provides an option to only establish a `db` connection to certain tables that are for example large and the user would 
 rather query them instead of having them be loaded as a `Pandas DataFrame`. An example of how to provide such information through the input file is 
-provided in this example input file [`adapter/tests/inputs_from_files_vTest.csv`](https://bitbucket.org/eetd-ees/adapter/src/master/adapter/tests/inputs_from_files_vTest.csv).
-
-To learn more about how to user the `adapter` software it may be useful to read the [Use cases provided in the Functional Requirements](https://bitbucket.org/eetd-ees/adapter/wiki/Functional%20Requirements).
+provided in this example input file [`adapter/tests/inputs_from_files_vTest.csv`](https://github.com/LBNL-ETA/Adapter/blob/master/adapter/tests/inputs_from_files_vTest.csv).
 
 Those with LBNL VPN access can also use [`API documentation`](https://atcd.lbl.gov/source/adapter.html) to explore the functionality of the modules.  
 
 
 ## Testing
 
-As already mentioned in the Usage section, the example input files are [provided in the `test` folder](https://bitbucket.org/eetd-ees/adapter/src/master/adapter/tests/).
+As already mentioned in the Usage section, the example input files are [provided in the `test` folder](https://github.com/LBNL-ETA/Adapter/blob/master/adapter/tests/).
 
 To run tests it is recommended to use the [`unittest` framework](https://docs.python.org/3/library/unittest.html). All test modules have names that start with `test_`.
 
@@ -116,7 +114,7 @@ python -m unittest adapter.tests.test_i_o
 
 ## Contributing
 
-Guidelines for contributors are provided [here](https://bitbucket.org/eetd-ees/adapter/src/master/adapter/contributing.md). 
+Guidelines for contributors are provided [here](https://github.com/LBNL-ETA/Adapter/blob/master/contributing.md).
 
 
 ## Acknowledgements
