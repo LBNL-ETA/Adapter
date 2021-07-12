@@ -36,7 +36,18 @@ The simplest example of how to use the package is:
 from adapter.i_o import IO
 
 input_loader = IO(<fullpath_to_the_main_input_file>)
-df_of_input_DataFrames = input_loader.load()
+data = input_loader.load()
+```
+where `data` is a dictionary with the following keys:
+```
+    'tables_as_dict_of_dfs' - all input tables loaded in python as dictionary of dataframes
+    'outpath' - output folder path
+    'run_tag' - version + analysis start time
+
+    If one chose to initiate a db at read-in (to add results to the inputs later and have one compiled analysis db):
+
+    'db_path' - database fullpath
+    'db_conn' - database connection
 ```
 
 The input tables may be specified in a single `xlsx`, a `database` file, or a `csv` file, or any combination of those. The `Adapter` standardizes the way to provide inputs from additional files through using either a table named `inputs_from_files`, or by having the string `inputs_from_files` be the start of the main `csv` input file name. The example inputs files, also used in the unit tests, are located in [the test suite folder](https://github.com/LBNL-ETA/Adapter/tree/master/adapter/tests). One can take the test input files as examples and guides on how to structure the main input file such that one can fetch either all the data from the main input file or, in addition to those, fetch data from other input files as specified in the standardized `inputs_from_files` table.
