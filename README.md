@@ -65,19 +65,7 @@ i_o = IO(path)
 res = i_o.load()
 ```
 
-where the `res` output is a dictionary with the following keys:
-```
-'tables_as_dict_of_dfs' - all input
-    tables loaded in python as dictionary
-    of DataFrames
-'outpath' - output folder path
-'run_tag' - version + analysis start time
-
-If db got written:
-
-'db_path' - database fullpath
-'db_conn' - database connection
-```
+where the `res` output is a dictionary with the same keys as in the example above (`data` dictionary).
 
 An another example especially useful for `Linux` users would be to provide several or all inputs as `csv` files through listing their paths in the main `csv` input file. The `Adapter` can then be used to load all inputs at once. This can be done as follows:
 ```
