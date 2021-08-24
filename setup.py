@@ -23,7 +23,7 @@ def get_version(rel_path):
 long_description = "The `Adapter Python IO` software provides a convenient data table loader from various formats such as `xlsx`, `csv`, `db (sqlite database)`, and `sqlalchemy`. Its main feature is the ability to convert data tables identified in one main and optionally one or more additional input files into `database tables` and `Pandas DataFrames` for downstream usage in any compatible software. `Adapter` builds upon the existing Python packages that allow for the communication between `Python` and `MS Excel`, as well as `databases` and `csv` files. It provides inbuilt capabilities to specify the output location path, as well as a version identifier for a research code run.  In addition to the loading capability, an instance of the `Adapter` `IO` object has the write capability. If invoked, all loaded tables are written as either a single `database` or a set of `csv` files, or both. The purpose of this software is to support the development of research and analytical software through allowing for a simple multi-format IO with versioning and output path specification in the input data itself. The package is supported on `Windows` and `macOS`, as well as for `Linux` for the utilization without any `xlsx` inputs."
 
 setup(
-    name="adapterio-test",
+    name="adapterio",
     version=get_version("adapter/__init__.py"),
     description="I/O module",
     long_description=long_description,
