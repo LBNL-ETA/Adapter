@@ -48,11 +48,23 @@ class IO(object):
             of the adapter repo for examples)
             that provides an output path and a
             version substring.
+
+        mapping: list
+            list of 2-tuples where 0th entry of each 
+            tuple is the name of a windows network drive 
+            location (e.g. "A:") and the 1st entry is OSX 
+            network drive location (e.g. "/Volumes/A"). 
+            Defaults to [("X:","/Volumes/my_folder")].
+
     """
 
-    def __init__(self, path):
+    def __init__(
+        self, 
+        path, 
+        os_mapping=[("X:", "/Volumes/my_drive")]):
 
-        path = convert_network_drive_path(path)
+        path = convert_network_drive_path(path,
+            mapping = os_mapping)
 
         self.input_path = path
 
