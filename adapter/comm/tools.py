@@ -114,11 +114,11 @@ def user_select_file(user_message="", mul_fls=False):
         file_name = fd.GetFileName()
         path_name = fd.GetPathName()
 
-    if mul_fls:
-        fpath = path_name
+        if mul_fls:
+            fpath = path_name
 
-    else:
-        fpath = os.path.join(path_name, file_name)
+        else:
+            fpath = os.path.join(path_name, file_name)
 
         return fpath
 
