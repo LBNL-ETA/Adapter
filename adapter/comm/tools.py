@@ -1,4 +1,4 @@
-import sys, re
+import sys, re, os
 
 
 def process_column_labels(list_of_labels):
