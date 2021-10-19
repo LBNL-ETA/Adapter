@@ -111,14 +111,8 @@ def user_select_file(user_message="", mul_fls=False):
         if fd.DoModal() == win32con.IDCANCEL:
             sys.exit(1)
     
-        file_name = fd.GetFileName()
-        path_name = fd.GetPathName()
-
-        if mul_fls:
-            fpath = path_name
-
-        else:
-            fpath = os.path.join(path_name, file_name)
+        # file_name = fd.GetFileName()
+        fpath = fd.GetPathName()
 
         return fpath
 
