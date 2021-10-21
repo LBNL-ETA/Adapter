@@ -44,7 +44,7 @@ where `data` is a dictionary with the following keys:
     'outpath' - output folder path
     'run_tag' - version + analysis start time
 
-    If one chose to initiate a db at read-in (to add results to the inputs later and have one compiled analysis db):
+    If one choses to initiate a db at read-in (to add results to the inputs later and have one compiled analysis db):
 
     'db_path' - database fullpath
     'db_conn' - database connection
