@@ -73,7 +73,7 @@ def convert_network_drive_path(
 
 def user_select_file(user_message="", mul_fls=False):
     """Prompts the user to navigate and select a desired
-    input file, as needed for a specific calculation
+    input file, as needed for a specific calculation.
 
     Parameters:
 
@@ -90,10 +90,10 @@ def user_select_file(user_message="", mul_fls=False):
         fpath: string
             Fullpath to the selected input file, or,
             in case of multiple file selection,
-            the selected input folder holding the files.
+            the selected input folder path holding the files.
     """
 
-    # Case for windows
+    # case for Windows
     if sys.platform.lower().startswith("win"):
 
         print(user_message)
@@ -116,7 +116,7 @@ def user_select_file(user_message="", mul_fls=False):
 
         return fpath
 
-    # Case for OSX
+    # case for OSX
     elif sys.platform.lower() == "darwin":
 
         print(
