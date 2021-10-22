@@ -65,8 +65,7 @@ class IO(object):
 
         self.os_mapping = os_mapping
 
-        path = convert_network_drive_path(path,
-            mapping = os_mapping)
+        path = convert_network_drive_path(path, mapping=os_mapping)
 
         self.input_path = path
 
@@ -286,7 +285,7 @@ class IO(object):
                     dict_of_dfs[run_params_table[0]].loc[
                         0, self.la["outpath"]
                     ],
-                    mapping = self.os_mapping
+                    mapping=self.os_mapping,
                 )
                 outpath_base = os.path.join(
                     os.getcwd(),
@@ -454,7 +453,9 @@ class IO(object):
                 indicated using the query_only
                 flags, if applicable.
         """
-        file_path = convert_network_drive_path(file_path,mapping=self.os_mapping)
+        file_path = convert_network_drive_path(
+            file_path, mapping=self.os_mapping
+        )
 
         if file_path is None:
 
@@ -725,7 +726,7 @@ class IO(object):
             if outpath is None:
                 outpath = os.getcwd()
 
-        outpath = convert_network_drive_path(outpath,mapping=self.os_mapping)
+        outpath = convert_network_drive_path(outpath, mapping=self.os_mapping)
 
         if data_as_dict_of_dfs is None:
             msg = "No data to write passed."
