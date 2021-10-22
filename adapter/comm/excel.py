@@ -405,7 +405,7 @@ def create_named_range(
             created."""
     rg = None
 
-    if type(range_name) in (str, unicode):
+    if type(range_name)==str:
         rg = get_named_range(wb, range_name)
     elif type(range_name) == xw.main.Range:
         rg, range_name = range_name, None
