@@ -1,4 +1,4 @@
-import sys, re
+import sys, re, os
 
 
 def process_column_labels(list_of_labels):
@@ -69,3 +69,69 @@ def convert_network_drive_path(
                 break
 
     return str_or_path
+
+
+def user_select_file(user_message="", mul_fls=False):
+    """Prompts the user to navigate and select a desired
+    input file, as needed for a specific calculation.
+
+    Parameters:
+
+        user_message: str
+            A string message to the user selecting the file
+            Default: empty string
+
+        mul_fls: boolean
+            Select multiple files
+            Default: False
+
+    Returns:
+
+        fpath: string
+            Fullpath to the selected input file, or,
+            in case of multiple file selection,
+            the selected input folder path holding the files.
+    """
+
+    # case for Windows
+    if sys.platform.lower().startswith("win"):
+
+        print(user_message)
+        import win32ui, win32con
+
+        # For multiple files replace 0 with win32con.OFN_ALLOWMULTISELECT below
+        if mul_fls:
+            dial_flg = win32con.OFN_ALLOWMULTISELECT
+        else:
+            dial_flg = 0
+
+        fd = win32ui.CreateFileDialog(1, None, None, dial_flg)
+
+        fd.SetOFNTitle(user_message)
+        if fd.DoModal() == win32con.IDCANCEL:
+            sys.exit(1)
+    
+        # file_name = fd.GetFileName()
+        fpath = fd.GetPathName()
+
+        return fpath
+
+    # case for OSX
+    elif sys.platform.lower() == "darwin":
+
+        print(
+            user_message
+            + " (You may have to search for the file prompt window)"
+        )
+        from tkinter import filedialog as fd
+
+        if mul_fls:
+            fpath = fd.askdirectory(title=user_message)
+
+        else:
+            fpath = fd.askopenfilename(
+                title=user_message, filetypes=[("Excel", "*.xlsx *.xls"),("Database", "*.db")]
+            )
+
+        return fpath
+
