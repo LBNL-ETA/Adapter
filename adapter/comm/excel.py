@@ -405,11 +405,11 @@ def create_named_range(
             created."""
     rg = None
 
-    if type(range_name)==str:
+    if isinstance(range_name, str):
         rg = get_named_range(wb, range_name)
-    elif type(range_name) == xw.main.Range:
+    elif isinstance(range_name, xw.main.Range):
         rg, range_name = range_name, None
-    elif type(range_name) in (xw.main.Name, Name):
+    elif isinstance(range_name, xw.main.Name) or isinstance(range_name, Name):
         rg = range_name.refers_to_range
         range_name = rg.name.name
 
