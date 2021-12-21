@@ -1,21 +1,16 @@
-import numpy as np
-import pandas as pd
+import logging
 import traceback
 
-from adapter.comm.excel import Book, xl2pd, pd2xl
+import numpy as np
+import pandas as pd
+from sqlalchemy import create_engine
+
+from adapter.comm.excel import Book
 from adapter.comm.sql import Sql
-
 from adapter.comm.tools import process_column_labels
-
-import re, sys
-
-import logging
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
-
-
-from pdb import set_trace as bp
 
 
 class Excel(object):
@@ -164,7 +159,7 @@ class Excel(object):
 
             else:
                 msg = "Unsupported type ({}) passed for table names, {}."
-                log.error(msg.format(type(table_names), table_names))
+                # log.error(msg.format(type(table_names), table_names))
                 raise ValueError
 
             try:
@@ -310,7 +305,6 @@ class Db_sqlalchemy(object):
                 """You must define your "Secret.py" file within the adapter folder.  
                                 Replace the example "Secret_example.py" with your credentials"""
             )
-        from sqlalchemy import create_engine
 
         self.cxn_str = (
             "postgresql://"
@@ -394,7 +388,7 @@ class Debugger(object):
             try:
                 if pre_existing_keys is not None:
                     if table_names in pre_existing_keys:
-                        log.error(msg.format(name))
+                        # log.error(msg.format(name))
                         raise ValueError
             except:
                 msg = "Unexpected table_name ({}) format."
