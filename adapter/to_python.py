@@ -379,8 +379,3 @@ class Debugger(object):
             except:
                 msg = "Unexpected table_name ({}) format."
                 log.error(msg.format(table_names))
-
-
-if __name__ == '__main__':
-    db = Db(file_path='tests/test.db')
-    db.load()
