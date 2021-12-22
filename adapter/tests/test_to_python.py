@@ -1,4 +1,6 @@
 import unittest
+from unittest import TestCase
+
 from adapter.to_python import Excel, Db
 
 import logging
@@ -73,3 +75,34 @@ class DbTests(unittest.TestCase):
         some_tables = self.db_loader.load(table_names=["table1", "table2"])
 
         self.assertTrue(set(some_tables.keys()) == {"table1", "table2"})
+
+
+class TestDb(TestCase):
+    def setUp(self):
+        """creating DB objects"""
+        self.db = Db(file_path="./test.db", pre_existing_keys=['table1'])
+        self.good_db = Db(file_path="./test.db")
+        self.bad_db = Db(file_path="./corrupt.db")
+
+    def tearDown(self) -> None:
+        # destroy objects
+        del self.db
+        del self.good_db
+        del self.bad_db
+
+    def test_load_good(self):
+        # test file load with table_names
+        self.assertEqual(len((self.good_db.load(table_names=['table1', 'table2'])).keys() - {'table1', 'table2'}), 0)
+
+    def test_load_pre_keys(self):
+        # test file load with pre_existing_keys
+        self.assertEqual(len(self.db.load()), 2)
+
+    def test_load_bad_db(self):
+        # test corrupt file load
+        with self.assertRaises(IOError):
+            self.bad_db.load()
+
+    def test_load_df(self):
+        # test dataframe not empty
+        self.assertIsNotNone((self.good_db.load(table_names=['table3'])['table3']).head())
