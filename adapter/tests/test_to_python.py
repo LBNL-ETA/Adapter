@@ -96,7 +96,8 @@ class TestDb(TestCase):
 
     def test_load_pre_keys(self):
         # test file load with pre_existing_keys
-        self.assertEqual(len(self.db.load()), 2)
+        with self.assertRaises(ValueError):
+            self.db.load()
 
     def test_load_bad_db(self):
         # test corrupt file load

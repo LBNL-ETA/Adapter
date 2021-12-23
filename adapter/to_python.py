@@ -253,12 +253,12 @@ class Db(object):
         keys = metadata.tables.keys()
         if len(keys) == 0:
             # check database integrity
-            raise IOError('0 table found in the database file! The input file may be unsupported or corrupted')
+            raise IOError(
+                f'0 table found in the database file! The input file: {self.file_path} may be unsupported or corrupted')
         if self.pre_existing_keys is not None:
-            # Debugger.check_for_duplicates(
-            #     self.pre_existing_keys, keys
-            # )
-            keys = keys - self.pre_existing_keys
+            Debugger.check_for_duplicates(
+                self.pre_existing_keys, keys
+            )
             # skip pre_existing_keys
         if table_names is not None:
             # only import given table names
