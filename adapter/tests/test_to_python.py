@@ -9,10 +9,12 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class ExcelTests(unittest.TestCase):
-    @classmethod
     def setUp(self):
         """Instantiates an excel loader"""
-        self.exl_loader = Excel(r"adapter/tests/test.xlsx")
+        self.exl_loader = Excel('test.xlsx')
+
+    def tearDown(self) -> None:
+        del self.exl_loader
 
     def test_load(self):
         """Tests loading named tables
@@ -50,31 +52,6 @@ class ExcelTests(unittest.TestCase):
             set(some_ranges.keys())
             == {"xlsx_named_range1", "xlsx_single_col_range"}
         )
-
-
-class DbTests(unittest.TestCase):
-    @classmethod
-    def setUp(self):
-        """Instantiates a DB loader"""
-        self.db_loader = Db(r"adapter/tests/test.db")
-
-    def test_load_all_tables(self):
-        """Tests loading all tables
-        from sqlite databases.
-        """
-        all_tables = self.db_loader.load()
-
-        self.assertTrue(
-            set(all_tables.keys()) == {"table2", "table3", "table1"}
-        )
-
-    def test_load_some_tables(self):
-        """Tests loading specified tables
-        from sqlite databases.
-        """
-        some_tables = self.db_loader.load(table_names=["table1", "table2"])
-
-        self.assertTrue(set(some_tables.keys()) == {"table1", "table2"})
 
 
 class TestDb(TestCase):
