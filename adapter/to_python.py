@@ -241,10 +241,14 @@ class Db(object):
             table_names: list
                 List of table names to load. Assuming the given tables always exist in the db file
                 Default: None = load all tables
+        Notes
+        -----
+        input file checking comment out for now because it crashes LCC. this section should be uncommented
+        once LCC fixes the issue.
         """
-        if not os.path.exists(self.file_path):
-            # check if file exists
-            raise ImportError(f'Cannot find {self.file_path}')
+        # if not os.path.exists(self.file_path):
+        #     # check if file exists
+        #     raise ImportError(f'Cannot find {self.file_path}')
         con_str = f'sqlite+pysqlite:///{self.file_path}'
         engine = create_engine(con_str)
         metadata = MetaData()
