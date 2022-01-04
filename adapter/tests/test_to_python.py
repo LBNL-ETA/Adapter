@@ -1,4 +1,6 @@
 import unittest
+from unittest import TestCase
+
 from adapter.to_python import Excel, Db
 
 import logging
@@ -7,10 +9,12 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class ExcelTests(unittest.TestCase):
-    @classmethod
     def setUp(self):
         """Instantiates an excel loader"""
-        self.exl_loader = Excel(r"adapter/tests/test.xlsx")
+        self.exl_loader = Excel('test.xlsx')
+
+    def tearDown(self) -> None:
+        del self.exl_loader
 
     def test_load(self):
         """Tests loading named tables
@@ -50,26 +54,33 @@ class ExcelTests(unittest.TestCase):
         )
 
 
-class DbTests(unittest.TestCase):
-    @classmethod
+class TestDb(TestCase):
     def setUp(self):
-        """Instantiates a DB loader"""
-        self.db_loader = Db(r"adapter/tests/test.db")
+        """creating DB objects"""
+        self.db = Db(file_path="./test.db", pre_existing_keys=['table1'])
+        self.good_db = Db(file_path="./test.db")
+        self.bad_db = Db(file_path="./corrupt.db")
 
-    def test_load_all_tables(self):
-        """Tests loading all tables
-        from sqlite databases.
-        """
-        all_tables = self.db_loader.load()
+    def tearDown(self) -> None:
+        # destroy objects
+        del self.db
+        del self.good_db
+        del self.bad_db
 
-        self.assertTrue(
-            set(all_tables.keys()) == {"table2", "table3", "table1"}
-        )
+    def test_load_good(self):
+        # test file load with table_names
+        self.assertEqual(len((self.good_db.load(table_names=['table1', 'table2'])).keys() - {'table1', 'table2'}), 0)
 
-    def test_load_some_tables(self):
-        """Tests loading specified tables
-        from sqlite databases.
-        """
-        some_tables = self.db_loader.load(table_names=["table1", "table2"])
+    def test_load_pre_keys(self):
+        # test file load with pre_existing_keys
+        with self.assertRaises(ValueError):
+            self.db.load()
 
-        self.assertTrue(set(some_tables.keys()) == {"table1", "table2"})
+    def test_load_bad_db(self):
+        # test corrupt file load
+        with self.assertRaises(IOError):
+            self.bad_db.load()
+
+    def test_load_df(self):
+        # test dataframe not empty
+        self.assertIsNotNone((self.good_db.load(table_names=['table3'])['table3']).head())

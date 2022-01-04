@@ -1,21 +1,16 @@
-import numpy as np
-import pandas as pd
+import logging
+import os
 import traceback
 
-from adapter.comm.excel import Book, xl2pd, pd2xl
-from adapter.comm.sql import Sql
+import numpy as np
+import pandas as pd
+from sqlalchemy import create_engine, MetaData
 
+from adapter.comm.excel import Book
 from adapter.comm.tools import process_column_labels
-
-import re, sys
-
-import logging
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
-
-
-from pdb import set_trace as bp
 
 
 class Excel(object):
@@ -42,9 +37,9 @@ class Excel(object):
         log.info("Connected to: {}".format(file_path))
 
     def load(
-        self,
-        data_object_names=None,
-        kind="all",
+            self,
+            data_object_names=None,
+            kind="all",
     ):
         """Opens the file provided
         through file_path, loads
@@ -137,7 +132,6 @@ class Excel(object):
             raise ValueError
 
         if self.pre_existing_keys is not None:
-
             Debugger.check_for_duplicates(
                 self.pre_existing_keys, all_input_objects.keys()
             )
@@ -156,15 +150,15 @@ class Excel(object):
                         raise ValueError
 
             elif (
-                (data_object_names is None)
-                or (data_object_names is np.nan)
-                or (np.isnan(data_object_names))
+                    (data_object_names is None)
+                    or (data_object_names is np.nan)
+                    or (np.isnan(data_object_names))
             ):
                 data_object_names = all_input_objects.keys()
 
             else:
                 msg = "Unsupported type ({}) passed for table names, {}."
-                log.error(msg.format(type(table_names), table_names))
+                # log.error(msg.format(type(table_names), table_names))
                 raise ValueError
 
             try:
@@ -222,13 +216,13 @@ class Excel(object):
 
 
 class Db(object):
-    """Loads tables from a database to python
+    """Loads tables from a sqlite3 database into python
     as a dictionary of dataframes.
 
     Parameters:
 
         file_path: str
-            Path to an db file
+            Path to a sqlite db file
 
         pre_existing_keys: dictionary key index
             Keys is the previously loaded
@@ -236,54 +230,46 @@ class Db(object):
     """
 
     def __init__(self, file_path, pre_existing_keys=None):
-
-        self.db = Sql(file_path)
         self.file_path = file_path
         self.pre_existing_keys = pre_existing_keys
 
     def load(self, table_names=None):
-        """Loads tables
+        """Loads tables from a sqlite file
 
         Parameters:
 
             table_names: list
-                List of table names to load.
+                List of table names to load. Assuming the given tables always exist in the db file
                 Default: None = load all tables
+        Notes
+        -----
+        input file checking comment out for now because it crashes LCC. this section should be uncommented
+        once LCC fixes the issue.
         """
-        try:
-            all_dict_of_dfs = self.db.tables2dict(close=True)
+        # if not os.path.exists(self.file_path):
+        #     # check if file exists
+        #     raise ImportError(f'Cannot find {self.file_path}')
+        con_str = f'sqlite+pysqlite:///{self.file_path}'
+        engine = create_engine(con_str)
+        metadata = MetaData()
+        metadata.reflect(bind=engine)
 
-            dict_of_dfs = dict()
-
-            if len(all_dict_of_dfs.keys()) > 0:
-
-                if type(table_names) == list:
-
-                    for table_name in table_names:
-
-                        if table_name not in all_dict_of_dfs.keys():
-                            msg = "{} not found in the input file {}."
-                            log.error(msg.format(table_name, self.file_path))
-                            raise ValueError
-
-                        else:
-                            dict_of_dfs[table_name] = all_dict_of_dfs[
-                                table_name
-                            ]
-                else:
-                    dict_of_dfs = all_dict_of_dfs
-
-            if self.pre_existing_keys is not None:
-
-                Debugger.check_for_duplicates(
-                    self.pre_existing_keys, dict_of_dfs.keys()
-                )
-
-        except:
-            msg = "Failed to read input tables from {}."
-            log.error(msg.format(self.inpath))
-            raise ValueError
-
+        keys = metadata.tables.keys()
+        # if len(keys) == 0:
+        #     # check database integrity
+        #     raise IOError(
+        #         f'0 table found in the database file! The input file: {self.file_path} may be unsupported or corrupted')
+        if self.pre_existing_keys is not None:
+            Debugger.check_for_duplicates(
+                self.pre_existing_keys, keys
+            )
+            # skip pre_existing_keys
+        if table_names is not None:
+            # only import given table names
+            keys = keys & set(table_names)
+        dict_of_dfs = dict()
+        for t in keys:
+            dict_of_dfs[t] = pd.read_sql_table(f'{t}', con=con_str)
         return dict_of_dfs
 
 
@@ -310,15 +296,14 @@ class Db_sqlalchemy(object):
                 """You must define your "Secret.py" file within the adapter folder.  
                                 Replace the example "Secret_example.py" with your credentials"""
             )
-        from sqlalchemy import create_engine
 
         self.cxn_str = (
-            "postgresql://"
-            + database_credentials["Username"]
-            + ":"
-            + database_credentials["Password"]
-            + "@"
-            + file_path
+                "postgresql://"
+                + database_credentials["Username"]
+                + ":"
+                + database_credentials["Password"]
+                + "@"
+                + file_path
         )
         self.engine = create_engine(self.cxn_str)
         self.file_path = file_path
@@ -343,7 +328,6 @@ class Db_sqlalchemy(object):
                 )
 
             if self.pre_existing_keys is not None:
-
                 Debugger.check_for_duplicates(
                     self.pre_existing_keys, dict_of_dfs.keys()
                 )
@@ -394,7 +378,7 @@ class Debugger(object):
             try:
                 if pre_existing_keys is not None:
                     if table_names in pre_existing_keys:
-                        log.error(msg.format(name))
+                        # log.error(msg.format(name))
                         raise ValueError
             except:
                 msg = "Unexpected table_name ({}) format."
