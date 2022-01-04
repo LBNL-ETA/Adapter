@@ -255,10 +255,10 @@ class Db(object):
         metadata.reflect(bind=engine)
 
         keys = metadata.tables.keys()
-        if len(keys) == 0:
-            # check database integrity
-            raise IOError(
-                f'0 table found in the database file! The input file: {self.file_path} may be unsupported or corrupted')
+        # if len(keys) == 0:
+        #     # check database integrity
+        #     raise IOError(
+        #         f'0 table found in the database file! The input file: {self.file_path} may be unsupported or corrupted')
         if self.pre_existing_keys is not None:
             Debugger.check_for_duplicates(
                 self.pre_existing_keys, keys
