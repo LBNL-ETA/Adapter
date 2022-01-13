@@ -32,7 +32,7 @@ setup(
     # The project's main homepage.
     url="https://github.com/LBNL-ETA/Adapter",
     # Author details
-    author="Milica Grahovac, Youness Bennani, Thomas Burke, Katie Coughlin, Mohan Ganeshalingam, Akhil Mathur, Evan Neill, and Akshay Sharma",
+    author="Milica Grahovac, Youness Bennani, Thomas Burke, Katie Coughlin, Mohan Ganeshalingam, Akhil Mathur, Evan Neill, Akshay Sharma, Zheng He and Lyra Lan",
     # Choose your license
     license="BSD-3-Clause-LBNL",
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
@@ -45,6 +45,7 @@ setup(
         "pandas>=1.0.4",
         "xlwings>=0.19.4",
         "psycopg2-binary>=2.8.6",
-        "SQLAlchemy>=1.4.28"
+        "SQLAlchemy>=1.4.28",
+        "openpyxl>=3.0.9",
     ],
 )

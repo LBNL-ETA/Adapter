@@ -30,7 +30,7 @@ class IOTests(unittest.TestCase):
 
         self.assertFalse("db_path" in res_no_db.keys())
 
-    # uncomment only if you have a haggis   
+    # uncomment only if you have a haggis
     # server connection set up with a
     # Secret.py file based on the Secret_example.py
     # def test_load_from_excel_w_sqalchemy(self):
@@ -84,9 +84,7 @@ class IOTests(unittest.TestCase):
         """Tests loading from a single csv file that
         points to further inputs of any supported type.
         """
-        path = os.path.join(
-            os.getcwd(), r"adapter/tests/inputs_from_files_vTest.csv"
-        )
+        path = os.path.join(os.getcwd(), r"adapter/tests/inputs_from_files_vTest.csv")
 
         i_o = IO(path)
 
@@ -100,9 +98,7 @@ class IOTests(unittest.TestCase):
         defined version and output path parameters.
         """
 
-        path = os.path.join(
-            os.getcwd(), r"adapter/tests/test_no_run_parameters.xlsx"
-        )
+        path = os.path.join(os.getcwd(), r"adapter/tests/test_no_run_parameters.xlsx")
         i_o = IO(path)
 
         res = i_o.load()
@@ -175,9 +171,7 @@ class IOTests(unittest.TestCase):
 
     def test_write_to_db(self):
         """Tests main write method for type db"""
-        path = os.path.join(
-            os.getcwd(), r"adapter/tests/inputs_from_files_vTest.csv"
-        )
+        path = os.path.join(os.getcwd(), r"adapter/tests/inputs_from_files_vTest.csv")
         i_o = IO(path)
         data_conn = i_o.load()
 
@@ -194,9 +188,7 @@ class IOTests(unittest.TestCase):
         # write new dataframes
         new = {"df1": pd.DataFrame([1, 2]), "df2": pd.DataFrame(["a", "b"])}
 
-        i_o.write(
-            type="db", data_connection=data_conn, data_as_dict_of_dfs=new
-        )
+        i_o.write(type="db", data_connection=data_conn, data_as_dict_of_dfs=new)
 
         # add the input tables to the same db
         i_o.write(
@@ -212,9 +204,7 @@ class IOTests(unittest.TestCase):
 
     def test_write_to_csv(self):
         """Tests main write method for type csv"""
-        path = os.path.join(
-            os.getcwd(), r"adapter/tests/inputs_from_files_vTest.csv"
-        )
+        path = os.path.join(os.getcwd(), r"adapter/tests/inputs_from_files_vTest.csv")
         i_o = IO(path)
         data_conn = i_o.load()
 
@@ -231,9 +221,7 @@ class IOTests(unittest.TestCase):
         # write new dataframes
         new = {"df1": pd.DataFrame([1, 2]), "df2": pd.DataFrame(["a", "b"])}
 
-        i_o.write(
-            type="csv", data_connection=data_conn, data_as_dict_of_dfs=new
-        )
+        i_o.write(type="csv", data_connection=data_conn, data_as_dict_of_dfs=new)
 
         # add the input tables to the same db
         i_o.write(
@@ -248,9 +236,7 @@ class IOTests(unittest.TestCase):
 
     def test_write_to_csv_and_db(self):
         """Tests main write method for both csv and db"""
-        path = os.path.join(
-            os.getcwd(), r"adapter/tests/inputs_from_files_vTest.csv"
-        )
+        path = os.path.join(os.getcwd(), r"adapter/tests/inputs_from_files_vTest.csv")
         i_o = IO(path)
         data_conn = i_o.load()
 

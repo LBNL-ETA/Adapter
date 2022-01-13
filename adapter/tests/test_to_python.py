@@ -1,29 +1,58 @@
-import unittest
 from unittest import TestCase
 
-from adapter.to_python import Excel, Db
-
+from adapter.to_python import (
+    convert_data_object_to_df,
+    Excel,
+    Db,
+)
+import openpyxl
+import pandas as pd
+from pandas._testing import assert_frame_equal
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
 
 
-class ExcelTests(unittest.TestCase):
-    def setUp(self):
-        """Instantiates an excel loader"""
-        self.exl_loader = Excel('test.xlsx')
+class UtilTest(TestCase):
+    """Tests for general functions"""
 
-    def tearDown(self) -> None:
-        del self.exl_loader
+    @classmethod
+    def setUp(self):
+        """Loads an excel workbook"""
+        self.file_path = r"adapter/tests/test.xlsx"
+        self.wb = openpyxl.load_workbook(
+            self.file_path, data_only=True, read_only=False, keep_vba=True
+        )
+
+    def test_convert_single_cell_to_df(self):
+        ws = self.wb["test"]
+        cell = ws["B2"]
+        df1 = convert_data_object_to_df(cell, "Cell")
+        df2 = pd.DataFrame([[cell.value]], columns=["Cell"])
+        assert_frame_equal(df1, df2)
+
+    def test_convert_multi_cell_to_df(self):
+        ws = self.wb["test"]
+        cells = ws["B2:C3"]
+        df1 = convert_data_object_to_df(cells, "Cells")
+        df2 = pd.DataFrame(
+            [[cell.value for cell in row] for row in cells[1:]],
+            columns=[cell.value for cell in cells[0]],
+        )
+        assert_frame_equal(df1, df2)
+
+
+class ExcelTest(TestCase):
+    """Tests for new Excel class"""
+    @classmethod
+    def setUp(self):
+        """Loads an excel workbook"""
+        self.data = Excel(r"adapter/tests/test.xlsx")
 
     def test_load(self):
-        """Tests loading named tables
-        and named ranges from excel.
-        """
-        all_tables = self.exl_loader.load(kind="all")
-
+        dict_of_dfs = self.data.load()
         self.assertTrue(
-            set(all_tables.keys())
+            set(dict_of_dfs.keys())
             == {
                 "xlsx_table1",
                 "xlsx_table2",
@@ -35,24 +64,19 @@ class ExcelTests(unittest.TestCase):
             }
         )
 
-        some_tables = self.exl_loader.load(
-            data_object_names=["xlsx_table1", "xlsx_table2"], kind="tables"
-        )
+    def test_get_unnamed_range(self):
+        range_name = "test!B2:C3"
+        region = self.data.wb["test"]["B2:C3"]
+        df1 = convert_data_object_to_df(region, range_name)
+        df2 = self.data.get_named_data_objects(range_name)
+        assert_frame_equal(df1, df2)
 
-        self.assertTrue(
-            set(some_tables.keys()) == {"xlsx_table1", "xlsx_table2"}
-        )
-
-        some_ranges = self.exl_loader.load(
-            data_object_names=["xlsx_named_range1", "xlsx_single_col_range"],
-            kind="ranges",
-        )
-
-        self.assertTrue(
-            set(some_ranges.keys())
-            == {"xlsx_named_range1", "xlsx_single_col_range"}
-        )
-
+    def test_get_named_range(self):
+        range_name = "xlsx_named_range1"
+        region = self.data.wb["test"]["J16:K18"]
+        df1 = convert_data_object_to_df(region, range_name)
+        df2 = self.data.get_named_data_objects(range_name)
+        assert_frame_equal(df1, df2)
 
 class TestDb(TestCase):
     def setUp(self):

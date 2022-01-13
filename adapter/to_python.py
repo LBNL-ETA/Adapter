@@ -1,27 +1,62 @@
 import logging
 import os
 import traceback
+import openpyxl
 
 import numpy as np
 import pandas as pd
 from sqlalchemy import create_engine, MetaData
 
-from adapter.comm.excel import Book
 from adapter.comm.tools import process_column_labels
+
+import logging
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 
+def convert_data_object_to_df(data_object, name):
+    """Converts data objects defined as named ranges
+    and tables in excel file into dataframes
+
+    Parameters:
+
+        data_object: single cell or tuple of tuple of cells
+            Each cell is an openpyxl.cell.cell.Cell
+            data object read from an excel worksheet
+
+        name: str
+            name of th data object
+
+    Returns:
+
+        df: dataframe
+            named table or range in format of
+            pandas dataframe read from the input workbook
+    """
+    if isinstance(data_object, tuple):
+        df = pd.DataFrame(
+            [[cell.value for cell in row] for row in data_object[1:]],
+            columns=[cell.value for cell in data_object[0]],
+        )
+    else:  # read in scalar value
+        df = pd.DataFrame([[data_object.value]], columns=[name])
+    return df
+
+
 class Excel(object):
-    """Loads bulk named tables
-    and ranges from .xlsx to python as
+    """Loads all named tables
+    and ranges from excel to python as
     a dictionary of dataframes.
+
+    This Class replaces the old Excel Class
 
     Parameters:
 
         file_path: str
-            Path to an excel sheet
+            Path to an excel sheet where input
+            tables/named ranges need to be loaded.
+            No data is read in when None
 
         pre_existing_keys: dictionary key index
             Keys is the previously loaded
@@ -30,189 +65,105 @@ class Excel(object):
 
     def __init__(self, file_path, pre_existing_keys=None):
 
-        self.wb = Book(file_path)
-        self.file_path = file_path
+        self.wb = openpyxl.load_workbook(
+            file_path, data_only=True, read_only=False, keep_vba=True
+        )
         self.pre_existing_keys = pre_existing_keys
 
-        log.info("Connected to: {}".format(file_path))
+        log.info("Loaded: {}".format(file_path))
 
-    def load(
-            self,
-            data_object_names=None,
-            kind="all",
-    ):
-        """Opens the file provided
-        through file_path, loads
-        all or a subset of tables
-        and named ranges
-        available in the file and
-        converts to a python format.
+    def load(self):
+        """Grabs all named tables and ranges found in
+        excel file as a dictionary of dataframes
 
-        Parameters:
-
-            data_object_names: list
-                List of string data object names
-                to load. Data objects can be
-                named tables and named ranges, see
-                'type' kwarg for details.
-                Default: None means
-                that all data objects found in the
-                input file get loaded.
-
-            kind: str
-                'tables' : gets only named tables
-                'ranges' : gets only named ranges
-                'all' : gest both named tables
-                and named ranges
+        This function replaces the older version of Excel.load
+        kwargs 'data_object_names' and 'kind' are deprecated
 
         Returns:
 
-            dict_of_dfs: dict of dataframes
-                Python dictionary with table name
-                keys and input table values.
-        """
-        dict_of_dfs = self.get_named_data_objects(data_object_names, kind=kind)
-
-        return dict_of_dfs
-
-    def get_named_data_objects(self, data_object_names, kind="all"):
-        """Grabs data defined as excel tables, named ranges, or both.
-
-        Parameters:
-
-            data_object_names: list or None
-                List of string data object names
-                to load. Data objects can be
-                named tables and named ranges, see
-                'type' kwarg for details.
-                Default: None means
-                that all data objects found in the
-                input file get loaded.
-
-            kind: str
-                'tables' : gets only named tables
-                'ranges' : gets only named ranges
-                'all' : gest both named tables
-                and named ranges
-
-        Returns:
-
-            dict_of_dfs: dict of dataframes
+            dict_of_dfs: dictionary
                 Python dictionary with table name/
                 named range as keys and contents of
                 the corresponding named data object
-                values.
+                values
         """
-        if kind == "tables":
-            # grab all the input tables/named ranges
-            all_input_objects = self.wb.tables
+        # get named ranges
+        dict_of_dfs = {
+            x.name: self.get_named_data_objects(x.name)
+            for x in self.wb.defined_names.definedName
+        }
 
-        if kind == "ranges":
-            all_input_objects = {
-                x.name: x
-                for x in self.wb.names
-                if "_FilterDatabase" not in x.name and "_xlfn." not in x.name
-            }
-
-        if kind == "all":
-            all_input_tables = self.wb.tables
-            all_input_ranges = {
-                x.name: x
-                for x in self.wb.names
-                if "_FilterDatabase" not in x.name and "_xlfn." not in x.name
-            }
-
-            all_input_tables.update(all_input_ranges)
-
-            all_input_objects = all_input_tables.copy()
-
-        elif kind not in ["all", "ranges", "tables"]:
-            msg = "An unsupported value provided for kwarg kind {}."
-            log.error(msg.format(kind))
-            raise ValueError
-
+        # get named tables
+        for ws in self.wb.worksheets:
+            for table_name, table_range in ws.tables.items():
+                dict_of_dfs[table_name] = convert_data_object_to_df(
+                    ws[table_range], table_name
+                )
         if self.pre_existing_keys is not None:
             Debugger.check_for_duplicates(
-                self.pre_existing_keys, all_input_objects.keys()
+                self.pre_existing_keys, dict_of_dfs.keys())
+        for k, df in dict_of_dfs.items():
+            # Old Excel class converted all numbers to float types.
+            # The code below maintains backward compatibility
+            df = df.astype(
+                {
+                    k: float if np.issubdtype(v, np.number) else v
+                    for k, v in df.dtypes.items()
+                }
             )
-
-        # initiate dictionaries of input table dataframes
-        # and populate
-        dict_of_dfs = dict()
-
-        if len(all_input_objects.keys()) > 0:
-
-            if type(data_object_names) == list:
-                for data_object_name in data_object_names:
-                    if data_object_name not in all_input_objects.keys():
-                        msg = "{} not found in the input file {}."
-                        log.error(msg.format(data_object_name, self.file_path))
-                        raise ValueError
-
-            elif (
-                    (data_object_names is None)
-                    or (data_object_names is np.nan)
-                    or (np.isnan(data_object_names))
-            ):
-                data_object_names = all_input_objects.keys()
-
-            else:
-                msg = "Unsupported type ({}) passed for table names, {}."
-                # log.error(msg.format(type(table_names), table_names))
-                raise ValueError
-
-            try:
-
-                for data_object_name in data_object_names:
-
-                    try:
-                        # prepare labels (strip extra spaces)
-                        dict_of_dfs[
-                            data_object_name
-                        ] = self.wb.named_range_to_df(
-                            all_input_objects[data_object_name],
-                            verbose=True,
-                        )
-
-                        dict_of_dfs[
-                            data_object_name
-                        ].columns = process_column_labels(
-                            dict_of_dfs[data_object_name].columns
-                        )
-
-                    except:
-                        msg = (
-                            "Failed to read input table named {}"
-                            " from input file {}. "
-                            "If the data contained in the table "
-                            "is needed in the analysis please attempt"
-                            " to rename the table/range using strings and numerals "
-                            "and/or further check the data range or table "
-                            "definition."
-                        )
-
-                        log.warning(
-                            msg.format(data_object_name, self.file_path)
-                        )
-                        raise ValueError
-
-                msg = "Read in input tables and ranges from {}."
-                log.info(msg.format(self.file_path))
-
-            except:
-                msg = "Failed to read input tables from {}."
-
-                log.error(msg.format(self.file_path))
-                raise ValueError
-
-        else:
-            msg = (
-                "Neither named tables nor named ranges found in "
-                "the input file {}."
-            )
-            log.info(msg.format(self.file_path))
+            df.columns = process_column_labels(df.columns)
+            dict_of_dfs[k] = df
 
         return dict_of_dfs
+
+    def get_named_data_objects(self, data_object_name):
+        """Opens excel workbook and loads all tables and
+        named ranges and converts to a python format.
+        range_name can be a standard Excel reference
+        ('Sheet1!A2:B7') or refer to a named region
+        ('my_cells').
+
+        This function replaces the older version of
+        Excel.get_named_data_objects. kwarg 'kind' is deprecated
+
+        Parameters:
+
+            data_object_name: str
+                worksheet reference to find
+                a regtangular region (cell or tuple of cells)
+                of data objects in workbook. Data objects
+                can be named tables and named ranges
+
+        Returns:
+
+            df: dataframe
+                named table or range in format of
+                pandas dataframe read from the input workbook
+        """
+        if "!" in data_object_name:
+            # pass a worksheet!cell reference
+            ws_name, reg = data_object_name.split("!")
+            if ws_name.startswith("'") and ws_name.endswith("'"):
+                # optionally strip single quotes around sheet name
+                ws_name = ws_name[1:-1]
+        else:
+            # pass a named range;
+            # find the cells in the workbook
+            full_range = self.wb.defined_names[data_object_name]
+            if full_range is None:
+                raise ValueError(f'Range "{data_object_name}" not found in workbook.')
+
+            destinations = list(full_range.destinations)
+            if len(destinations) > 1:
+                raise ValueError(
+                    f'Range "{data_object_name}" in contains more than one region.'
+                )
+            ws_name, reg = destinations[0]
+
+        region = self.wb[ws_name][reg]
+        df = convert_data_object_to_df(region, data_object_name)
+
+        return df
 
 
 class Db(object):
@@ -323,9 +274,7 @@ class Db_sqlalchemy(object):
             dict_of_dfs = dict()
             for table_name in table_names:
                 sql_string = "SELECT * FROM {table}".format(table=table_name)
-                dict_of_dfs[table_name] = pd.read_sql(
-                    con=self.engine, sql=sql_string
-                )
+                dict_of_dfs[table_name] = pd.read_sql(con=self.engine, sql=sql_string)
 
             if self.pre_existing_keys is not None:
                 Debugger.check_for_duplicates(
