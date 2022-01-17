@@ -1,4 +1,33 @@
-import sys, re, os
+import logging
+import re
+import sys
+
+
+def convert_path(win_path: str) -> str:
+    """
+        Convert Windows input path according to current OS. IOError will raise if current OS is un-supported.
+
+    Args:
+        win_path: Windows format path str
+
+    Returns:
+        cur_path: Current system format path str
+    """
+    if sys.platform == 'win32':
+        return win_path
+    elif sys.platform == 'darwin':
+        mount_point = '/Volumes/ees'
+    elif sys.platform == 'linux':
+        mount_point = '/media/forecast'
+    else:
+        logging.ERROR('Not supported OS!')
+        raise IOError()
+    parts = win_path.split('\\')
+    parts[0] = mount_point
+    logging.debug(parts)
+    cur_path = '/'.join(parts)
+    logging.debug(cur_path)
+    return cur_path
 
 
 def process_column_labels(list_of_labels):
@@ -23,10 +52,11 @@ def process_column_labels(list_of_labels):
 
 
 def convert_network_drive_path(
-    str_or_path, mapping=[("X:", "/Volumes/my_drive")]
+        str_or_path, mapping=[("X:", "/Volumes/my_drive")]
 ):
     """
-    Convert network drive paths from those formatted for one OS into those formatted for another. (works for Windows <-> OSX)
+    Convert network drive paths from those formatted for one OS into those formatted for another. (works for Windows
+    <-> OSX)
     If a string that doesn't seem to represent a path in the other OS is given, it will be returned unchanged.
 
     Parameters:
@@ -34,7 +64,9 @@ def convert_network_drive_path(
             string holding a filepath.
 
         mapping: list
-            list of 2-tuples where 0th entry of each tuple is the name of a windows network drive location (e.g. "A:") and the 1st entry is OSX network drive location (e.g. "/Volumes/A"). Defaults to [("X:","/Volumes/my_folder")].
+            list of 2-tuples where 0th entry of each tuple is the name of a windows network drive location (e.g.
+            "A:") and the 1st entry is OSX network drive location (e.g. "/Volumes/A"). Defaults to [("X:",
+            "/Volumes/my_folder")].
 
     Returns:
         str_or_path: str
@@ -110,7 +142,7 @@ def user_select_file(user_message="", mul_fls=False):
         fd.SetOFNTitle(user_message)
         if fd.DoModal() == win32con.IDCANCEL:
             sys.exit(1)
-    
+
         # file_name = fd.GetFileName()
         fpath = fd.GetPathName()
 
@@ -130,8 +162,7 @@ def user_select_file(user_message="", mul_fls=False):
 
         else:
             fpath = fd.askopenfilename(
-                title=user_message, filetypes=[("Excel", "*.xlsx *.xls"),("Database", "*.db")]
+                title=user_message, filetypes=[("Excel", "*.xlsx *.xls"), ("Database", "*.db")]
             )
 
         return fpath
-
