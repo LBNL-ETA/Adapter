@@ -38,8 +38,7 @@ def convert_path(win_path: str) -> str:
     elif sys.platform == 'linux':
         mount_point = '/media/forecast'
     else:
-        logging.ERROR('Not supported OS!')
-        raise IOError()
+        raise IOError(f'Not supported OS: {sys.platform}!')
     parts = win_path.split('\\')
     parts[0] = mount_point
     logging.debug(parts)

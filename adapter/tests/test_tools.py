@@ -10,6 +10,11 @@ class Test(TestCase):
         self.linux = "/media/forecast/b/c/d/e/f.gh"
         self.osx = "/Volumes/ees/b/c/d/e/f.gh"
 
+    @patch('sys.platform', 'freebsd7')
+    def test_unix(self):
+        with self.assertRaises(IOError):
+            convert_path(self.win_dir)
+
     @patch('sys.platform', 'linux')
     def test_linux(self):
         self.assertEqual(self.linux, convert_path(self.win_dir))
