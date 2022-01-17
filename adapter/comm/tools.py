@@ -12,6 +12,24 @@ def convert_path(win_path: str) -> str:
 
     Returns:
         cur_path: Current system format path str
+    Notes:
+        ┍━━━━━━━━━━━━━━━━━━━━━┯━━━━━━━━━━━━━━━━━━━━━┑
+        │ System              │ Value               │
+        ┝━━━━━━━━━━━━━━━━━━━━━┿━━━━━━━━━━━━━━━━━━━━━┥
+        │ Linux               │ linux or linux2 (*) │
+        │ Windows             │ win32               │
+        │ Windows/Cygwin      │ cygwin              │
+        │ Windows/MSYS2       │ msys                │
+        │ Mac OS X            │ darwin              │
+        │ OS/2                │ os2                 │
+        │ OS/2 EMX            │ os2emx              │
+        │ RiscOS              │ riscos              │
+        │ AtheOS              │ atheos              │
+        │ FreeBSD 7           │ freebsd7            │
+        │ FreeBSD 8           │ freebsd8            │
+        │ FreeBSD N           │ freebsdN            │
+        │ OpenBSD 6           │ openbsd6            │
+        ┕━━━━━━━━━━━━━━━━━━━━━┷━━━━━━━━━━━━━━━━━━━━━┙
     """
     if sys.platform == 'win32':
         return win_path
