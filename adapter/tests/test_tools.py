@@ -10,6 +10,11 @@ class Test(TestCase):
         self.linux = "/media/forecast/b/c/d/e/f.gh"
         self.osx = "/Volumes/ees/b/c/d/e/f.gh"
 
+    def tearDown(self) -> None:
+        del self.win_dir
+        del self.linux
+        del self.osx
+
     @patch('sys.platform', 'freebsd7')
     def test_unix(self):
         with self.assertRaises(IOError):
