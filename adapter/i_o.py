@@ -478,7 +478,9 @@ class IO(object):
             if file_type == "excel":
                 # load all named tables and ranges found in
                 # excel file to python as a dictionary of dataframes
-                dict_of_dfs = Excel(file_path, pre_existing_keys).load()
+                dict_of_dfs = Excel(file_path, pre_existing_keys).load(
+                    data_object_names=table_names_to_load
+                )
 
             elif file_type == "text":
                 dict_of_dfs = dict()

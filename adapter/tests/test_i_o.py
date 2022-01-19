@@ -75,7 +75,10 @@ class IOTests(unittest.TestCase):
 
         res = i_o.load()
 
-        self.assertEqual(len(res["tables_as_dict_of_dfs"].keys()), 10)
+        self.assertEqual(len(res["tables_as_dict_of_dfs"].keys()), 8)
+        self.assertTrue("xlsx_table1_in_other_excel_file" in res["tables_as_dict_of_dfs"].keys())
+        self.assertFalse("xlsx_table2_in_other_excel_file" in res["tables_as_dict_of_dfs"].keys())
+        self.assertFalse("run_parameters30" in res["tables_as_dict_of_dfs"].keys())
 
         # tear down
         shutil.rmtree(res["outpath"])
@@ -248,3 +251,6 @@ class IOTests(unittest.TestCase):
 
         # tear down files
         shutil.rmtree(data_conn["outpath"])
+
+if __name__ == "__main__":
+    unittest.main()

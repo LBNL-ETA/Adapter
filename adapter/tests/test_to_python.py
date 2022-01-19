@@ -1,10 +1,7 @@
+import os
 from unittest import TestCase
-
-from adapter.to_python import (
-    convert_data_object_to_df,
-    Excel,
-    Db,
-)
+import unittest
+from adapter.to_python import Excel, Db
 import openpyxl
 import pandas as pd
 from pandas._testing import assert_frame_equal
@@ -12,45 +9,15 @@ import logging
 
 logging.basicConfig(level=logging.DEBUG)
 
-
-class UtilTest(TestCase):
-    """Tests for general functions"""
-
-    @classmethod
-    def setUp(self):
-        """Loads an excel workbook"""
-        self.file_path = r"adapter/tests/test.xlsx"
-        self.wb = openpyxl.load_workbook(
-            self.file_path, data_only=True, read_only=False, keep_vba=True
-        )
-
-    def test_convert_single_cell_to_df(self):
-        ws = self.wb["test"]
-        cell = ws["B2"]
-        df1 = convert_data_object_to_df(cell, "Cell")
-        df2 = pd.DataFrame([[cell.value]], columns=["Cell"])
-        assert_frame_equal(df1, df2)
-
-    def test_convert_multi_cell_to_df(self):
-        ws = self.wb["test"]
-        cells = ws["B2:C3"]
-        df1 = convert_data_object_to_df(cells, "Cells")
-        df2 = pd.DataFrame(
-            [[cell.value for cell in row] for row in cells[1:]],
-            columns=[cell.value for cell in cells[0]],
-        )
-        assert_frame_equal(df1, df2)
-
-
 class ExcelTest(TestCase):
     """Tests for new Excel class"""
     @classmethod
     def setUp(self):
         """Loads an excel workbook"""
-        self.data = Excel(r"adapter/tests/test.xlsx")
+        self.exl_loader = Excel(os.path.join(os.path.dirname(__file__), "test.xlsx"))
 
     def test_load(self):
-        dict_of_dfs = self.data.load()
+        dict_of_dfs = self.exl_loader.load(kind="all")
         self.assertTrue(
             set(dict_of_dfs.keys())
             == {
@@ -64,26 +31,61 @@ class ExcelTest(TestCase):
             }
         )
 
+        some_tables = self.exl_loader.load(
+            data_object_names=["xlsx_table1", "xlsx_table2"], kind="tables"
+        )
+
+        self.assertTrue(
+            set(some_tables.keys()) == {"xlsx_table1", "xlsx_table2"}
+        )
+
+        some_ranges = self.exl_loader.load(
+            data_object_names=["xlsx_named_range1", "xlsx_single_col_range"],
+            kind="ranges",
+        )
+
+        self.assertTrue(
+            set(some_ranges.keys())
+            == {"xlsx_named_range1", "xlsx_single_col_range"}
+        )
+
     def test_get_unnamed_range(self):
         range_name = "test!B2:C3"
-        region = self.data.wb["test"]["B2:C3"]
-        df1 = convert_data_object_to_df(region, range_name)
-        df2 = self.data.get_named_data_objects(range_name)
+        region = self.exl_loader.wb["test"]["B2:C3"]
+        df1 = self.exl_loader.convert_data_object_to_df(region, range_name)
+        df2 = self.exl_loader.get_named_data_object(range_name)
         assert_frame_equal(df1, df2)
 
     def test_get_named_range(self):
         range_name = "xlsx_named_range1"
-        region = self.data.wb["test"]["J16:K18"]
-        df1 = convert_data_object_to_df(region, range_name)
-        df2 = self.data.get_named_data_objects(range_name)
+        region = self.exl_loader.wb["test"]["J16:K18"]
+        df1 = self.exl_loader.convert_data_object_to_df(region, range_name)
+        df2 = self.exl_loader.get_named_data_object(range_name)
+        assert_frame_equal(df1, df2)
+
+    def test_convert_single_cell_to_df(self):
+        ws = self.exl_loader.wb["test"]
+        cell = ws["B2"]
+        df1 = self.exl_loader.convert_data_object_to_df(cell, "Cell")
+        df2 = pd.DataFrame([[cell.value]], columns=["Cell"])
+        assert_frame_equal(df1, df2)
+
+    def test_convert_multi_cell_to_df(self):
+        ws = self.exl_loader.wb["test"]
+        cells = ws["B2:C3"]
+        df1 = self.exl_loader.convert_data_object_to_df(cells, "Cells")
+        df2 = pd.DataFrame(
+            [[cell.value for cell in row] for row in cells[1:]],
+            columns=[cell.value for cell in cells[0]],
+        )
         assert_frame_equal(df1, df2)
 
 class TestDb(TestCase):
     def setUp(self):
         """creating DB objects"""
-        self.db = Db(file_path="./test.db", pre_existing_keys=['table1'])
-        self.good_db = Db(file_path="./test.db")
-        self.bad_db = Db(file_path="./corrupt.db")
+        self.db = Db(file_path=os.path.join(os.path.dirname(__file__), "test.db"), pre_existing_keys=['table1'])
+        self.good_db = Db(file_path=os.path.join(os.path.dirname(__file__), "test.db"))
+        self.bad_db = Db(file_path=os.path.join(os.path.dirname(__file__), "corrupt.db"))
 
     def tearDown(self) -> None:
         # destroy objects
@@ -108,3 +110,6 @@ class TestDb(TestCase):
     def test_load_df(self):
         # test dataframe not empty
         self.assertIsNotNone((self.good_db.load(table_names=['table3'])['table3']).head())
+
+if __name__ == "__main__":
+    unittest.main()
