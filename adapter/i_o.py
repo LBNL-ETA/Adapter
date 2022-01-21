@@ -1,7 +1,6 @@
 import os
 import numpy as np
 import pandas as pd
-
 from adapter.to_python import Excel, Db, Db_sqlalchemy, Debugger
 from adapter.label_map import Labels
 
@@ -50,18 +49,15 @@ class IO(object):
             version substring.
 
         mapping: list
-            list of 2-tuples where 0th entry of each 
-            tuple is the name of a windows network drive 
-            location (e.g. "A:") and the 1st entry is OSX 
-            network drive location (e.g. "/Volumes/A"). 
+            list of 2-tuples where 0th entry of each
+            tuple is the name of a windows network drive
+            location (e.g. "A:") and the 1st entry is OSX
+            network drive location (e.g. "/Volumes/A").
             Defaults to [("X:","/Volumes/my_folder")].
 
     """
 
-    def __init__(
-        self, 
-        path, 
-        os_mapping=[("X:", "/Volumes/my_drive")]):
+    def __init__(self, path, os_mapping=[("X:", "/Volumes/my_drive")]):
 
         self.os_mapping = os_mapping
 
@@ -221,14 +217,10 @@ class IO(object):
 
                 qry_flags[file_path] = extra_files.loc[inx, self.la["query"]]
 
-                if (qry_flags[file_path] is not None) and isinstance(
-                    table_names, str
-                ):
+                if (qry_flags[file_path] is not None) and isinstance(table_names, str):
 
                     qry_flags[file_path] = re.split(",", qry_flags[file_path])
-                    qry_flags[file_path] = [
-                        i.strip() for i in qry_flags[file_path]
-                    ]
+                    qry_flags[file_path] = [i.strip() for i in qry_flags[file_path]]
 
                 dict_of_dfs.update(
                     self.get_tables(
@@ -275,16 +267,12 @@ class IO(object):
                     " unwanted run_parameters tables from the inputs."
                 )
 
-                log.warning(
-                    msg.format(run_params_table[0], run_params_table[1:])
-                )
+                log.warning(msg.format(run_params_table[0], run_params_table[1:]))
 
             if len(run_params_table) != 0:
 
                 outpath = convert_network_drive_path(
-                    dict_of_dfs[run_params_table[0]].loc[
-                        0, self.la["outpath"]
-                    ],
+                    dict_of_dfs[run_params_table[0]].loc[0, self.la["outpath"]],
                     mapping=self.os_mapping,
                 )
                 outpath_base = os.path.join(
@@ -292,9 +280,7 @@ class IO(object):
                     outpath,
                 )
 
-                version = dict_of_dfs[run_params_table[0]].loc[
-                    0, self.la["version"]
-                ]
+                version = dict_of_dfs[run_params_table[0]].loc[0, self.la["version"]]
 
                 if not isinstance(version, str):
                     # if it was read in as a number, as occurs in the test_input.xlsx on OSX
@@ -315,9 +301,7 @@ class IO(object):
                 outpath_base = os.path.join(os.getcwd(), "output")
                 version = ""
 
-            run_tag = (
-                version + "_" + datetime.now().strftime("%Y_%m_%d-%Hh_%Mm")
-            )
+            run_tag = version + "_" + datetime.now().strftime("%Y_%m_%d-%Hh_%Mm")
 
             outpath = os.path.join(outpath_base, run_tag)
 
@@ -334,14 +318,11 @@ class IO(object):
             filename_extns = re.split("\.", filename)[-1]
             filename_only = re.split("\.", filename)[0]
 
-            versioned_filename = (
-                filename_only + "_" + run_tag + "." + filename_extns
-            )
+            versioned_filename = filename_only + "_" + run_tag + "." + filename_extns
 
             copy(self.input_path, os.path.join(outpath, versioned_filename))
 
         if create_db == True:
-
             try:
                 db_res = self.create_db(
                     dict_of_dfs,
@@ -351,10 +332,7 @@ class IO(object):
                     close=close_db,
                 )
             except:
-                msg = (
-                    "Not able to create a db of tables "
-                    "that were read in from {}."
-                )
+                msg = "Not able to create a db of tables " "that were read in from {}."
 
                 log.error(msg.format(self.input_path))
 
@@ -453,9 +431,7 @@ class IO(object):
                 indicated using the query_only
                 flags, if applicable.
         """
-        file_path = convert_network_drive_path(
-            file_path, mapping=self.os_mapping
-        )
+        file_path = convert_network_drive_path(file_path, mapping=self.os_mapping)
 
         if file_path is None:
 
@@ -493,18 +469,15 @@ class IO(object):
                     table_names_to_load = np.array(table_names)[inx].tolist()
                     # others should be just connected to
                     not_inx = [not i for i in inx]
-                    table_names_for_conn = np.array(table_names)[
-                        not_inx
-                    ].tolist()
+                    table_names_for_conn = np.array(table_names)[not_inx].tolist()
 
             else:
                 table_names_to_load = table_names
                 table_names_for_conn = None
 
             if file_type == "excel":
-                # load all tables found in the
-                # file as a dict of dataframes
-
+                # load all named tables and ranges found in
+                # excel file to python as a dictionary of dataframes
                 dict_of_dfs = Excel(file_path, pre_existing_keys).load(
                     data_object_names=table_names_to_load
                 )
@@ -513,13 +486,9 @@ class IO(object):
                 dict_of_dfs = dict()
 
                 filename_to_tablename = ntpath.basename(file_path)
-                filename_to_tablename = re.split("\.", filename_to_tablename)[
-                    0
-                ]
+                filename_to_tablename = re.split("\.", filename_to_tablename)[0]
 
-                Debugger.check_for_duplicates(
-                    pre_existing_keys, filename_to_tablename
-                )
+                Debugger.check_for_duplicates(pre_existing_keys, filename_to_tablename)
 
                 # get rid of the version substring
                 if self.la["extra_files"] in filename_to_tablename:
