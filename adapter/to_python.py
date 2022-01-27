@@ -281,8 +281,10 @@ class Db(object):
             raise IOError(
                 f'0 table found in the database file! The input file: {self.file_path} may be unsupported or corrupted')
         if self.pre_existing_keys is not None:
+            # check for duplicates in tables_names,
+            # if table_names == None, check for duplcates for all the tables
             Debugger.check_for_duplicates(
-                self.pre_existing_keys, keys
+                self.pre_existing_keys, table_names or keys
             )
             # skip pre_existing_keys
         if table_names is not None:

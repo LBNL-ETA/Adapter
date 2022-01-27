@@ -101,6 +101,10 @@ class TestDb(TestCase):
         # test file load with pre_existing_keys
         with self.assertRaises(ValueError):
             self.db.load()
+        # test file load with table names and pre_expisting keys
+        self.assertEqual(set(self.db.load(table_names=['table2']).keys()), {'table2'})
+        with self.assertRaises(ValueError):
+            self.db.load(table_names=['table1'])
 
     def test_load_bad_db(self):
         # test corrupt file load
