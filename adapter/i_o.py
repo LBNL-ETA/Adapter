@@ -56,8 +56,8 @@ class IO(object):
             Defaults to [("X:","/Volumes/my_folder")].
 
     """
-
-    def __init__(self, path, os_mapping=[("X:", "/Volumes/my_drive")]):
+    def __init__(self, path, os_mapping={'win32': 'X:', 'darwin': '/Volumes/A',
+                                         'linux': '/media/b'}):
 
         self.os_mapping = os_mapping
 

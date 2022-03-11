@@ -1,4 +1,6 @@
-import sys, re, os
+import re
+import sys
+from pathlib import PurePath, PureWindowsPath, PurePosixPath
 
 
 def process_column_labels(list_of_labels):
@@ -22,53 +24,49 @@ def process_column_labels(list_of_labels):
     return list_of_cleaned_labels
 
 
-def convert_network_drive_path(
-    str_or_path, mapping=[("X:", "/Volumes/my_drive")]
-):
+def convert_network_drive_path(str_or_path, mapping={'win32': 'X:', 'darwin': '/Volumes/A', 'linux': '/media/b'}):
     """
-    Convert network drive paths from those formatted for one OS into those formatted for another. (works for Windows <-> OSX)
+    Convert network drive paths from those formatted for one OS into those formatted for another. (works for Windows,
+    OSX, Linux)
     If a string that doesn't seem to represent a path in the other OS is given, it will be returned unchanged.
 
     Parameters:
         str_or_path: str
             string holding a filepath.
 
-        mapping: list
-            list of 2-tuples where 0th entry of each tuple is the name of a windows network drive location (e.g. "A:") and the 1st entry is OSX network drive location (e.g. "/Volumes/A"). Defaults to [("X:","/Volumes/my_folder")].
+        mapping: dict
+            OS, mount point pair.
 
     Returns:
         str_or_path: str
-            string holding a converted filepath, or original in the case that no mapped network drive was found.
+            string holding a converted filepath based on the mapping, or original in the case that no mapped network
+            drive was found.
 
     Raises:
-        Exception: When no mapping is given
+        Exception: When no mapping is given or running on an unsupported OS
     """
     if not isinstance(str_or_path, str):
         return str_or_path
-
-    if mapping:
-        windows_drive_names = [pair[0].rstrip("\\") for pair in mapping]
-        osx_drive_names = [pair[1].rstrip("/") for pair in mapping]
-    else:
+    pp = PurePath(str_or_path)
+    if not (str_or_path[0] == '/' or ':' in str_or_path):
+        # check path is absolute, return if it's relative.
+        # Note: either os.path nor pathlib work correctly
+        return str_or_path
+    if not mapping:
         raise Exception("No network drive mappings given")
-
-    if sys.platform.startswith("win"):
-        for i, name in enumerate(osx_drive_names):
-            if str_or_path.startswith(name):
-                str_or_path = str_or_path.replace(
-                    name, windows_drive_names[i]
-                ).replace("/", "\\")
-                break
-
-    elif sys.platform.startswith("darwin"):
-        for i, name in enumerate(windows_drive_names):
-            if str_or_path.startswith(name):
-                str_or_path = str_or_path.replace("\\", "/").replace(
-                    name, osx_drive_names[i]
-                )
-                break
-
-    return str_or_path
+    if mapping[sys.platform] in str_or_path:
+        # return if path is already for the current OS
+        return str_or_path
+    file_path = '/'.join(pp.parts[1:])
+    if sys.platform == 'win32':
+        # convert to current system's mount point when mount point and sys not the same
+        return str(PureWindowsPath(mapping[sys.platform]).joinpath(file_path))
+    elif sys.platform == 'darwin':
+        return str(PurePosixPath(mapping[sys.platform]).joinpath(file_path))
+    elif sys.platform == 'linux':
+        return str(PurePosixPath(mapping[sys.platform]).joinpath(file_path))
+    else:
+        raise IOError(f'Not supported OS: {sys.platform}!')
 
 
 def user_select_file(user_message="", mul_fls=False):
@@ -110,7 +108,7 @@ def user_select_file(user_message="", mul_fls=False):
         fd.SetOFNTitle(user_message)
         if fd.DoModal() == win32con.IDCANCEL:
             sys.exit(1)
-    
+
         # file_name = fd.GetFileName()
         fpath = fd.GetPathName()
 
@@ -130,8 +128,7 @@ def user_select_file(user_message="", mul_fls=False):
 
         else:
             fpath = fd.askopenfilename(
-                title=user_message, filetypes=[("Excel", "*.xlsx *.xls"),("Database", "*.db")]
+                title=user_message, filetypes=[("Excel", "*.xlsx *.xls"), ("Database", "*.db")]
             )
 
         return fpath
-
