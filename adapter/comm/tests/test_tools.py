@@ -42,3 +42,9 @@ class Test(TestCase):
         self.assertEqual(convert_network_drive_path(str_or_path), str_or_path)
         str_or_path = 'output/file.txt'
         self.assertEqual(convert_network_drive_path(str_or_path), str_or_path)
+
+    def test_convert_network_drive_path_exists(self):
+        str_or_path = r'..\..\..\Adapter\adapter\tests\corrupt.db'
+        self.assertEqual(convert_network_drive_path(str_or_path), str_or_path)
+        str_or_path = r'test_done.db'
+        self.assertEqual(convert_network_drive_path(str_or_path), str_or_path)

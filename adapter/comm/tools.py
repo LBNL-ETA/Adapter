@@ -1,3 +1,4 @@
+import os
 import re
 import sys
 from pathlib import PurePath, PureWindowsPath, PurePosixPath
@@ -45,11 +46,10 @@ def convert_network_drive_path(str_or_path, mapping={'win32': 'X:', 'darwin': '/
     Raises:
         Exception: When no mapping is given or running on an unsupported OS
     """
-    if not isinstance(str_or_path, str):
-        return str_or_path
-    pp = PurePath(str_or_path)
-    if not (str_or_path[0] == '/' or ':' in str_or_path):
-        # check path is absolute, return if it's relative.
+    if (not isinstance(str_or_path, str)) \
+            or os.path.isfile(str_or_path) \
+            or (not (str_or_path[0] == '/' or ':' in str_or_path)):
+        # return if abs file exists or path is absolute, return if it's relative.
         # Note: either os.path nor pathlib work correctly
         return str_or_path
     if not mapping:
@@ -57,6 +57,7 @@ def convert_network_drive_path(str_or_path, mapping={'win32': 'X:', 'darwin': '/
     if mapping[sys.platform] in str_or_path:
         # return if path is already for the current OS
         return str_or_path
+    pp = PurePath(str_or_path)
     file_path = '/'.join(pp.parts[1:])
     if sys.platform == 'win32':
         # convert to current system's mount point when mount point and sys not the same
