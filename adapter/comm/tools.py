@@ -57,12 +57,10 @@ def convert_network_drive_path(str_or_path, mapping={'win32': 'X:', 'darwin': '/
     if mapping[sys.platform] in str_or_path:
         # return if path is already for the current OS
         return str_or_path
-    mp = 0
-    for v in mapping.values():
-        if v in str_or_path:
-            mp = len(v)
+    mp = get_mount_point_len(mapping, str_or_path)
     if mp == 0:
-        raise IOError("the given path doesn't match any of OS mappings")
+        raise IOError(f"the given path: {str_or_path} doesn't match any of OS mappings! If you work with a local dir, "
+                      f"set isLocal arg as IO(isLocal=True) or i_o.write(isLocal=True)")
     if ':' in str_or_path:
         file_path = PureWindowsPath(str_or_path[mp + 1:])
     else:
@@ -74,6 +72,27 @@ def convert_network_drive_path(str_or_path, mapping={'win32': 'X:', 'darwin': '/
         return str(PurePosixPath(mapping[sys.platform]).joinpath(file_path))
     else:
         raise IOError(f'Not supported OS: {sys.platform}!')
+
+
+def get_mount_point_len(mapping: dict, str_or_path: str) -> int:
+    """Get the length of the current mount point. For example, get_mount_point_len(mapping= {'win32': 'X:',
+    'darwin': '/Volumes/A', 'linux': '/media/b'}, str_or_path=r'X:\xyz\uvw.py')=> 2
+
+    Args:
+        mapping: dict
+            A OS and mount_point pair. For example, {'win32': 'X:', 'darwin': '/Volumes/A', 'linux': '/media/b'}
+        str_or_path: str
+            A path str. For example, r'C:\Abc\1.txt'
+
+    Returns:
+        the length of the mount point
+
+    """
+    mp = 0
+    for v in mapping.values():
+        if v.upper() == (str_or_path[:len(v)]).upper():
+            return len(v)
+    return mp
 
 
 def user_select_file(user_message="", mul_fls=False):
