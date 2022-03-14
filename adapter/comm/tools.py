@@ -57,14 +57,20 @@ def convert_network_drive_path(str_or_path, mapping={'win32': 'X:', 'darwin': '/
     if mapping[sys.platform] in str_or_path:
         # return if path is already for the current OS
         return str_or_path
-    pp = PurePath(str_or_path)
-    file_path = '/'.join(pp.parts[1:])
+    mp = 0
+    for v in mapping.values():
+        if v in str_or_path:
+            mp = len(v)
+    if mp == 0:
+        raise IOError("the given path doesn't match any of OS mappings")
+    if ':' in str_or_path:
+        file_path = PureWindowsPath(str_or_path[mp + 1:])
+    else:
+        file_path = PurePosixPath(str_or_path[mp + 1:])
     if sys.platform == 'win32':
         # convert to current system's mount point when mount point and sys not the same
         return str(PureWindowsPath(mapping[sys.platform]).joinpath(file_path))
-    elif sys.platform == 'darwin':
-        return str(PurePosixPath(mapping[sys.platform]).joinpath(file_path))
-    elif sys.platform == 'linux':
+    elif sys.platform == 'darwin' or sys.platform == 'linux':
         return str(PurePosixPath(mapping[sys.platform]).joinpath(file_path))
     else:
         raise IOError(f'Not supported OS: {sys.platform}!')
