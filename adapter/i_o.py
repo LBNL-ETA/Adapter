@@ -56,12 +56,13 @@ class IO(object):
             Defaults to [("X:","/Volumes/my_folder")].
 
     """
+
     def __init__(self, path, os_mapping={'win32': 'X:', 'darwin': '/Volumes/A',
-                                         'linux': '/media/b'}):
+                                         'linux': '/media/b'}, isLocal=False):
 
         self.os_mapping = os_mapping
-
-        path = convert_network_drive_path(path, mapping=os_mapping)
+        if not isLocal:
+            path = convert_network_drive_path(path, mapping=os_mapping)
 
         self.input_path = path
 
@@ -600,14 +601,15 @@ class IO(object):
         return res
 
     def write(
-        self,
-        type="db",
-        data_connection=None,
-        data_as_dict_of_dfs=None,
-        outpath=None,
-        run_tag="",
-        db_conn=None,
-        close_db=True,
+            self,
+            type="db",
+            data_connection=None,
+            data_as_dict_of_dfs=None,
+            outpath=None,
+            run_tag="",
+            db_conn=None,
+            close_db=True,
+            isLocal=False
     ):
         """Writes all dataframes from a dictionary of dataframes
         out into an existing database.
@@ -694,8 +696,8 @@ class IO(object):
         else:
             if outpath is None:
                 outpath = os.getcwd()
-
-        outpath = convert_network_drive_path(outpath, mapping=self.os_mapping)
+        if not isLocal:
+            outpath = convert_network_drive_path(outpath, mapping=self.os_mapping)
 
         if data_as_dict_of_dfs is None:
             msg = "No data to write passed."
