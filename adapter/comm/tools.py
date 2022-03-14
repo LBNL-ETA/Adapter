@@ -25,7 +25,10 @@ def process_column_labels(list_of_labels):
     return list_of_cleaned_labels
 
 
-def convert_network_drive_path(str_or_path, mapping={'win32': 'X:', 'darwin': '/Volumes/A', 'linux': '/media/b'}):
+def convert_network_drive_path(
+    str_or_path,
+    mapping={"win32": "X:", "darwin": "/Volumes/A", "linux": "/media/b"},
+):
     """
     Convert network drive paths from those formatted for one OS into those formatted for another. (works for Windows,
     OSX, Linux)
@@ -46,9 +49,11 @@ def convert_network_drive_path(str_or_path, mapping={'win32': 'X:', 'darwin': '/
     Raises:
         Exception: When no mapping is given or running on an unsupported OS
     """
-    if (not isinstance(str_or_path, str)) \
-            or os.path.isfile(str_or_path) \
-            or (not (str_or_path[0] == '/' or ':' in str_or_path)):
+    if (
+        (not isinstance(str_or_path, str))
+        or os.path.isfile(str_or_path)
+        or (not (str_or_path[0] == "/" or ":" in str_or_path))
+    ):
         # return if abs file exists or path is absolute, return if it's relative.
         # Note: either os.path nor pathlib work correctly
         return str_or_path
@@ -59,38 +64,38 @@ def convert_network_drive_path(str_or_path, mapping={'win32': 'X:', 'darwin': '/
         return str_or_path
     mp = get_mount_point_len(mapping, str_or_path)
     if mp == 0:
-        raise IOError(f"the given path: {str_or_path} doesn't match any of OS mappings! If you work with a local dir, "
-                      f"set isLocal arg as IO(isLocal=True) or i_o.write(isLocal=True)")
-    if ':' in str_or_path:
-        file_path = PureWindowsPath(str_or_path[mp + 1:])
+        raise IOError(
+            f"the given path: {str_or_path} doesn't match any of OS mappings! If you work with a local dir, "
+            f"set isLocal arg as IO(isLocal=True) or i_o.write(isLocal=True)"
+        )
+    if ":" in str_or_path:
+        file_path = PureWindowsPath(str_or_path[mp + 1 :])
     else:
-        file_path = PurePosixPath(str_or_path[mp + 1:])
-    if sys.platform == 'win32':
+        file_path = PurePosixPath(str_or_path[mp + 1 :])
+    if sys.platform == "win32":
         # convert to current system's mount point when mount point and sys not the same
         return str(PureWindowsPath(mapping[sys.platform]).joinpath(file_path))
-    elif sys.platform == 'darwin' or sys.platform == 'linux':
+    elif sys.platform == "darwin" or sys.platform == "linux":
         return str(PurePosixPath(mapping[sys.platform]).joinpath(file_path))
     else:
-        raise IOError(f'Not supported OS: {sys.platform}!')
+        raise IOError(f"Not supported OS: {sys.platform}!")
 
 
 def get_mount_point_len(mapping: dict, str_or_path: str) -> int:
-    """Get the length of the current mount point. For example, get_mount_point_len(mapping= {'win32': 'X:',
-    'darwin': '/Volumes/A', 'linux': '/media/b'}, str_or_path=r'X:\xyz\uvw.py')=> 2
+    """Get the length of the current mount point.
 
-    Args:
+    Parameters:
         mapping: dict
             A OS and mount_point pair. For example, {'win32': 'X:', 'darwin': '/Volumes/A', 'linux': '/media/b'}
         str_or_path: str
-            A path str. For example, r'C:\Abc\1.txt'
+            A path str. For example, 'X:\Abc\1.txt'
 
     Returns:
-        the length of the mount point
-
+            the length of the mount point
     """
     mp = 0
     for v in mapping.values():
-        if v.upper() == (str_or_path[:len(v)]).upper():
+        if v.upper() == (str_or_path[: len(v)]).upper():
             return len(v)
     return mp
 
@@ -154,7 +159,8 @@ def user_select_file(user_message="", mul_fls=False):
 
         else:
             fpath = fd.askopenfilename(
-                title=user_message, filetypes=[("Excel", "*.xlsx *.xls"), ("Database", "*.db")]
+                title=user_message,
+                filetypes=[("Excel", "*.xlsx *.xls"), ("Database", "*.db")],
             )
 
         return fpath
