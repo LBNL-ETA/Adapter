@@ -49,18 +49,24 @@ def convert_network_drive_path(
     Raises:
         Exception: When no mapping is given or running on an unsupported OS
     """
-    if (
-        (not isinstance(str_or_path, str))
-        or os.path.isfile(str_or_path)
-        or (not (str_or_path[0] == "/" or ":" in str_or_path))
-    ):
-        # return if abs file exists or path is absolute, return if it's relative.
+    # backwards compatibility
+    if not isinstance(mapping, dict):
+        # automatically assume list of tuples
+        os_mapping = {
+            'win32': mapping[0],
+            'darwin': mapping[1],
+        }
+        mapping = os_mapping
+    if not isinstance(str_or_path, str):
+        return str_or_path
+    if not (str_or_path[0] == "/" or ":" in str_or_path):
+        # return if it's relative.
         # Note: either os.path nor pathlib work correctly
         return str_or_path
-    if not mapping:
-        raise Exception("No network drive mappings given")
     if mapping[sys.platform] in str_or_path:
         # return if path is already for the current OS
+        return str_or_path
+    if os.path.exists(str_or_path):
         return str_or_path
     mp = get_mount_point_len(mapping, str_or_path)
     if mp == 0:
