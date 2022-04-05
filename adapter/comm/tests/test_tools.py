@@ -32,6 +32,23 @@ class Test(TestCase):
         str_or_path = r'X:\abc\def\hij\1.xlsx'
         self.assertEqual(convert_network_drive_path(str_or_path), '/media/b/abc/def/hij/1.xlsx')
 
+    @patch('sys.platform', 'darwin')
+    def test_backward_convert_network_drive_path_mac(self):
+        str_or_path = '/Volumes/A/abc/c/d/1.xlsx'
+        self.assertEqual(convert_network_drive_path(str_or_path, mapping=['X:', '/Volumes/A']),
+                         '/Volumes/A/abc/c/d/1.xlsx')
+        str_or_path = r'X:\abc\def\hij\1.xlsx'
+        self.assertEqual(convert_network_drive_path(str_or_path, mapping=['X:', '/Volumes/A']),
+                         '/Volumes/A/abc/def/hij/1.xlsx')
+
+    @patch('sys.platform', 'win32')
+    def test_backward_convert_network_drive_path_win(self):
+        str_or_path = '/Volumes/A/abc/c/d/1.xlsx'
+        self.assertEqual(convert_network_drive_path(str_or_path, mapping=['X:', '/Volumes/A']), r'X:abc\c\d\1.xlsx')
+        str_or_path = r'X:\abc\def\hij\1.xlsx'
+        self.assertEqual(convert_network_drive_path(str_or_path, mapping=['X:', '/Volumes/A']),
+                         r'X:\abc\def\hij\1.xlsx')
+
     def test_convert_network_drive_path_empty(self):
         p = {}
         self.assertEqual(convert_network_drive_path(str_or_path=p
@@ -44,7 +61,11 @@ class Test(TestCase):
         self.assertEqual(convert_network_drive_path(str_or_path), str_or_path)
 
     def test_convert_network_drive_path_exists(self):
-        str_or_path = r'..\..\..\Adapter\adapter\tests\corrupt.db'
+        str_or_path = r'Adapter\adapter\tests\corrupt.db'
         self.assertEqual(convert_network_drive_path(str_or_path), str_or_path)
         str_or_path = r'test_done.db'
+        self.assertEqual(convert_network_drive_path(str_or_path), str_or_path)
+        str_or_path = 'input/input_folder'
+        self.assertEqual(convert_network_drive_path(str_or_path), str_or_path)
+        str_or_path = r'output\output_folder'
         self.assertEqual(convert_network_drive_path(str_or_path), str_or_path)
