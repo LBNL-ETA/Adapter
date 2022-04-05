@@ -63,8 +63,8 @@ class IO(object):
         if not isinstance(os_mapping, dict):
             # automatically assume list of tuples
             self.os_mapping = {
-                'win32': os_mapping[0],
-                'darwin': os_mapping[1]
+                'win32': os_mapping[0][0],
+                'darwin': os_mapping[0][1]
             }
         else:
             self.os_mapping = os_mapping
@@ -615,7 +615,6 @@ class IO(object):
             run_tag="",
             db_conn=None,
             close_db=True,
-            isLocal=False
     ):
         """Writes all dataframes from a dictionary of dataframes
         out into an existing database.
@@ -702,8 +701,7 @@ class IO(object):
         else:
             if outpath is None:
                 outpath = os.getcwd()
-        if not isLocal:
-            outpath = convert_network_drive_path(outpath, mapping=self.os_mapping)
+        outpath = convert_network_drive_path(outpath, mapping=self.os_mapping)
 
         if data_as_dict_of_dfs is None:
             msg = "No data to write passed."

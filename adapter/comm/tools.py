@@ -26,8 +26,8 @@ def process_column_labels(list_of_labels):
 
 
 def convert_network_drive_path(
-    str_or_path,
-    mapping={"win32": "X:", "darwin": "/Volumes/A", "linux": "/media/b"},
+        str_or_path,
+        mapping={"win32": "X:", "darwin": "/Volumes/A", "linux": "/media/b"},
 ):
     """
     Convert network drive paths from those formatted for one OS into those formatted for another. (works for Windows,
@@ -53,8 +53,8 @@ def convert_network_drive_path(
     if not isinstance(mapping, dict):
         # automatically assume list of tuples
         os_mapping = {
-            'win32': mapping[0],
-            'darwin': mapping[1],
+            'win32': mapping[0][0],
+            'darwin': mapping[0][1],
         }
         mapping = os_mapping
     if not isinstance(str_or_path, str):
@@ -68,16 +68,14 @@ def convert_network_drive_path(
         return str_or_path
     if os.path.exists(str_or_path):
         return str_or_path
-    mp = get_mount_point_len(mapping, str_or_path)
-    if mp == 0:
-        raise IOError(
-            f"the given path: {str_or_path} doesn't match any of OS mappings! If you work with a local dir, "
-            f"set isLocal arg as IO(isLocal=True) or i_o.write(isLocal=True)"
-        )
+    if os.getcwd() in str_or_path:
+        # return if it's a local relative path
+        return str_or_path
     if ":" in str_or_path:
-        file_path = PureWindowsPath(str_or_path[mp + 1 :])
+        # create win path
+        file_path = PureWindowsPath(str_or_path[get_mount_point_len(mapping, str_or_path) + 1:])
     else:
-        file_path = PurePosixPath(str_or_path[mp + 1 :])
+        file_path = PurePosixPath(str_or_path[get_mount_point_len(mapping, str_or_path) + 1:])
     if sys.platform == "win32":
         # convert to current system's mount point when mount point and sys not the same
         return str(PureWindowsPath(mapping[sys.platform]).joinpath(file_path))
