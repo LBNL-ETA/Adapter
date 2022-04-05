@@ -58,11 +58,17 @@ class IO(object):
     """
 
     def __init__(self, path, os_mapping={'win32': 'X:', 'darwin': '/Volumes/A',
-                                         'linux': '/media/b'}, isLocal=False):
-
-        self.os_mapping = os_mapping
-        if not isLocal:
-            path = convert_network_drive_path(path, mapping=os_mapping)
+                                         'linux': '/media/b'}):
+        # backwards compatibility
+        if not isinstance(os_mapping, dict):
+            # automatically assume list of tuples
+            self.os_mapping = {
+                'win32': os_mapping[0],
+                'darwin': os_mapping[1]
+            }
+        else:
+            self.os_mapping = os_mapping
+        path = convert_network_drive_path(path, mapping=os_mapping)
 
         self.input_path = path
 
