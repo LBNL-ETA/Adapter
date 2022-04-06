@@ -73,7 +73,7 @@ def convert_network_drive_path(
         return str_or_path
     if ":" in str_or_path:
         # create win path
-        file_path = PureWindowsPath(str_or_path[str_or_path.index(':') + 1:])
+        file_path = PureWindowsPath(str_or_path[str_or_path.index(':') + 2:])
     else:
         file_path = PurePosixPath(str_or_path[get_mount_point_len(mapping, str_or_path) + 1:])
     if sys.platform == "win32":
