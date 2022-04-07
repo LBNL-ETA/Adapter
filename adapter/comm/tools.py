@@ -1,4 +1,7 @@
-import sys, re, os
+import os
+import re
+import sys
+from pathlib import PureWindowsPath, PurePosixPath
 
 
 def process_column_labels(list_of_labels):
@@ -23,52 +26,87 @@ def process_column_labels(list_of_labels):
 
 
 def convert_network_drive_path(
-    str_or_path, mapping=[("X:", "/Volumes/my_drive")]
+    str_or_path,
+    mapping={"win32": "X:", "darwin": "/Volumes/A", "linux": "/media/b"},
 ):
     """
-    Convert network drive paths from those formatted for one OS into those formatted for another. (works for Windows <-> OSX)
+    Convert network drive paths from those formatted for one OS into those formatted for another. (works for Windows,
+    OSX, Linux)
     If a string that doesn't seem to represent a path in the other OS is given, it will be returned unchanged.
 
     Parameters:
         str_or_path: str
             string holding a filepath.
 
-        mapping: list
-            list of 2-tuples where 0th entry of each tuple is the name of a windows network drive location (e.g. "A:") and the 1st entry is OSX network drive location (e.g. "/Volumes/A"). Defaults to [("X:","/Volumes/my_folder")].
+        mapping: dict
+            OS, mount point pair.
 
     Returns:
         str_or_path: str
-            string holding a converted filepath, or original in the case that no mapped network drive was found.
+            string holding a converted filepath based on the mapping, or original in the case that no mapped network
+            drive was found.
 
     Raises:
-        Exception: When no mapping is given
+        Exception: When no mapping is given or running on an unsupported OS
     """
+    # backwards compatibility
+    if not isinstance(mapping, dict):
+        # automatically assume list of tuples
+        os_mapping = {
+            "win32": mapping[0][0],
+            "darwin": mapping[0][1],
+        }
+        mapping = os_mapping
     if not isinstance(str_or_path, str):
         return str_or_path
-
-    if mapping:
-        windows_drive_names = [pair[0].rstrip("\\") for pair in mapping]
-        osx_drive_names = [pair[1].rstrip("/") for pair in mapping]
+    if not (str_or_path[0] == "/" or ":" in str_or_path):
+        # return if it's relative.
+        # Note: either os.path nor pathlib work correctly
+        return str_or_path
+    if mapping[sys.platform] in str_or_path:
+        # return if path is already for the current OS
+        return str_or_path
+    if os.path.exists(str_or_path):
+        return str_or_path
+    if os.getcwd() in str_or_path:
+        # return if it's a local relative path
+        return str_or_path
+    if ":" in str_or_path:
+        # create win path
+        file_path = PureWindowsPath(str_or_path[str_or_path.index(":") + 2 :])
     else:
-        raise Exception("No network drive mappings given")
+        file_path = PurePosixPath(
+            str_or_path[get_mount_point_len(mapping, str_or_path) + 1 :]
+        )
+    if sys.platform == "win32":
+        # convert to current system's mount point when mount point and sys not the same
+        return str(PureWindowsPath(mapping[sys.platform]).joinpath(file_path))
+    elif sys.platform == "darwin" or sys.platform == "linux":
+        return str(PurePosixPath(mapping[sys.platform]).joinpath(file_path))
+    else:
+        raise IOError(f"Not supported OS: {sys.platform}!")
 
-    if sys.platform.startswith("win"):
-        for i, name in enumerate(osx_drive_names):
-            if str_or_path.startswith(name):
-                str_or_path = str_or_path.replace(
-                    name, windows_drive_names[i]
-                ).replace("/", "\\")
-                break
 
-    elif sys.platform.startswith("darwin"):
-        for i, name in enumerate(windows_drive_names):
-            if str_or_path.startswith(name):
-                str_or_path = str_or_path.replace("\\", "/").replace(
-                    name, osx_drive_names[i]
-                )
-                break
+def get_mount_point_len(mapping: dict, str_or_path: str) -> int:
+    """Get the length of the current mount point.
+    For example, get_mount_point_len(mapping={'win32': 'X:',
+    'darwin': '/Volumes/A', 'linux': '/media/b'}, str_or_path=r'X:\Abc\1.txt') => 2.
+    get_mount_point_len(mapping={'win32': 'X:',
+    'darwin': '/Volumes/A', 'linux': '/media/b'}, str_or_path='/Volumes/A/1.txt') => 10
 
-    return str_or_path
+    Parameters:
+        mapping: dict
+            A OS and mount_point pair. For example, {'win32': 'X:', 'darwin': '/Volumes/A', 'linux': '/media/b'}
+        str_or_path: str
+            A path str. For example, 'X:\Abc\1.txt'
+
+    Returns:
+            the length of the mount point, or 0 when no match found
+    """
+    for v in mapping.values():
+        if v.upper() == (str_or_path[: len(v)]).upper():
+            return len(v)
+    return 0
 
 
 def user_select_file(user_message="", mul_fls=False):
@@ -110,7 +148,7 @@ def user_select_file(user_message="", mul_fls=False):
         fd.SetOFNTitle(user_message)
         if fd.DoModal() == win32con.IDCANCEL:
             sys.exit(1)
-    
+
         # file_name = fd.GetFileName()
         fpath = fd.GetPathName()
 
@@ -130,8 +168,8 @@ def user_select_file(user_message="", mul_fls=False):
 
         else:
             fpath = fd.askopenfilename(
-                title=user_message, filetypes=[("Excel", "*.xlsx *.xls"),("Database", "*.db")]
+                title=user_message,
+                filetypes=[("Excel", "*.xlsx *.xls"), ("Database", "*.db")],
             )
 
         return fpath
-
