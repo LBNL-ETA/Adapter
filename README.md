@@ -32,7 +32,7 @@ To use the `sqlalchemy` connections to remote server(s) you must edit the exampl
 The examples on how to conveniently utilize adapter as your IO tool can be found in [the tests for the `i_o.py` module](https://github.com/LBNL-ETA/Adapter/blob/master/adapter/tests/test_i_o.py). The same examples are provided below. We assume that the user is running the commands from the repo root folder.
 
 The simplest example of how to use the package is:
-```
+```python
 from adapter.i_o import IO
 
 input_loader = IO(<fullpath_to_the_main_input_file>)
@@ -48,7 +48,7 @@ input_loader = IO(<fullpath_to_the_main_input_file>,
 data = input_loader.load()
 ```
 where `data` is a dictionary with the following keys:
-```
+```python
     'tables_as_dict_of_dfs' - all input tables loaded in python as dictionary of dataframes
     'outpath' - output folder path
     'run_tag' - version + analysis start time
@@ -64,7 +64,7 @@ The input tables may be specified in a single `xlsx`, a `database` file, or a `c
 For example, to load all objects defined as data tables and named ranges specified in an excel input file, as a
 `Python dictionary` of `Pandas DataFrames`:
 
-```
+```python
 path = os.path.join(
     os.getcwd(), r"adapter/tests/test_w_inputs_from_files_table.xlsx"
 )
@@ -77,7 +77,7 @@ res = i_o.load()
 where the `res` output is a dictionary with the same keys as in the example above (`data` dictionary).
 
 An another example especially useful for `Linux` users would be to provide several or all inputs as `csv` files through listing their paths in the main `csv` input file. The `Adapter` can then be used to load all inputs at once. This can be done as follows:
-```
+```python
 path = os.path.join(
     os.getcwd(), r"adapter/tests/inputs_from_files_vTest.csv"
 )
@@ -88,7 +88,7 @@ data_conn = i_o.load()
 If one of the input tables is named `run_parameters` and contains columns `Output Path` and `Version`, the code will create a unique run tag at the point of data loading and use the provided output path to store any output should the user utilize the writing functionality of `Adapter`.
 
 To write the loaded data into either a single `db` and a number of `csv` files the user can run:
-```
+```python
 i_o.write(
     type='db&csv',
     data_connection=data_conn
