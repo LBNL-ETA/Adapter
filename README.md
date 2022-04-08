@@ -38,6 +38,15 @@ from adapter.i_o import IO
 input_loader = IO(<fullpath_to_the_main_input_file>)
 data = input_loader.load()
 ```
+
+To automatically convert paths between platforms, for example if you are using a VPN connection to access input data files, use the mapping argument:
+```python
+from adapter.i_o import IO
+
+input_loader = IO(<fullpath_to_the_main_input_file>, 
+                               os_mapping={'win32': 'C:', 'darwin': '/Volumes/A', 'linux': '/media/A'})
+data = input_loader.load()
+```
 where `data` is a dictionary with the following keys:
 ```
     'tables_as_dict_of_dfs' - all input tables loaded in python as dictionary of dataframes
