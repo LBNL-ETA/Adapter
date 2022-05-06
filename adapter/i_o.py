@@ -68,6 +68,7 @@ class IO(object):
             }
         else:
             self.os_mapping = os_mapping
+
         path = convert_network_drive_path(path, mapping=os_mapping)
 
         self.input_path = path
@@ -119,6 +120,7 @@ class IO(object):
         db_flavor="sqlite",
         close_db=True,
         save_input=True,
+        skip_writeout=False,
         set_first_col_as_index=False,
         quick_db_out_filename=None,
         clean_labels=True,
@@ -157,6 +159,10 @@ class IO(object):
             save_input: bool
                 Save initial input file under the output
                 folder
+
+            skip_writeout: bool
+                Do not create any new files or folders
+                Default: False
 
             set_first_col_as_index: bool or list of strings
                 True: Set index for all tables
@@ -316,32 +322,33 @@ class IO(object):
             outpath = os.getcwd()
             run_tag = quick_db_out_filename
 
-        if not os.path.exists(outpath):
-            os.makedirs(outpath)
+        if not skip_writeout:
+            if not os.path.exists(outpath):
+                os.makedirs(outpath)
 
-        if save_input and isinstance(self.input_path, str):
-            # self.input_path
-            filename = ntpath.basename(self.input_path)
-            filename_extns = re.split("\.", filename)[-1]
-            filename_only = re.split("\.", filename)[0]
+            if save_input and isinstance(self.input_path, str):
+                # self.input_path
+                filename = ntpath.basename(self.input_path)
+                filename_extns = re.split("\.", filename)[-1]
+                filename_only = re.split("\.", filename)[0]
 
-            versioned_filename = filename_only + "_" + run_tag + "." + filename_extns
+                versioned_filename = filename_only + "_" + run_tag + "." + filename_extns
 
-            copy(self.input_path, os.path.join(outpath, versioned_filename))
+                copy(self.input_path, os.path.join(outpath, versioned_filename))
 
-        if create_db == True:
-            try:
-                db_res = self.create_db(
-                    dict_of_dfs,
-                    outpath=outpath,
-                    run_tag=run_tag,
-                    flavor=db_flavor,
-                    close=close_db,
-                )
-            except:
-                msg = "Not able to create a db of tables " "that were read in from {}."
+            if create_db == True:
+                try:
+                    db_res = self.create_db(
+                        dict_of_dfs,
+                        outpath=outpath,
+                        run_tag=run_tag,
+                        flavor=db_flavor,
+                        close=close_db,
+                    )
+                except:
+                    msg = "Not able to create a db of tables " "that were read in from {}."
 
-                log.error(msg.format(self.input_path))
+                    log.error(msg.format(self.input_path))
 
         if set_first_col_as_index != False:
             dict_of_dfs = self.first_col_to_index(
