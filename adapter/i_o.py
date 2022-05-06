@@ -323,7 +323,7 @@ class IO(object):
             run_tag = quick_db_out_filename
 
         if skip_writeout:
-            outpath =+ "_will_not_be_used"
+            outpath += "_will_not_be_used"
 
         if not skip_writeout:
             if not os.path.exists(outpath):
@@ -586,7 +586,7 @@ class IO(object):
             outpath = os.path.join(os.getcwd(), "output")
 
         if skip_writeout:
-            outpath =+ "_will_not_be_used"
+            outpath += "_will_not_be_used"
 
         if not skip_writeout:
             if not os.path.exists(outpath):
