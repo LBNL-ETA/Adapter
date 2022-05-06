@@ -326,6 +326,8 @@ class IO(object):
             if not os.path.exists(outpath):
                 os.makedirs(outpath)
 
+                outpath =+ "_will_not_be_used"
+
             if save_input and isinstance(self.input_path, str):
                 # self.input_path
                 filename = ntpath.basename(self.input_path)
