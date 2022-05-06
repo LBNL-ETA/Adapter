@@ -322,11 +322,12 @@ class IO(object):
             outpath = os.getcwd()
             run_tag = quick_db_out_filename
 
+        if skip_writeout:
+            outpath =+ "_will_not_be_used"
+
         if not skip_writeout:
             if not os.path.exists(outpath):
                 os.makedirs(outpath)
-
-                outpath =+ "_will_not_be_used"
 
             if save_input and isinstance(self.input_path, str):
                 # self.input_path
@@ -584,8 +585,12 @@ class IO(object):
             # create an `output` folder under CWD
             outpath = os.path.join(os.getcwd(), "output")
 
-        if not os.path.exists(outpath):
-            os.makedirs(outpath)
+        if skip_writeout:
+            outpath =+ "_will_not_be_used"
+
+        if not skip_writeout:
+            if not os.path.exists(outpath):
+                os.makedirs(outpath)
 
         # create an sql database within the output folder and connect
         db_path = os.path.join(outpath, run_tag + db_out_type)
