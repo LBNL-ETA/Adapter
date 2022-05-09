@@ -74,10 +74,10 @@ def convert_network_drive_path(
     if ":" in str_or_path:
         # create win path
         i = 1
-        if ":\\" in str_or_path:
+        if ":\\" in str_or_path or ":/" in str_or_path:
             i = 2
             # create win path
-        file_path = PureWindowsPath(str_or_path[str_or_path.index(":") + i:])
+        file_path = PureWindowsPath(str_or_path[str_or_path.index(":") + i :])
     else:
         file_path = PurePosixPath(
             str_or_path[get_mount_point_len(mapping, str_or_path) + 1 :]
