@@ -1,3 +1,4 @@
+import os
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -135,3 +136,48 @@ class Test(TestCase):
                                              str_or_path=r'X:\Abc\1.txt'), 2)
         self.assertEqual(get_mount_point_len(mapping={'win32': 'X:', 'darwin': '/Volumes/A', 'linux': '/media/b'},
                                              str_or_path='/Volumes/A/abc/c/d/1.xlsx'), 10)
+
+    @patch("sys.platform", "linux")
+    def test_compare_output(self):
+        dir1 = os.path.join(
+            "X:",  # will get converted for a given OS
+            "First_Level",
+            "Second_Level",
+            "Third_Level",
+            "input",
+        )
+        dir2 = convert_network_drive_path(
+            dir1,
+            mapping={
+                "win32": "X:",
+                "darwin": "/Volumes/Abc",
+                "linux": "/media/Abc",
+            },
+        )
+        self.assertEqual(
+            dir2,
+            "/media/Abc/First_Level/Second_Level/Third_Level/input",
+        )
+
+
+    @patch("sys.platform", "darwin")
+    def test_compare_output2(self):
+        dir1 = os.path.join(
+            "X:",  # will get converted for a given OS
+            "First_Level",
+            "Second_Level",
+            "Third_Level",
+            "input",
+        )
+        dir2 = convert_network_drive_path(
+            dir1,
+            mapping={
+                "win32": "X:",
+                "darwin": "/Volumes/Abc",
+                "linux": "/media/Abc",
+            },
+        )
+        self.assertEqual(
+            dir2,
+            "/Volumes/Abc/First_Level/Second_Level/Third_Level/input",
+        )
