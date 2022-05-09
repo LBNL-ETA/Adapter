@@ -723,7 +723,7 @@ class IO(object):
 
             if data_as_dict_of_dfs is None:
                 data_as_dict_of_dfs = data_connection["tables_as_dict_of_dfs"]
-            breakpoint()
+
             db_conn = data_connection["db_conn"]
 
             if outpath is None:
