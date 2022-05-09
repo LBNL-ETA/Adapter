@@ -209,6 +209,14 @@ class IO(object):
         """
         dict_of_dfs = self.get_tables(self.input_path)
 
+        if skip_writeout==True:
+            if save_input==True:
+                log.warning("No input will be written out, as the "\
+                    "skip_writeout kwarg indicates no writeout.")
+            if create_db==True:
+                log.warning("No database will be created, as the "\
+                    "skip_writeout kwarg indicates no writeout.")
+
         # are there any further input files?
         # if that is the case, the file paths and further info
         # should be placed in an `inputs_from_files` table
@@ -715,7 +723,7 @@ class IO(object):
 
             if data_as_dict_of_dfs is None:
                 data_as_dict_of_dfs = data_connection["tables_as_dict_of_dfs"]
-
+            breakpoint()
             db_conn = data_connection["db_conn"]
 
             if outpath is None:
