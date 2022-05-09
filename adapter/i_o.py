@@ -68,6 +68,7 @@ class IO(object):
             }
         else:
             self.os_mapping = os_mapping
+
         path = convert_network_drive_path(path, mapping=os_mapping)
 
         self.input_path = path
@@ -119,6 +120,7 @@ class IO(object):
         db_flavor="sqlite",
         close_db=True,
         save_input=True,
+        skip_writeout=False,
         set_first_col_as_index=False,
         quick_db_out_filename=None,
         clean_labels=True,
@@ -157,6 +159,10 @@ class IO(object):
             save_input: bool
                 Save initial input file under the output
                 folder
+
+            skip_writeout: bool
+                Do not create any new files or folders
+                Default: False
 
             set_first_col_as_index: bool or list of strings
                 True: Set index for all tables
@@ -202,6 +208,14 @@ class IO(object):
                 'db_conn' - database connection
         """
         dict_of_dfs = self.get_tables(self.input_path)
+
+        if skip_writeout==True:
+            if save_input==True:
+                log.warning("No input will be written out, as the "\
+                    "skip_writeout kwarg indicates no writeout.")
+            if create_db==True:
+                log.warning("No database will be created, as the "\
+                    "skip_writeout kwarg indicates no writeout.")
 
         # are there any further input files?
         # if that is the case, the file paths and further info
@@ -316,32 +330,38 @@ class IO(object):
             outpath = os.getcwd()
             run_tag = quick_db_out_filename
 
-        if not os.path.exists(outpath):
-            os.makedirs(outpath)
+        if skip_writeout:
+            outpath += "_will_not_be_used"
 
-        if save_input and isinstance(self.input_path, str):
-            # self.input_path
-            filename = ntpath.basename(self.input_path)
-            filename_extns = re.split("\.", filename)[-1]
-            filename_only = re.split("\.", filename)[0]
+        if not skip_writeout:
+            if not os.path.exists(outpath):
+                os.makedirs(outpath)
 
-            versioned_filename = filename_only + "_" + run_tag + "." + filename_extns
+            if save_input and isinstance(self.input_path, str):
+                # self.input_path
+                filename = ntpath.basename(self.input_path)
+                filename_extns = re.split("\.", filename)[-1]
+                filename_only = re.split("\.", filename)[0]
 
-            copy(self.input_path, os.path.join(outpath, versioned_filename))
+                versioned_filename = filename_only + "_" + run_tag + "." + filename_extns
 
-        if create_db == True:
-            try:
-                db_res = self.create_db(
-                    dict_of_dfs,
-                    outpath=outpath,
-                    run_tag=run_tag,
-                    flavor=db_flavor,
-                    close=close_db,
-                )
-            except:
-                msg = "Not able to create a db of tables " "that were read in from {}."
+                copy(self.input_path, os.path.join(outpath, versioned_filename))
 
-                log.error(msg.format(self.input_path))
+            if create_db == True:
+                
+                try:
+                    db_res = self.create_db(
+                        dict_of_dfs,
+                        outpath=outpath,
+                        run_tag=run_tag,
+                        flavor=db_flavor,
+                        close=close_db,
+                    )
+                    
+                except:
+                    msg = "Not able to create a db of tables " "that were read in from {}."
+
+                    log.error(msg.format(self.input_path))
 
         if set_first_col_as_index != False:
             dict_of_dfs = self.first_col_to_index(
@@ -372,8 +392,9 @@ class IO(object):
         res["outpath"] = outpath
         res["run_tag"] = run_tag
 
-        if create_db == True:
-            res.update(db_res)
+        if skip_writeout == False:
+            if create_db == True:
+                res.update(db_res)
 
         if clean_labels == True:
 
@@ -529,6 +550,7 @@ class IO(object):
         self,
         dict_of_dfs,
         db_conn=False,
+        skip_writeout=False,
         outpath=None,
         run_tag="",
         flavor="sqlite",
@@ -552,6 +574,10 @@ class IO(object):
                 Otherwise pass a database connection
                 to an existing database
 
+            skip_writeout: bool
+                Do not create any new files or folders
+                Default: False
+
             outpath:
                 Output folder path
 
@@ -568,41 +594,47 @@ class IO(object):
                 {'db_path' : database path ,
                  'db_conn' : database connection}
         """
-        if flavor == "sqlite":
-            db_out_type = ".db"
 
         if outpath is None:
             # create an `output` folder under CWD
             outpath = os.path.join(os.getcwd(), "output")
 
-        if not os.path.exists(outpath):
-            os.makedirs(outpath)
+        if skip_writeout:
+            res = {"db_path": "no_output_written", 
+                   "db_conn": "no_output_written"}
 
-        # create an sql database within the output folder and connect
-        db_path = os.path.join(outpath, run_tag + db_out_type)
-        db_con = sqlite3.connect(db_path)
+        else:
+            if flavor == "sqlite":
+                db_out_type = ".db"
 
-        # write all input tables in the db
-        for table_name in dict_of_dfs.keys():
-            try:
-                dict_of_dfs[table_name].to_sql(
-                    name=table_name,
-                    con=db_con,
-                    if_exists="replace",
-                    index=False,
-                )
-            except:
-                msg = "An error occurred when writting {} table " "to a db {}."
-                log.error(msg.format(table_name, db_path))
-                raise ValueError
+            if not os.path.exists(outpath):
+                os.makedirs(outpath)
 
-            msg = "Wrote tables in a database: {}."
-            log.info(msg.format(db_path))
+            # create an sql database within the output folder and connect
+            db_path = os.path.join(outpath, run_tag + db_out_type)
+            db_con = sqlite3.connect(db_path)
 
-        if close:
-            db_con.close()
+            # write all input tables in the db
+            for table_name in dict_of_dfs.keys():
+                try:
+                    dict_of_dfs[table_name].to_sql(
+                        name=table_name,
+                        con=db_con,
+                        if_exists="replace",
+                        index=False,
+                    )
+                except:
+                    msg = "An error occurred when writting {} table " "to a db {}."
+                    log.error(msg.format(table_name, db_path))
+                    raise ValueError
 
-        res = {"db_path": db_path, "db_conn": db_con}
+                msg = "Wrote tables in a database: {}."
+                log.info(msg.format(db_path))
+
+            if close:
+                db_con.close()
+
+            res = {"db_path": db_path, "db_conn": db_con}
 
         return res
 

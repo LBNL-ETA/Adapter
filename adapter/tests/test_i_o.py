@@ -252,5 +252,15 @@ class IOTests(unittest.TestCase):
         # tear down files
         shutil.rmtree(data_conn["outpath"])
 
+    def test_load_skip_writeout(self):
+        """Tests loading data in without any writeout"""
+        path = os.path.join(os.getcwd(), r"adapter/tests/test.db")
+        i_o = IO(path)
+        data_conn = i_o.load(skip_writeout=True)
+
+        self.assertTrue("_will_not_be_used" in data_conn["outpath"])
+        self.assertTrue(not os.path.isdir(data_conn["outpath"]))
+
+
 if __name__ == "__main__":
     unittest.main()
