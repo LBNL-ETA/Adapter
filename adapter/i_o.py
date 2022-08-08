@@ -125,6 +125,7 @@ class IO(object):
         quick_db_out_filename=None,
         clean_labels=True,
         to_numeric=None,
+        ts_format="short",
     ):
         """Loads tables from the input file
         as a dictionary of python dataframes.
@@ -144,6 +145,8 @@ class IO(object):
 
         Parameters:
 
+            ts_format: str
+                timestamp format. i.e. 'short', 'long'
             create_db: bool
                 Write all tables read from input files
                 into a run database
@@ -322,7 +325,7 @@ class IO(object):
                 outpath_base = os.path.join(os.getcwd(), "output")
                 version = ""
 
-            run_tag = version + "_" + datetime.now().strftime("%Y_%m_%d-%Hh_%Mm")
+            run_tag = mark_time(prefix=version, ts_format=ts_format)
 
             outpath = os.path.join(outpath_base, run_tag)
 
