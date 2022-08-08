@@ -193,4 +193,5 @@ class Test(TestCase):
         self.assertEqual(
             len(mark_time(ts_format="long")), len("_2022_08_08-10h_51m")
         )
-        self.assertRaises(ValueError, mark_time(ts_format="unknown"), 2)
+        with self.assertRaises(ValueError):
+            mark_time(ts_format="str is not long")
