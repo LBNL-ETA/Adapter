@@ -1,23 +1,19 @@
+import logging
+import ntpath
 import os
-import numpy as np
-import pandas as pd
-from adapter.to_python import Excel, Db, Db_sqlalchemy, Debugger
-from adapter.label_map import Labels
-
-from adapter.comm.tools import convert_network_drive_path
-
-from datetime import datetime
 import re
 import sqlite3
 from shutil import copy
-import ntpath
 
-import logging
+import numpy as np
+import pandas as pd
+
+from adapter.comm.tools import convert_network_drive_path, mark_time
+from adapter.label_map import Labels
+from adapter.to_python import Excel, Db, Db_sqlalchemy, Debugger
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
-
-from pdb import set_trace as bp
 
 
 class IO(object):
