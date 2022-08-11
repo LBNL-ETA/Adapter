@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+from datetime import datetime
 from pathlib import PureWindowsPath, PurePosixPath
 
 
@@ -177,3 +178,41 @@ def user_select_file(user_message="", mul_fls=False):
             )
 
         return fpath
+
+
+def mark_time(prefix: str = "", ts_format: str = "short") -> str:
+    """This method creates a string using prefix string and a timestamp.
+
+    Parameters
+    ----------
+    prefix : str
+        The prefix to use in the return string. e.g. "adapter"
+    ts_format : str
+        The timestamp format to use in the return string. e.g. 'short', 'long'
+
+    Returns
+    -------
+    str
+        A string with a timestamp. e.g. "adapter_2022_08_08_10h_51m".
+
+    Raises
+    ------
+    ValueError
+        If `ts_format` is neither 'short' nor 'long'.
+
+    Examples
+    --------
+    >>> mark_time(prefix="adapter")
+    "adapter_220808_1051"
+    >>> mark_time(prefix="adapter", ts_format='short')
+    "adapter_220808_1051"
+    >>> mark_time(prefix="adapter",ts_format="long")
+    "adapter_2022_08_08_10h_51m"
+
+    """
+    if ts_format == "short":
+        return f'{prefix}_{datetime.now().strftime("%y%m%d_%H%M")}'
+    elif ts_format == "long":
+        return f'{prefix}_{datetime.now().strftime("%Y_%m_%d_%Hh_%Mm")}'
+    else:
+        raise ValueError("Unsupported timestamp format!")

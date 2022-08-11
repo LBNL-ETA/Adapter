@@ -36,7 +36,7 @@ class Excel(object):
     def __init__(self, file_path, pre_existing_keys=None):
         self.file_path = file_path
         self.wb = openpyxl.load_workbook(
-            self.file_path, data_only=True, read_only=False, keep_vba=True
+            self.file_path, data_only=True, read_only=False, keep_vba=False
         )
         self.pre_existing_keys = pre_existing_keys
 

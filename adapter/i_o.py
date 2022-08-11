@@ -1,23 +1,19 @@
+import logging
+import ntpath
 import os
-import numpy as np
-import pandas as pd
-from adapter.to_python import Excel, Db, Db_sqlalchemy, Debugger
-from adapter.label_map import Labels
-
-from adapter.comm.tools import convert_network_drive_path
-
-from datetime import datetime
 import re
 import sqlite3
 from shutil import copy
-import ntpath
 
-import logging
+import numpy as np
+import pandas as pd
+
+from adapter.comm.tools import convert_network_drive_path, mark_time
+from adapter.label_map import Labels
+from adapter.to_python import Excel, Db, Db_sqlalchemy, Debugger
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
-
-from pdb import set_trace as bp
 
 
 class IO(object):
@@ -125,6 +121,7 @@ class IO(object):
         quick_db_out_filename=None,
         clean_labels=True,
         to_numeric=None,
+        ts_format="short",
     ):
         """Loads tables from the input file
         as a dictionary of python dataframes.
@@ -143,6 +140,9 @@ class IO(object):
             structure and labels of the table.
 
         Parameters:
+
+            ts_format : str
+                The timestamp format to use in the return string. e.g. 'short', 'long'
 
             create_db: bool
                 Write all tables read from input files
@@ -322,7 +322,7 @@ class IO(object):
                 outpath_base = os.path.join(os.getcwd(), "output")
                 version = ""
 
-            run_tag = version + "_" + datetime.now().strftime("%Y_%m_%d-%Hh_%Mm")
+            run_tag = mark_time(prefix=version, ts_format=ts_format)
 
             outpath = os.path.join(outpath_base, run_tag)
 

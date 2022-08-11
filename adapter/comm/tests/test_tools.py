@@ -2,7 +2,11 @@ import os
 from unittest import TestCase
 from unittest.mock import patch
 
-from adapter.comm.tools import convert_network_drive_path, get_mount_point_len
+from adapter.comm.tools import (
+    convert_network_drive_path,
+    get_mount_point_len,
+    mark_time,
+)
 
 
 class Test(TestCase):
@@ -181,3 +185,21 @@ class Test(TestCase):
             dir2,
             "/Volumes/Abc/First_Level/Second_Level/Third_Level/input",
         )
+
+    def test_mark_time(self):
+        self.assertRegex(
+            mark_time(prefix="adapter", ts_format="short"),
+            r"adapter_\d{6}_\d{4}",
+        )
+        self.assertRegex(
+            mark_time(prefix="adapter2", ts_format="long"),
+            r"adapter2_\d{4}_\d{2}_\d{2}_\d{2}h_\d{2}m",
+        )
+        self.assertEqual(
+            len(mark_time(ts_format="short")), len("_220808_1051")
+        )
+        self.assertEqual(
+            len(mark_time(ts_format="long")), len("_2022_08_08_10h_51m")
+        )
+        with self.assertRaises(ValueError):
+            mark_time(ts_format="str is not long")
