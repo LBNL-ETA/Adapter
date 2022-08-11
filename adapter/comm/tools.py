@@ -193,7 +193,7 @@ def mark_time(prefix: str = "", ts_format: str = "short") -> str:
     Returns
     -------
     str
-        A string with a timestamp. e.g. "adapter_2022_08_08-10h_51m".
+        A string with a timestamp. e.g. "adapter_2022_08_08_10h_51m".
 
     Raises
     ------
@@ -207,12 +207,12 @@ def mark_time(prefix: str = "", ts_format: str = "short") -> str:
     >>> mark_time(prefix="adapter", ts_format='short')
     "adapter_220808_1051"
     >>> mark_time(prefix="adapter",ts_format="long")
-    "adapter_2022_08_08-10h_51m"
+    "adapter_2022_08_08_10h_51m"
 
     """
     if ts_format == "short":
         return f'{prefix}_{datetime.now().strftime("%y%m%d_%H%M")}'
     elif ts_format == "long":
-        return f'{prefix}_{datetime.now().strftime("%Y_%m_%d-%Hh_%Mm")}'
+        return f'{prefix}_{datetime.now().strftime("%Y_%m_%d_%Hh_%Mm")}'
     else:
         raise ValueError("Unsupported timestamp format!")
