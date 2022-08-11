@@ -181,15 +181,33 @@ def user_select_file(user_message="", mul_fls=False):
 
 
 def mark_time(prefix: str = "", ts_format: str = "short") -> str:
-    """create a string using prefix and a timestamp
+    """This method creates a string using prefix string and a timestamp.
 
-    Args:
-        prefix: str
-            prefix in return string. i.e. "adapter"
-        ts_format: str
-            timestamp format. i.e. 'short', 'long'
-    Returns:
-        str:    return a string with a timestamp. i.e. "adapter_2022_08_08-10h_51m"
+    Parameters
+    ----------
+    prefix : str
+            The prefix to use in the return string. e.g. "adapter"
+    ts_format : str
+            The timestamp format to use in the return string. e.g. 'short', 'long'
+
+    Returns
+    -------
+    str
+        A string with a timestamp. i.e. "adapter_2022_08_08-10h_51m".
+
+    Raises
+    ------
+    ValueError
+        If `ts_format` is either 'short' or 'long'.
+
+    Examples
+    --------
+    >>> mark_time(prefix="adapter")
+    "adapter_220808_1051"
+    >>> mark_time(prefix="adapter", ts_format='short')
+    "adapter_220808_1051"
+    >>> mark_time(prefix="adapter",ts_format="long")
+    "adapter_2022_08_08-10h_51m"
 
     """
     if ts_format == "short":
