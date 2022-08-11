@@ -193,7 +193,7 @@ def mark_time(prefix: str = "", ts_format: str = "short") -> str:
     Returns
     -------
     str
-        A string with a timestamp. i.e. "adapter_2022_08_08-10h_51m".
+        A string with a timestamp. e.g. "adapter_2022_08_08-10h_51m".
 
     Raises
     ------
