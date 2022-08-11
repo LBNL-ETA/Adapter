@@ -186,9 +186,9 @@ def mark_time(prefix: str = "", ts_format: str = "short") -> str:
     Parameters
     ----------
     prefix : str
-            The prefix to use in the return string. e.g. "adapter"
+        The prefix to use in the return string. e.g. "adapter"
     ts_format : str
-            The timestamp format to use in the return string. e.g. 'short', 'long'
+        The timestamp format to use in the return string. e.g. 'short', 'long'
 
     Returns
     -------

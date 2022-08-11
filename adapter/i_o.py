@@ -141,8 +141,9 @@ class IO(object):
 
         Parameters:
 
-            ts_format: str
-                timestamp format. i.e. 'short', 'long'
+            ts_format : str
+                The timestamp format to use in the return string. e.g. 'short', 'long'
+
             create_db: bool
                 Write all tables read from input files
                 into a run database
