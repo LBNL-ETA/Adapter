@@ -198,7 +198,7 @@ def mark_time(prefix: str = "", ts_format: str = "short") -> str:
     Raises
     ------
     ValueError
-        If `ts_format` is either 'short' or 'long'.
+        If `ts_format` is neither 'short' nor 'long'.
 
     Examples
     --------
