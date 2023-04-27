@@ -1,11 +1,13 @@
+import gzip
+import logging
+import os
+import pickle
+import shutil
 import unittest
-import os, shutil
 
 import pandas as pd
 
-from adapter.i_o import IO
-
-import logging
+from adapter.i_o import IO, to_pickle, from_pickle
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -260,6 +262,68 @@ class IOTests(unittest.TestCase):
 
         self.assertTrue("_will_not_be_used" in data_conn["outpath"])
         self.assertTrue(not os.path.isdir(data_conn["outpath"]))
+
+
+class TestPickle(unittest.TestCase):
+    def test_single_object_pickle(self):
+        # Test pickling a single object
+        data = {"name": "John", "age": 30, "city": "New York"}
+        out_path = "data.pickle.gz"
+        to_pickle(data, out_path)
+
+        # Check that the output file exists and is not empty
+        self.assertTrue(os.path.exists(out_path))
+        self.assertGreater(os.path.getsize(out_path), 0)
+
+        # Load the pickled data from the output file and check that it matches the original data
+        with gzip.open(out_path, "rb") as f:
+            py_data = pickle.load(f)
+        self.assertEqual(data, py_data)
+
+        # Clean up the output file
+        os.remove(out_path)
+
+    def test_multiple_objects_pickle(self):
+        # Test pickling multiple objects
+        data1 = {"name": "John", "age": 30, "city": "New York"}
+        data2 = [1, 2, 3, 4, 5]
+        out_path = "data.pickle.gz"
+        to_pickle((data1, data2), out_path)
+
+        # Check that the output file exists and is not empty
+        self.assertTrue(os.path.exists(out_path))
+        self.assertGreater(os.path.getsize(out_path), 0)
+
+        # Load the pickled data from the output file and check that it matches the original data
+        with gzip.open(out_path, "rb") as f:
+            py_data1, py_data2 = pickle.load(f)
+        self.assertEqual(data1, py_data1)
+        self.assertEqual(data2, py_data2)
+
+        # Clean up the output file
+        os.remove(out_path)
+
+    def setUp(self):
+        self.data = {"a": 1, "b": 2, "c": 3}
+        self.out_path = "test.pkl.gz"
+        self.in_path = "test.pkl.gz"
+
+    def test_from_pickle_existing_file(self):
+        to_pickle(self.data, self.out_path)
+        result = from_pickle(self.in_path)
+        self.assertEqual(result, self.data)
+        os.remove(self.in_path)
+
+    def test_from_pickle_non_existing_file(self):
+        with self.assertRaises(FileNotFoundError):
+            result = from_pickle("non_existing_file.pkl.gz")
+
+    def test_from_pickle_empty_file(self):
+        with gzip.open("empty.pkl.gz", "wb") as f:
+            pass
+        with self.assertRaises(EOFError):
+            result = from_pickle("empty.pkl.gz")
+        os.remove("empty.pkl.gz")
 
 
 if __name__ == "__main__":

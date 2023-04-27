@@ -1,6 +1,8 @@
+import gzip
 import logging
 import ntpath
 import os
+import pickle
 import re
 import sqlite3
 from shutil import copy
@@ -854,3 +856,44 @@ class IO(object):
         ]
 
         return list_of_cleaned_labels
+
+
+def to_pickle(obj, out_path):
+    """Pickle a Python object and save it to a gzip-compressed file at the specified output path.
+
+    Args:
+        obj: The Python object or objects to pickle.
+        out_path: The output path for the pickled object(s).
+
+    Raises:
+        IOError: If there is an error writing to the output file.
+
+    """
+    with gzip.open(out_path, "wb", compresslevel=9) as f:
+        pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
+
+
+def from_pickle(in_path):
+    """
+    Open a compressed pickle file in read mode and return the object or objects.
+
+    Args:
+        in_path (str): The path to the input file.
+
+    Returns:
+        object: The object or objects load from a pickle file.
+
+    Raises:
+        FileNotFoundError: If the input file does not exist.
+        EOFError: If the input file is empty.
+    """
+    if not os.path.exists(in_path):
+        raise FileNotFoundError(f"The file {in_path} does not exist.")
+
+    with gzip.open(in_path, "rb") as f:
+        py_object = pickle.load(f)
+
+    if not py_object:
+        raise EOFError("The file is empty.")
+
+    return py_object
