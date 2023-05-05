@@ -522,7 +522,8 @@ class IO(object):
                 if self.la["extra_files"] in filename_to_tablename:
                     filename_to_tablename = self.la["extra_files"]
 
-                dict_of_dfs[filename_to_tablename] = pd.read_csv(file_path)
+                dict_of_dfs[filename_to_tablename] = pd.read_csv(
+                    file_path, index_col=[0])
 
             elif file_type == "database":
                 # load all tables found in the
