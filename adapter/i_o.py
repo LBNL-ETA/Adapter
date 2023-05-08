@@ -523,7 +523,15 @@ class IO(object):
                     filename_to_tablename = self.la["extra_files"]
 
                 dict_of_dfs[filename_to_tablename] = pd.read_csv(
-                    file_path, index_col=[0])
+                    file_path)
+                
+                if "Unnamed: 0" in dict_of_dfs[
+                    filename_to_tablename].columns:
+
+                    dict_of_dfs[filename_to_tablename] = \
+                        dict_of_dfs[filename_to_tablename].drop(
+                            columns="Unnamed: 0"
+                        )
 
             elif file_type == "database":
                 # load all tables found in the
