@@ -900,7 +900,7 @@ def from_pickle(in_path):
         raise FileNotFoundError(f"The file {in_path} does not exist.")
 
     with gzip.open(in_path, "rb") as f:
-        py_object = pickle.load(f)
+        py_object = pd.read_pickle(f)
 
     if not py_object:
         raise EOFError("The file is empty.")
