@@ -74,7 +74,7 @@ class Excel(object):
                 values
         """
         # check if any name in data_object_names not in excel file
-        all_input_ranges = {object_range.name for object_range in self.wb.defined_names.definedName}
+        all_input_ranges = {obj_name for obj_name in self.wb.defined_names}
         all_input_tables = {object_table for ws in self.wb.worksheets for object_table in ws.tables.keys()}
         all_input_objects = all_input_ranges | all_input_tables
 
