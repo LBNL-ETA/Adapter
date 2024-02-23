@@ -3,6 +3,8 @@ import re
 import sys
 from datetime import datetime
 from pathlib import PureWindowsPath, PurePosixPath
+import tkinter as tk
+from tkinter import filedialog as fd
 
 
 def process_column_labels(list_of_labels):
@@ -135,49 +137,23 @@ def user_select_file(user_message="", mul_fls=False):
             in case of multiple file selection,
             the selected input folder path holding the files.
     """
+    root = tk.Tk()
+    root.withdraw()
 
-    # case for Windows
-    if sys.platform.lower().startswith("win"):
+    print(
+        user_message
+        + " (You may have to search for the file prompt window)"
+    )
 
-        print(user_message)
-        import win32ui, win32con
+    if mul_fls:
+        fpath = fd.askdirectory(title=user_message)
 
-        # For multiple files replace 0 with win32con.OFN_ALLOWMULTISELECT below
-        if mul_fls:
-            dial_flg = win32con.OFN_ALLOWMULTISELECT
-        else:
-            dial_flg = 0
-
-        fd = win32ui.CreateFileDialog(1, None, None, dial_flg)
-
-        fd.SetOFNTitle(user_message)
-        if fd.DoModal() == win32con.IDCANCEL:
-            sys.exit(1)
-
-        # file_name = fd.GetFileName()
-        fpath = fd.GetPathName()
-
-        return fpath
-
-    # case for OSX
-    elif sys.platform.lower() == "darwin":
-
-        print(
-            user_message
-            + " (You may have to search for the file prompt window)"
+    else:
+        fpath = fd.askopenfilename(
+            title=user_message,
+            filetypes=[("Excel", "*.xlsx *.xls"), ("Database", "*.db")],
         )
-        from tkinter import filedialog as fd
-
-        if mul_fls:
-            fpath = fd.askdirectory(title=user_message)
-
-        else:
-            fpath = fd.askopenfilename(
-                title=user_message,
-                filetypes=[("Excel", "*.xlsx *.xls"), ("Database", "*.db")],
-            )
-
-        return fpath
+    return fpath
 
 
 def mark_time(prefix: str = "", ts_format: str = "short") -> str:
