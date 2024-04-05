@@ -73,6 +73,7 @@ class Excel(object):
                 the corresponding named data object
                 values
         """
+        # check if any name in data_object_names not in excel file
         all_input_ranges = set(self.wb.defined_names.keys())    
         all_input_tables = {object_table for ws in self.wb.worksheets for object_table in ws.tables.keys()}
         all_input_objects = all_input_ranges | all_input_tables
