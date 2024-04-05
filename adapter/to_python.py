@@ -73,14 +73,7 @@ class Excel(object):
                 the corresponding named data object
                 values
         """
-        # check if any name in data_object_names not in excel file
-        if hasattr(self.wb.defined_names,"definedName"):
-            # This case is for openpyxl <3.1.0
-            all_input_ranges = {object_range.name for object_range in self.wb.defined_names.definedName}
-        else:
-            # This case is for openpyxl ≥3.1.0
-            all_input_ranges = set(self.wb.defined_names.keys())
-            
+        all_input_ranges = set(self.wb.defined_names.keys())    
         all_input_tables = {object_table for ws in self.wb.worksheets for object_table in ws.tables.keys()}
         all_input_objects = all_input_ranges | all_input_tables
 
