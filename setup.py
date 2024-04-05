@@ -46,6 +46,6 @@ setup(
         "xlwings>=0.19.4",
         "psycopg2-binary>=2.8.6",
         "SQLAlchemy>=2.0.0",
-        "openpyxl>=3.0.9",
+        "openpyxl>=3.1.2",
     ],
 )
