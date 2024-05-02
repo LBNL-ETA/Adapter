@@ -42,10 +42,10 @@ setup(
     keywords="data, tables, IO for research computation, sql, excel, csv, dataframe, connection",
     packages=find_packages(exclude=["*.tests", "*.tests"]),
     install_requires=[
-        "pandas>=1.0.4",
+        "pandas>=2.2.0",
         "xlwings>=0.19.4",
         "psycopg2-binary>=2.8.6",
-        "SQLAlchemy==1.4.29",
-        "openpyxl==3.0.9",
+        "SQLAlchemy>=2.0.0",
+        "openpyxl>=3.1.2",
     ],
 )
