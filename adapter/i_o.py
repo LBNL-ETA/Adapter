@@ -511,7 +511,15 @@ class IO(object):
                 dict_of_dfs = Excel(file_path, pre_existing_keys).load(
                     data_object_names=table_names_to_load
                 )
-
+                
+                # if no tables were found, try reading
+                # all sheets as individual tables
+                if not dict_of_dfs:
+                    dict_of_dfs = pd.read_excel(
+                        file_path, sheet_name=None,
+                        skiprows=5, header=0
+                        )
+                    
             elif file_type == "text":
                 dict_of_dfs = dict()
 
