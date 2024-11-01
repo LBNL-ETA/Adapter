@@ -13,6 +13,9 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class IOTests(unittest.TestCase):
+    def setUp(self):
+        self.test_dir = os.getcwd()
+
     def test_load_from_excel(self):
         """Tests the typical LCC analysis case
         where all input tables are saved as
@@ -104,6 +107,20 @@ class IOTests(unittest.TestCase):
         """
 
         path = os.path.join(os.getcwd(), r"adapter/tests/test_no_run_parameters.xlsx")
+        i_o = IO(path)
+
+        res = i_o.load()
+
+        self.assertEqual(len(res["tables_as_dict_of_dfs"].keys()), 2)
+
+        # tear down
+        shutil.rmtree(res["outpath"])
+
+    def test_load_from_excel_no_named_ranges(self):
+        """Tests loading from an Excel file that does
+        not contain any named ranges or Excel tables.
+        """
+        path = os.path.join(self.test_dir, "test_no_named_ranges.xlsx")
         i_o = IO(path)
 
         res = i_o.load()
