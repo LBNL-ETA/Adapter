@@ -113,6 +113,20 @@ class IOTests(unittest.TestCase):
         # tear down
         shutil.rmtree(res["outpath"])
 
+    def test_load_from_excel_no_named_ranges(self):
+        """Tests loading from an Excel file that does
+        not contain any named ranges or Excel tables.
+        """
+        path = os.path.join(os.getcwd(), r"adapter/tests/test_no_named_ranges.xlsx")
+        i_o = IO(path)
+
+        res = i_o.load()
+
+        self.assertEqual(len(res["tables_as_dict_of_dfs"].keys()), 2)
+
+        # tear down
+        shutil.rmtree(res["outpath"])
+
     def test_load_from_db(self):
         """Tests loading from a db."""
 
