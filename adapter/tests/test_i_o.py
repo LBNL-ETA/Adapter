@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 class IOTests:
     def setup_method(self):
-        self.test_dir = os.getcwd()
+        self.test_dir = os.path.dirname(__file__)
 
     def test_load_from_excel(self):
         """Tests the typical LCC analysis case

@@ -18,6 +18,11 @@ dedicated changes.
   `uv run pytest adapter/tests/test_i_o.py -k no_named_ranges`
   → `FileNotFoundError: [Errno 2] No such file or directory: '<repo>/test_no_named_ranges.xlsx'`.
   (`uv run python -m unittest discover` gives the same error.)
+- **Cause:** regression from commit `55f7b67` ("fixed the path compatibility for
+  windows"), which replaced `os.path.join(os.getcwd(), r"adapter/tests/test_no_named_ranges.xlsx")`
+  with `os.path.join(self.test_dir, "test_no_named_ranges.xlsx")` where `self.test_dir = os.getcwd()`.
+- **Status:** Resolved. `self.test_dir` is now `os.path.dirname(__file__)`, so the
+  path is correct from any working directory. The test's assertion is unchanged.
 
 ## 2. `SqlTests` modifies a tracked file on every run
 
