@@ -1,6 +1,44 @@
 [build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
-]
+requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "adapterio"
+dynamic = ["version"]
+license = { text = "BSD-3-Clause-LBNL" }
+description = "I/O Module"
+readme = "README.md"
+authors = [
+    {name = "Milica Grahovac"},
+    {name = "Youness Bennani"},
+    {name = "Thomas Burke"},
+    {name = "Katie Coughlin"},
+    {name = "Mohan Ganeshalingam"},
+    {name = "Akhil Mathur"},
+    {name = "Evan Neill"},
+    {name = "Akshay Sharma"},
+    {name = "Zheng He"},
+    {name = "Lyra Lan"},
+]
+keywords = ["data","tables","IO for research computation", "sql", "excel", "csv", "dataframe", "connection"]
+dependencies = [
+    "pandas<3.0.0",
+    "xlwings>=0.19.4",
+    "psycopg2-binary>=2.8.6",
+    "SQLAlchemy>=2.0.0",
+    "openpyxl>=3.1.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/LBNL-ETA/Adapter"
+
+[tool.setuptools]
+packages = ["adapter"]
+package-data = {}
+include-package-data = true
+
+[tool.setuptools.exclude-package-data]
+"*" = ["contrib/*", "docs/*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "adapter.__version__"}
