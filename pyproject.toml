@@ -47,8 +47,17 @@ version = {attr = "adapter.__version__"}
 [dependency-groups]
 dev = [
     "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["adapter"]
 python_classes = ["Test*", "*Test", "*Tests"]
+
+[tool.coverage.run]
+source = ["adapter"]
+branch = true
+omit = ["*/tests/*"]
+
+[tool.coverage.report]
+show_missing = true
