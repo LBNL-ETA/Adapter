@@ -1,6 +1,5 @@
 import logging
 import os
-import unittest
 
 from pathlib import Path
 
@@ -11,12 +10,12 @@ import pandas as pd
 logging.basicConfig(level=logging.DEBUG)
 
 
-# has setUpClass method, thus run the test on the entire class
-class SqlTests(unittest.TestCase):
+# has setup_class method, thus run the test on the entire class
+class SqlTests:
     """Tests the db-python read-write capabilities."""
 
     @classmethod
-    def setUpClass(cls):
+    def setup_class(cls):
         """Initiates the sqlite db engine
         for the test db file.
         """
@@ -54,7 +53,7 @@ PRIMARY KEY (Component)
 );"""
 
     @classmethod
-    def tearDownClass(cls):
+    def teardown_class(cls):
         """Clean up for any re-initiation of the test,
         but keep the result. Any new run will overwrite
         the result.
@@ -86,15 +85,15 @@ PRIMARY KEY (Component)
     def test_c_table2pd(self):
         """Reads a single table from db as a pd.df"""
         df = self.sql_api.table2pd("pd2table")
-        self.assertTrue((df == self.df).all().all())
+        assert (df == self.df).all().all()
 
     def test_d_commit(self):
         """Use sql to write to db (e.g. create, alter)"""
-        self.assertTrue(self.sql_api.commit(self.raw_sql))
+        assert self.sql_api.commit(self.raw_sql)
 
     def test_e_tables2dict(self):
         """Read all tables from db into a dictionary
         of dataframes.
         """
         data = self.sql_api.tables2dict()
-        self.assertEqual(data["pd2table"].iloc[1, 1], 2)
+        assert data["pd2table"].iloc[1, 1] == 2

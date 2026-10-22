@@ -1,24 +1,22 @@
 import os
-from unittest import TestCase
-import unittest
 from adapter.to_python import Excel, Db
 import openpyxl
 import pandas as pd
+import pytest
 from pandas._testing import assert_frame_equal
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
 
-class ExcelTest(TestCase):
+class ExcelTest:
     """Tests for new Excel class"""
-    @classmethod
-    def setUp(self):
+    def setup_method(self):
         """Loads an excel workbook"""
         self.exl_loader = Excel(os.path.join(os.path.dirname(__file__), "test.xlsx"))
 
     def test_load(self):
         dict_of_dfs = self.exl_loader.load(kind="all")
-        self.assertTrue(
+        assert (
             set(dict_of_dfs.keys())
             == {
                 "xlsx_table1",
@@ -35,16 +33,14 @@ class ExcelTest(TestCase):
             data_object_names=["xlsx_table1", "xlsx_table2"], kind="tables"
         )
 
-        self.assertTrue(
-            set(some_tables.keys()) == {"xlsx_table1", "xlsx_table2"}
-        )
+        assert set(some_tables.keys()) == {"xlsx_table1", "xlsx_table2"}
 
         some_ranges = self.exl_loader.load(
             data_object_names=["xlsx_named_range1", "xlsx_single_col_range"],
             kind="ranges",
         )
 
-        self.assertTrue(
+        assert (
             set(some_ranges.keys())
             == {"xlsx_named_range1", "xlsx_single_col_range"}
         )
@@ -80,14 +76,14 @@ class ExcelTest(TestCase):
         )
         assert_frame_equal(df1, df2)
 
-class TestDb(TestCase):
-    def setUp(self):
+class TestDb:
+    def setup_method(self):
         """creating DB objects"""
         self.db = Db(file_path=os.path.join(os.path.dirname(__file__), "test.db"), pre_existing_keys=['table1'])
         self.good_db = Db(file_path=os.path.join(os.path.dirname(__file__), "test.db"))
         self.bad_db = Db(file_path=os.path.join(os.path.dirname(__file__), "corrupt.db"))
 
-    def tearDown(self) -> None:
+    def teardown_method(self) -> None:
         # destroy objects
         del self.db
         del self.good_db
@@ -95,25 +91,22 @@ class TestDb(TestCase):
 
     def test_load_good(self):
         # test file load with table_names
-        self.assertEqual(len((self.good_db.load(table_names=['table1', 'table2'])).keys() - {'table1', 'table2'}), 0)
+        assert len((self.good_db.load(table_names=['table1', 'table2'])).keys() - {'table1', 'table2'}) == 0
 
     def test_load_pre_keys(self):
         # test file load with pre_existing_keys
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             self.db.load()
         # test file load with table names and pre_expisting keys
-        self.assertEqual(set(self.db.load(table_names=['table2']).keys()), {'table2'})
-        with self.assertRaises(ValueError):
+        assert set(self.db.load(table_names=['table2']).keys()) == {'table2'}
+        with pytest.raises(ValueError):
             self.db.load(table_names=['table1'])
 
     def test_load_bad_db(self):
         # test corrupt file load
-        with self.assertRaises(IOError):
+        with pytest.raises(IOError):
             self.bad_db.load()
 
     def test_load_df(self):
         # test dataframe not empty
-        self.assertIsNotNone((self.good_db.load(table_names=['table3'])['table3']).head())
-
-if __name__ == "__main__":
-    unittest.main()
+        assert (self.good_db.load(table_names=['table3'])['table3']).head() is not None

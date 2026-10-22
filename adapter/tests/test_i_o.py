@@ -3,17 +3,17 @@ import logging
 import os
 import pickle
 import shutil
-import unittest
 
 import pandas as pd
+import pytest
 
 from adapter.i_o import IO, to_pickle, from_pickle
 
 logging.basicConfig(level=logging.DEBUG)
 
 
-class IOTests(unittest.TestCase):
-    def setUp(self):
+class IOTests:
+    def setup_method(self):
         self.test_dir = os.getcwd()
 
     def test_load_from_excel(self):
@@ -26,14 +26,14 @@ class IOTests(unittest.TestCase):
 
         res = i_o.load()
 
-        self.assertTrue("db_path" in res.keys())
+        assert "db_path" in res.keys()
 
         # tear down
         shutil.rmtree(res["outpath"])
 
         res_no_db = i_o.load(create_db=False)
 
-        self.assertFalse("db_path" in res_no_db.keys())
+        assert "db_path" not in res_no_db.keys()
 
     # uncomment only if you have a haggis
     # server connection set up with a
@@ -65,7 +65,8 @@ class IOTests(unittest.TestCase):
 
         i_o = IO(path)
 
-        self.assertRaises(ValueError, i_o.load)
+        with pytest.raises(ValueError):
+            i_o.load()
 
     def test_load_from_excel_w_input_from_files(self):
         """Tests the ability to load in input tables
@@ -80,10 +81,10 @@ class IOTests(unittest.TestCase):
 
         res = i_o.load()
 
-        self.assertEqual(len(res["tables_as_dict_of_dfs"].keys()), 8)
-        self.assertTrue("xlsx_table1_in_other_excel_file" in res["tables_as_dict_of_dfs"].keys())
-        self.assertFalse("xlsx_table2_in_other_excel_file" in res["tables_as_dict_of_dfs"].keys())
-        self.assertFalse("run_parameters30" in res["tables_as_dict_of_dfs"].keys())
+        assert len(res["tables_as_dict_of_dfs"].keys()) == 8
+        assert "xlsx_table1_in_other_excel_file" in res["tables_as_dict_of_dfs"].keys()
+        assert "xlsx_table2_in_other_excel_file" not in res["tables_as_dict_of_dfs"].keys()
+        assert "run_parameters30" not in res["tables_as_dict_of_dfs"].keys()
 
         # tear down
         shutil.rmtree(res["outpath"])
@@ -98,8 +99,8 @@ class IOTests(unittest.TestCase):
 
         res = i_o.load(to_numeric=["xlsx_table2"])
 
-        self.assertEqual(len(res["tables_as_dict_of_dfs"].keys()), 11)
-        self.assertEqual(len(res.keys()), 5)
+        assert len(res["tables_as_dict_of_dfs"].keys()) == 11
+        assert len(res.keys()) == 5
 
     def test_load_from_excel_no_run_parameters(self):
         """Tests loading from an excel table without
@@ -111,7 +112,7 @@ class IOTests(unittest.TestCase):
 
         res = i_o.load()
 
-        self.assertEqual(len(res["tables_as_dict_of_dfs"].keys()), 2)
+        assert len(res["tables_as_dict_of_dfs"].keys()) == 2
 
         # tear down
         shutil.rmtree(res["outpath"])
@@ -125,7 +126,7 @@ class IOTests(unittest.TestCase):
 
         res = i_o.load()
 
-        self.assertEqual(len(res["tables_as_dict_of_dfs"].keys()), 2)
+        assert len(res["tables_as_dict_of_dfs"].keys()) == 2
 
         # tear down
         shutil.rmtree(res["outpath"])
@@ -138,7 +139,7 @@ class IOTests(unittest.TestCase):
 
         res = i_o.load()
 
-        self.assertEqual(len(res["tables_as_dict_of_dfs"].keys()), 3)
+        assert len(res["tables_as_dict_of_dfs"].keys()) == 3
 
     def test_load_from_none(self):
         """Tests loading from a path specified as None."""
@@ -147,7 +148,7 @@ class IOTests(unittest.TestCase):
 
         res = i_o.load()
 
-        self.assertEqual(isinstance(res, dict), True)
+        assert isinstance(res, dict) == True
 
     def test_first_col_to_index(self):
         """Tests if the first column is set as a index."""
@@ -189,7 +190,7 @@ class IOTests(unittest.TestCase):
 
         result_labels = i_o.process_column_labels(labels)
 
-        self.assertEqual(result_labels, expected_labels)
+        assert result_labels == expected_labels
 
     def test_write_to_db(self):
         """Tests main write method for type db"""
@@ -200,8 +201,8 @@ class IOTests(unittest.TestCase):
         # write to db based on load method output only
         i_o.write(type="db", data_connection=data_conn)
 
-        self.assertTrue(os.path.isfile(data_conn["db_path"]))
-        self.assertTrue(os.path.isdir(data_conn["outpath"]))
+        assert os.path.isfile(data_conn["db_path"])
+        assert os.path.isdir(data_conn["outpath"])
 
         # tear down files
         shutil.rmtree(data_conn["outpath"])
@@ -218,8 +219,8 @@ class IOTests(unittest.TestCase):
             data_connection=data_conn,
         )
 
-        self.assertTrue(os.path.isfile(data_conn["db_path"]))
-        self.assertTrue(os.path.isdir(data_conn["outpath"]))
+        assert os.path.isfile(data_conn["db_path"])
+        assert os.path.isdir(data_conn["outpath"])
 
         # tear down files
         shutil.rmtree(data_conn["outpath"])
@@ -233,8 +234,8 @@ class IOTests(unittest.TestCase):
         # write to db based on load method output only
         i_o.write(type="csv", data_connection=data_conn)
 
-        self.assertTrue(os.path.isfile(data_conn["db_path"]))
-        self.assertTrue(os.path.isdir(data_conn["outpath"]))
+        assert os.path.isfile(data_conn["db_path"])
+        assert os.path.isdir(data_conn["outpath"])
 
         # tear down files
         shutil.rmtree(data_conn["outpath"])
@@ -251,7 +252,7 @@ class IOTests(unittest.TestCase):
             data_connection=data_conn,
         )
 
-        self.assertTrue(os.path.isdir(data_conn["outpath"]))
+        assert os.path.isdir(data_conn["outpath"])
 
         # tear down files
         shutil.rmtree(data_conn["outpath"])
@@ -265,8 +266,8 @@ class IOTests(unittest.TestCase):
         # write to db based on load method output only
         i_o.write(type="db&csv", data_connection=data_conn)
 
-        self.assertTrue(os.path.isfile(data_conn["db_path"]))
-        self.assertTrue(os.path.isdir(data_conn["outpath"]))
+        assert os.path.isfile(data_conn["db_path"])
+        assert os.path.isdir(data_conn["outpath"])
 
         # tear down files
         shutil.rmtree(data_conn["outpath"])
@@ -277,11 +278,11 @@ class IOTests(unittest.TestCase):
         i_o = IO(path)
         data_conn = i_o.load(skip_writeout=True)
 
-        self.assertTrue("_will_not_be_used" in data_conn["outpath"])
-        self.assertTrue(not os.path.isdir(data_conn["outpath"]))
+        assert "_will_not_be_used" in data_conn["outpath"]
+        assert not os.path.isdir(data_conn["outpath"])
 
 
-class TestPickle(unittest.TestCase):
+class TestPickle:
     def test_single_object_pickle(self):
         # Test pickling a single object
         data = {"name": "John", "age": 30, "city": "New York"}
@@ -289,13 +290,13 @@ class TestPickle(unittest.TestCase):
         to_pickle(data, out_path)
 
         # Check that the output file exists and is not empty
-        self.assertTrue(os.path.exists(out_path))
-        self.assertGreater(os.path.getsize(out_path), 0)
+        assert os.path.exists(out_path)
+        assert os.path.getsize(out_path) > 0
 
         # Load the pickled data from the output file and check that it matches the original data
         with gzip.open(out_path, "rb") as f:
             py_data = pickle.load(f)
-        self.assertEqual(data, py_data)
+        assert data == py_data
 
         # Clean up the output file
         os.remove(out_path)
@@ -308,19 +309,19 @@ class TestPickle(unittest.TestCase):
         to_pickle((data1, data2), out_path)
 
         # Check that the output file exists and is not empty
-        self.assertTrue(os.path.exists(out_path))
-        self.assertGreater(os.path.getsize(out_path), 0)
+        assert os.path.exists(out_path)
+        assert os.path.getsize(out_path) > 0
 
         # Load the pickled data from the output file and check that it matches the original data
         with gzip.open(out_path, "rb") as f:
             py_data1, py_data2 = pickle.load(f)
-        self.assertEqual(data1, py_data1)
-        self.assertEqual(data2, py_data2)
+        assert data1 == py_data1
+        assert data2 == py_data2
 
         # Clean up the output file
         os.remove(out_path)
 
-    def setUp(self):
+    def setup_method(self):
         self.data = {"a": 1, "b": 2, "c": 3}
         self.out_path = "test.pkl.gz"
         self.in_path = "test.pkl.gz"
@@ -328,20 +329,16 @@ class TestPickle(unittest.TestCase):
     def test_from_pickle_existing_file(self):
         to_pickle(self.data, self.out_path)
         result = from_pickle(self.in_path)
-        self.assertEqual(result, self.data)
+        assert result == self.data
         os.remove(self.in_path)
 
     def test_from_pickle_non_existing_file(self):
-        with self.assertRaises(FileNotFoundError):
+        with pytest.raises(FileNotFoundError):
             result = from_pickle("non_existing_file.pkl.gz")
 
     def test_from_pickle_empty_file(self):
         with gzip.open("empty.pkl.gz", "wb") as f:
             pass
-        with self.assertRaises(EOFError):
+        with pytest.raises(EOFError):
             result = from_pickle("empty.pkl.gz")
         os.remove("empty.pkl.gz")
-
-
-if __name__ == "__main__":
-    unittest.main()
