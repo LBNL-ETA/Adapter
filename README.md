@@ -59,14 +59,14 @@ where `data` is a dictionary with the following keys:
     'db_conn' - database connection
 ```
 
-The input tables may be specified in a single `xlsx`, a `database` file, or a `csv` file, or any combination of those. The `Adapter` standardizes the way to provide inputs from additional files through using either a table named `inputs_from_files`, or by having the string `inputs_from_files` be the start of the main `csv` input file name. The example inputs files, also used in the unit tests, are located in [the test suite folder](https://github.com/LBNL-ETA/Adapter/tree/master/adapter/tests). One can take the test input files as examples and guides on how to structure the main input file such that one can fetch either all the data from the main input file or, in addition to those, fetch data from other input files as specified in the standardized `inputs_from_files` table.
+The input tables may be specified in a single `xlsx`, a `database` file, or a `csv` file, or any combination of those. The `Adapter` standardizes the way to provide inputs from additional files through using either a table named `inputs_from_files`, or by having the string `inputs_from_files` be the start of the main `csv` input file name. The example inputs files, also used in the unit tests, are located in [the test inputs folder](https://github.com/LBNL-ETA/Adapter/tree/master/adapter/tests/inputs). One can take the test input files as examples and guides on how to structure the main input file such that one can fetch either all the data from the main input file or, in addition to those, fetch data from other input files as specified in the standardized `inputs_from_files` table.
 
 For example, to load all objects defined as data tables and named ranges specified in an excel input file, as a
 `Python dictionary` of `Pandas DataFrames`:
 
 ```python
 path = os.path.join(
-    os.getcwd(), r"adapter/tests/test_w_inputs_from_files_table.xlsx"
+    os.getcwd(), r"adapter/tests/inputs/test_w_inputs_from_files_table.xlsx"
 )
 
 i_o = IO(path)
@@ -79,7 +79,7 @@ where the `res` output is a dictionary with the same keys as in the example abov
 An another example especially useful for `Linux` users would be to provide several or all inputs as `csv` files through listing their paths in the main `csv` input file. The `Adapter` can then be used to load all inputs at once. This can be done as follows:
 ```python
 path = os.path.join(
-    os.getcwd(), r"adapter/tests/inputs_from_files_vTest.csv"
+    os.getcwd(), r"adapter/tests/inputs/inputs_from_files_vTest.csv"
 )
 i_o = IO(path)
 data_conn = i_o.load()
@@ -98,21 +98,55 @@ Depending on the `type` flag, there is an option to writhe only a `db` or a `csv
 
 The `Adapter` also provides an option to only establish a `db` connection to certain tables that are for example large and the user would 
 rather query them instead of having them be loaded as a `Pandas DataFrame`. An example of how to provide such information through the input file is 
-provided in this example input file [`adapter/tests/inputs_from_files_vTest.csv`](https://github.com/LBNL-ETA/Adapter/blob/master/adapter/tests/inputs_from_files_vTest.csv).
+provided in this example input file [`adapter/tests/inputs/inputs_from_files_vTest.csv`](https://github.com/LBNL-ETA/Adapter/blob/master/adapter/tests/inputs/inputs_from_files_vTest.csv).
 
 Those with LBNL VPN access can also use [`API documentation`](https://atcd.lbl.gov/source/adapter.html) to explore the functionality of the modules.  
 
 
 ## Testing
 
-As already mentioned in the Usage section, the example input files are [provided in the `test` folder](https://github.com/LBNL-ETA/Adapter/blob/master/adapter/tests/).
-
-To run tests it is recommended to use the [`unittest` framework](https://docs.python.org/3/library/unittest.html). All test modules have names that start with `test_`.
-
-Individual test module can be run with the following command, for example the `test_i_o` module:
+The tests use [pytest](https://docs.pytest.org/). Development dependencies, including `pytest` and `pytest-cov`, are in the `dev` dependency group and are installed with [uv](https://docs.astral.sh/uv/):
+```bash
+uv sync --locked
 ```
-python -m unittest adapter.tests.test_i_o
+
+Run the tests from the repo root, because some test inputs reference other inputs with repo-relative paths:
+```bash
+uv run pytest                                      # full suite
+uv run pytest adapter/tests/test_i_o.py            # one module
+uv run pytest adapter/tests/test_i_o.py -k TestWrite   # tests matching a name
+uv run pytest --cov --cov-report=term-missing      # with a coverage report
 ```
+
+### Layout
+
+- `adapter/tests/test_i_o.py`: the `IO` class, the package's main entry point: `load()` options and outputs, `write()`, helper methods, and the golden fixture comparison.
+- `adapter/tests/test_to_python.py`: the `Excel`, `Db` and `Db_sqlalchemy` loaders that `IO.load()` uses.
+- `adapter/comm/tests/test_sql.py` and `test_tools.py`: the `Sql` helper, network-drive path conversion and run-tag timestamps.
+- `adapter/tests/inputs/`: the synthetic input files the tests load. They also serve as examples of how to structure input files.
+- `adapter/tests/fixtures/golden/`: golden fixtures (see below).
+- `adapter/tests/conftest.py`: shared fixtures. `in_tmp_path` runs a test in a temporary working directory; `clean_output` removes the `output/` folders created by tests that must run from the repo root.
+
+Tests don't leave files in the repository. Known bugs, documented in [`issue-log.md`](issue-log.md), are intentionally not tested yet; their tests should come with the fixes.
+
+### Golden fixtures
+
+A golden fixture is a saved copy of what the code produced when it was trusted. `test_load_matches_golden` in `adapter/tests/test_i_o.py` loads each input listed in `GOLDEN_CASES` (at the top of that file) with `IO(<input>).load(skip_writeout=True)` and compares the result with its JSON file in `adapter/tests/fixtures/golden/`. This catches unintended changes to loaded data, notably when upgrading dependencies such as pandas.
+
+Each JSON file holds the input file name, the pandas version used to generate it (informational), the float tolerance (`rtol`), and, for every loaded table, its columns, dtypes, index labels and row-major values (`null` for missing values). The test checks:
+
+- that the same set of tables is loaded;
+- each table's column labels and dtypes, exactly;
+- each table's index and values with `pandas.testing.assert_frame_equal(check_exact=False, rtol=1e-9)`.
+
+Missing values are stored as `null`, so `None` and `NaN` in object columns compare equal. A dtype change, such as `object` → `str` under pandas 3's string dtype, fails by design.
+
+When a golden test fails, find out why before changing anything. Regenerate the fixtures only when a change to the loaded data is intended, for example a reviewed bug fix, an accepted dependency change, or an edited or added input file (add new inputs to `GOLDEN_CASES` first). From the repo root:
+```bash
+uv run python -m adapter.tests.regenerate_golden_fixtures
+git diff adapter/tests/fixtures/golden/
+```
+The script rewrites the fixtures for all inputs, so check that every changed line in the diff is explained by the intended change, then commit the fixtures in their own commit. To remove an input, delete it from `GOLDEN_CASES` and delete its JSON file.
 
 
 ## Contributing

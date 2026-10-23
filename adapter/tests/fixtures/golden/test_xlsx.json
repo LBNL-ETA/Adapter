@@ -1,0 +1,190 @@
+{
+  "input_file": "test.xlsx",
+  "pandas_version": "2.3.3",
+  "rtol": 1e-09,
+  "tables": {
+    "run_parameters": {
+      "columns": [
+        "Output Path",
+        "Version"
+      ],
+      "dtypes": {
+        "Output Path": "object",
+        "Version": "object"
+      },
+      "index": [
+        0
+      ],
+      "data": [
+        [
+          "output",
+          "v123"
+        ]
+      ]
+    },
+    "xlsx_named_range1": {
+      "columns": [
+        "nam_ran_col1",
+        "nam_ran_col2"
+      ],
+      "dtypes": {
+        "nam_ran_col1": "object",
+        "nam_ran_col2": "object"
+      },
+      "index": [
+        0,
+        1
+      ],
+      "data": [
+        [
+          "val1",
+          "val3"
+        ],
+        [
+          "val2",
+          "val4"
+        ]
+      ]
+    },
+    "xlsx_single_col_range": {
+      "columns": [
+        "nam_ran_col11"
+      ],
+      "dtypes": {
+        "nam_ran_col11": "float64"
+      },
+      "index": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "data": [
+        [
+          1.0
+        ],
+        [
+          2.0
+        ],
+        [
+          3.0
+        ],
+        [
+          4.0
+        ]
+      ]
+    },
+    "xlsx_single_col_table": {
+      "columns": [
+        "colA"
+      ],
+      "dtypes": {
+        "colA": "object"
+      },
+      "index": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "data": [
+        [
+          "a"
+        ],
+        [
+          "b"
+        ],
+        [
+          "c"
+        ],
+        [
+          "d"
+        ]
+      ]
+    },
+    "xlsx_single_value_named_range": {
+      "columns": [
+        "xlsx_single_value_named_range"
+      ],
+      "dtypes": {
+        "xlsx_single_value_named_range": "float64"
+      },
+      "index": [
+        0
+      ],
+      "data": [
+        [
+          123.0
+        ]
+      ]
+    },
+    "xlsx_table1": {
+      "columns": [
+        "col_1",
+        "col_2",
+        "col_3"
+      ],
+      "dtypes": {
+        "col_1": "float64",
+        "col_2": "object",
+        "col_3": "float64"
+      },
+      "index": [
+        0,
+        1,
+        2
+      ],
+      "data": [
+        [
+          1.0,
+          "a",
+          12.0
+        ],
+        [
+          1.0,
+          "b",
+          13.0
+        ],
+        [
+          1.0,
+          "c",
+          45.0
+        ]
+      ]
+    },
+    "xlsx_table2": {
+      "columns": [
+        "col_11",
+        "col_22",
+        "col_33"
+      ],
+      "dtypes": {
+        "col_11": "float64",
+        "col_22": "object",
+        "col_33": "float64"
+      },
+      "index": [
+        0,
+        1,
+        2
+      ],
+      "data": [
+        [
+          11.0,
+          "aa",
+          112.0
+        ],
+        [
+          11.0,
+          "bb",
+          113.0
+        ],
+        [
+          11.0,
+          "cc",
+          145.0
+        ]
+      ]
+    }
+  }
+}

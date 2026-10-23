@@ -1,7 +1,10 @@
 import logging
 import os
+import sqlite3
 
 from pathlib import Path
+
+import pytest
 
 from adapter.comm.sql import Sql
 
@@ -10,41 +13,41 @@ import pandas as pd
 logging.basicConfig(level=logging.DEBUG)
 
 
-# has setup_class method, thus run the test on the entire class
+# each test gets a fresh test db in a temporary folder,
+# so tests don't depend on each other or on the run order
 class SqlTests:
-    """Tests the db-python read-write capabilities."""
+    """comm.sql.Sql: writing and reading pandas dataframes to and from a sqlite db."""
 
-    @classmethod
-    def setup_class(cls):
-        """Initiates the sqlite db engine
-        for the test db file.
+    @pytest.fixture(autouse=True)
+    def _setup_db(self, tmp_path):
+        """Creates a fresh sqlite db in a temporary folder, and the example
+        data, for each test.
         """
         test_db_name = "test.db"
-        test_db_fulpath = os.path.join(os.path.dirname(__file__), test_db_name)
-        cls.test_db_fulpath = test_db_fulpath
+        test_db_fulpath = str(tmp_path / test_db_name)
+        self.test_db_fulpath = test_db_fulpath
 
         print(test_db_fulpath)
-        # create test db if it does not exist
+        # create test db
 
-        if not os.path.exists(test_db_fulpath):
-            # https://stackoverflow.com/questions/1158076/implement-touch-using-python
-            Path(test_db_fulpath).touch()
+        # https://stackoverflow.com/questions/1158076/implement-touch-using-python
+        Path(test_db_fulpath).touch()
 
-        cls.sql_api = Sql(test_db_fulpath)
+        self.sql_api = Sql(test_db_fulpath)
 
         # example dict to write to db
-        cls.df = pd.DataFrame(
+        self.df = pd.DataFrame(
             data=[["a", 1], ["b", 2]], columns=["comp", "cost"]
         )
 
         # example dict to write to db as table
-        cls.dict = {"k1": [12, 13, 14], "k2": ["a", "b", "c"]}
+        self.dict = {"k1": [12, 13, 14], "k2": ["a", "b", "c"]}
 
         # example csv data
-        cls.path_to_csv = os.path.join(os.path.dirname(__file__), "table.csv")
+        self.path_to_csv = os.path.join(os.path.dirname(__file__), "table.csv")
 
         # sql code to execute
-        cls.raw_sql = """CREATE TABLE sys_components
+        self.raw_sql = """CREATE TABLE sys_components
 (
  Component TEXT NOT NULL ,
  Function  TEXT NOT NULL ,
@@ -52,48 +55,61 @@ class SqlTests:
 PRIMARY KEY (Component)
 );"""
 
-    @classmethod
-    def teardown_class(cls):
-        """Clean up for any re-initiation of the test,
-        but keep the result. Any new run will overwrite
-        the result.
-        """
-        store_db_name = "test_done.db"
-        # close the test db
-        cls.sql_api.db.close()
-        store_db_fulpath = os.path.join(
-            os.path.dirname(__file__), store_db_name
-        )
-        # rename file, overwrite if exists
-        if os.path.exists(store_db_fulpath):
-            os.remove(store_db_fulpath)
+        yield
 
-        os.rename(cls.test_db_fulpath, store_db_fulpath)
-
-    def test_a_pd2table(self):
-        """Tests write pandas dataframe to
-        db as a table.
-        """
-        self.sql_api.pd2table(self.df, "pd2table")
+        # close the test db; tmp_path is cleaned up by pytest
+        self.sql_api.db.close()
 
     def test_b_csv2table(self):
-        """Tests write csv file to
-        db as a table.
-        """
+        """Sql.csv2table() writes a csv file to the db as a table."""
         self.sql_api.csv2table(self.path_to_csv, "csv2table")
 
     def test_c_table2pd(self):
-        """Reads a single table from db as a pd.df"""
+        """Sql.table2pd() reads a table back as the dataframe that was written."""
+        # write the table first, so this test does not depend on other tests
+        self.sql_api.pd2table(self.df, "pd2table")
         df = self.sql_api.table2pd("pd2table")
         assert (df == self.df).all().all()
 
     def test_d_commit(self):
-        """Use sql to write to db (e.g. create, alter)"""
+        """Sql.commit() executes a raw SQL statement (here CREATE TABLE)."""
         assert self.sql_api.commit(self.raw_sql)
 
     def test_e_tables2dict(self):
-        """Read all tables from db into a dictionary
-        of dataframes.
-        """
+        """Sql.tables2dict() reads all tables into a dict of dataframes."""
+        # write the table first, so this test does not depend on other tests
+        self.sql_api.pd2table(self.df, "pd2table")
         data = self.sql_api.tables2dict()
         assert data["pd2table"].iloc[1, 1] == 2
+
+    def test_accepts_existing_connection(self):
+        """Sql() wraps an already open sqlite3 connection."""
+        assert Sql(self.sql_api.db).db is self.sql_api.db
+
+    def test_raises_for_unsupported_argument(self):
+        """Sql() raises ValueError for anything but a path or a sqlite3 connection."""
+        with pytest.raises(ValueError):
+            Sql(42)
+
+    def test_pd2table_close_closes_connection(self):
+        """Sql.pd2table(close=True) closes the connection after writing."""
+        self.sql_api.pd2table(self.df, "pd2table", close=True)
+
+        with pytest.raises(sqlite3.ProgrammingError):
+            self.sql_api.db.execute("SELECT 1")
+
+    def test_commit_close_closes_connection(self):
+        """Sql.commit(close=True) closes the connection after executing."""
+        assert self.sql_api.commit(self.raw_sql, close=True)
+
+        with pytest.raises(sqlite3.ProgrammingError):
+            self.sql_api.db.execute("SELECT 1")
+
+    def test_tables2dict_close_false_keeps_connection_open(self):
+        """Sql.tables2dict(close=False) leaves the connection open."""
+        self.sql_api.pd2table(self.df, "pd2table")
+
+        data = self.sql_api.tables2dict(close=False)
+
+        assert data["pd2table"].equals(self.df)
+        self.sql_api.db.execute("SELECT 1")  # still open
