@@ -298,6 +298,9 @@ dedicated changes.
   also import (and configure logging in) `test_sql`.
 - **Reproduce:** `python -c "import adapter.tests, sys; print('adapter.comm.tests.test_sql' in sys.modules)"` → `True`.
 - **Expected:** an empty `__init__.py`.
+- **Status:** Resolved. `adapter/tests/__init__.py` is empty; pytest still collects all
+  89 tests (the `comm` tests via `testpaths`). No test changes needed. `python -m unittest
+  discover` no longer finds the `comm` tests, but the suite now runs with pytest.
 
 ## 27. `Db_sqlalchemy.load()` fails unless `Query Only` flags are given
 
