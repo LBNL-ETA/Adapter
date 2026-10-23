@@ -69,6 +69,8 @@ show_missing = true
 [tool.ruff]
 line-length = 88
 target-version = "py312"
+# Temporary: unused xlwings module, kept for now (#16); remove with it (issue-log.md #31)
+extend-exclude = ["adapter/comm/excel.py"]
 
 [tool.ruff.lint]
 select = [
