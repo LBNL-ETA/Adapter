@@ -1,7 +1,13 @@
 import os
 import shutil
 
+import pandas as pd
 import pytest
+
+# Opt in to pandas 3.0 behavior while on pandas 2.3, to find incompatible
+# code before upgrading (see CLAUDE.md). Remove both once on pandas 3.
+pd.set_option("mode.copy_on_write", True)
+pd.set_option("future.infer_string", True)
 
 
 @pytest.fixture
