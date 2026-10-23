@@ -7,10 +7,14 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
+      # test inputs are data: change them only on purpose
       - id: trailing-whitespace
+        exclude: ^adapter/tests/inputs/
       - id: end-of-file-fixer
+        exclude: ^adapter/tests/inputs/
       - id: mixed-line-ending
         args: [--fix=lf]
+        exclude: ^adapter/tests/inputs/
       - id: check-yaml
       - id: check-toml
       - id: check-json
