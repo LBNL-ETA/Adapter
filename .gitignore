@@ -60,6 +60,7 @@ Construct*
 Archive *
 Output*
 *.egg-info/
+build/
 .ipynb_checkpoints
 *checkpoint.ipynb
 Secret.py
