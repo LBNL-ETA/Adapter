@@ -328,3 +328,15 @@ and the effect on the tests.
   is now accepted as a connection. Tests: added
   `SqlTests.test_accepts_str_subclass_path` (fails on the old code); no existing test
   changed.
+- **E712, comparisons to `True`/`False`** (`adapter/i_o.py`):
+  - `IO.load()` flags `skip_writeout`, `save_input`, `create_db`, `clean_labels` and
+    `set_first_col_as_index` now use truth tests (`if x:`) instead of `== True` /
+    `!= False`. Same result for `True`/`False`, `0`/`1` and numpy booleans. Different
+    only for unusual values: e.g. `create_db="yes"` or `2` used to mean "no db" and now
+    create one; `set_first_col_as_index=None` used to raise `ValueError` and now means
+    "don't index"; `set_first_col_as_index=[]` now skips indexing (same tables returned).
+  - `IO.first_col_to_index()` keeps strict checks, now `table_names is True` /
+    `is False` (a list or a string like `"t"` must not count as `True`). Different only
+    for `1`, `0` and numpy booleans, which now raise `ValueError` (`1` used to index all
+    tables; `0` hit #17).
+  - Tests: no changes needed; existing tests cover `True`, `False` and list values.

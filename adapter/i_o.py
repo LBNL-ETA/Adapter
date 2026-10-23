@@ -211,13 +211,13 @@ class IO:
         """
         dict_of_dfs = self.get_tables(self.input_path)
 
-        if skip_writeout == True:
-            if save_input == True:
+        if skip_writeout:
+            if save_input:
                 log.warning(
                     "No input will be written out, as the "
                     "skip_writeout kwarg indicates no writeout."
                 )
-            if create_db == True:
+            if create_db:
                 log.warning(
                     "No database will be created, as the "
                     "skip_writeout kwarg indicates no writeout."
@@ -348,7 +348,7 @@ class IO:
 
                 copy(self.input_path, os.path.join(outpath, versioned_filename))
 
-            if create_db == True:
+            if create_db:
                 try:
                     db_res = self.create_db(
                         dict_of_dfs,
@@ -363,7 +363,7 @@ class IO:
 
                     log.error(msg.format(self.input_path))
 
-        if set_first_col_as_index != False:
+        if set_first_col_as_index:
             dict_of_dfs = self.first_col_to_index(
                 dict_of_dfs, table_names=set_first_col_as_index, drop=True
             )
@@ -392,10 +392,10 @@ class IO:
         res["outpath"] = outpath
         res["run_tag"] = run_tag
 
-        if skip_writeout == False and create_db == True:
+        if not skip_writeout and create_db:
             res.update(db_res)
 
-        if clean_labels == True:
+        if clean_labels:
             input_tables_list = res["tables_as_dict_of_dfs"]
 
             for table in input_tables_list:
@@ -806,7 +806,7 @@ class IO:
                 the index has been set
 
         """
-        if table_names == True:
+        if table_names is True:
             msg = "Converting first column to index for all inputs."
             log.info(msg.format(table_names))
             table_names = dict_of_dfs.keys()
@@ -815,7 +815,7 @@ class IO:
             msg = "Converting first column to index for {} tables."
             log.info(msg.format(table_names))
 
-        elif table_names == False:
+        elif table_names is False:
             pass
 
         else:
