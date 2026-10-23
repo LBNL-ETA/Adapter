@@ -148,10 +148,15 @@ class Excel:
 
         for k, df in dict_of_dfs.items():
             # xlwings-based Excel class converted all numbers to float types.
-            # The code below maintains backward compatibility
+            # The code below maintains backward compatibility.
+            # Only numpy dtypes are numeric here; pandas extension dtypes, such
+            # as the str dtype of text columns in pandas 3, can't be passed to
+            # numpy and are left unchanged.
             df = df.astype(
                 {
-                    k: float if np.issubdtype(v, np.number) else v
+                    k: float
+                    if isinstance(v, np.dtype) and np.issubdtype(v, np.number)
+                    else v
                     for k, v in df.dtypes.items()
                 }
             )
