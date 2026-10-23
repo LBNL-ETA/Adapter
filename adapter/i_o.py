@@ -12,7 +12,7 @@ import pandas as pd
 
 from adapter.comm.tools import convert_network_drive_path, mark_time
 from adapter.label_map import Labels
-from adapter.to_python import Excel, Db, Db_sqlalchemy, Debugger
+from adapter.to_python import Db, Db_sqlalchemy, Debugger, Excel
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)

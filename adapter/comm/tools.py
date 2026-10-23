@@ -1,9 +1,9 @@
 import os
 import re
 import sys
-from datetime import datetime
-from pathlib import PureWindowsPath, PurePosixPath
 import tkinter as tk
+from datetime import datetime
+from pathlib import PurePosixPath, PureWindowsPath
 from tkinter import filedialog as fd
 
 

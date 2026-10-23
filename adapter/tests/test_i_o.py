@@ -12,7 +12,7 @@ import pandas as pd
 import pytest
 from pandas.testing import assert_frame_equal
 
-from adapter.i_o import IO, to_pickle, from_pickle
+from adapter.i_o import IO, from_pickle, to_pickle
 
 logging.basicConfig(level=logging.DEBUG)
 

@@ -1,15 +1,12 @@
 import logging
-import os
 import traceback
-import openpyxl
 
 import numpy as np
+import openpyxl
 import pandas as pd
-from sqlalchemy import create_engine, MetaData
+from sqlalchemy import MetaData, create_engine
 
 from adapter.comm.tools import process_column_labels
-
-import logging
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
