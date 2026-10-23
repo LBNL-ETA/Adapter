@@ -69,6 +69,8 @@ dedicated changes.
   pandas 3.x. This blocks the planned pandas upgrade.
 - **Reproduce:** `uv run pytest adapter/tests/test_i_o.py -k to_numeric`
   → `FutureWarning: errors='ignore' is deprecated ...`.
+- **Status:** Resolved on branch `upgrade_pandas_3` together with #21: `to_numeric`
+  conversion no longer passes `errors="ignore"` (removed in pandas 3.0); see #21.
 
 ## 6. Duplicate table from a CSV input silently overwrites an existing table
 
@@ -253,6 +255,13 @@ dedicated changes.
 - **Reproduce:** a db table `mixed` with columns `a=["1","2"]`, `b=["x","y"]` →
   `load(skip_writeout=True, to_numeric=["mixed"])` → column `a` stays `object`.
 - **Expected:** to be decided; likely column-wise conversion of convertible columns.
+- **Status:** Resolved on branch `upgrade_pandas_3` (decision: column by column). Each
+  column of a listed table is converted with `pd.to_numeric` if all its values are numeric
+  and left unchanged otherwise (only `ValueError`/`TypeError` are caught). Mixed tables now
+  get their numeric columns converted, and integer text becomes `int64` instead of
+  `float64`. #12 (non-list `to_numeric`, substring matching of table names) is unchanged.
+  Tests: `TestLoadOptions.test_to_numeric_converts_numeric_columns_of_mixed_table` (new),
+  `test_to_numeric_converts_listed_numeric_text_table` (unchanged, still passes).
 
 ## 22. New local absolute paths are rewritten onto the network drive
 

@@ -570,6 +570,24 @@ class TestLoadOptions:
         # tables not listed are left as text
         assert_frame_equal(tables["other"], text_numbers)
 
+    def test_to_numeric_converts_numeric_columns_of_mixed_table(self):
+        """load(to_numeric=[...]) converts each fully numeric column of a listed table
+        and leaves its other columns unchanged.
+        """
+        mixed = pd.DataFrame({"a": ["1", "2"], "b": ["x", "y"]})
+        path = write_db("mixed.db", {"mixed": mixed})
+
+        tables = IO(path).load(skip_writeout=True, to_numeric=["mixed"])[
+            "tables_as_dict_of_dfs"
+        ]
+
+        assert pd.api.types.is_integer_dtype(tables["mixed"]["a"])
+        assert tables["mixed"]["a"].tolist() == [1, 2]
+        assert_frame_equal(
+            tables["mixed"][["b"]],
+            IO(path).load(skip_writeout=True)["tables_as_dict_of_dfs"]["mixed"][["b"]],
+        )
+
     def test_column_labels_are_cleaned_by_default(self):
         """load() strips column labels and collapses repeated spaces (clean_labels=True)."""
         # the Excel table's raw labels are ' label 1 ' and 'label 2 '

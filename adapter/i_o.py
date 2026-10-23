@@ -406,9 +406,7 @@ class IO:
 
             for key in dict_of_dfs:
                 if any(key in tb_nm for tb_nm in to_numeric):
-                    dict_of_dfs[key] = dict_of_dfs[key].apply(
-                        pd.to_numeric, errors="ignore", axis=1
-                    )
+                    dict_of_dfs[key] = dict_of_dfs[key].apply(_to_numeric_if_possible)
 
         res = {}
         res["tables_as_dict_of_dfs"] = dict_of_dfs
@@ -890,6 +888,15 @@ class IO:
         ]
 
         return list_of_cleaned_labels
+
+
+def _to_numeric_if_possible(column):
+    """Converts a column to a numeric dtype if all its values are numeric,
+    otherwise returns it unchanged."""
+    try:
+        return pd.to_numeric(column)
+    except (ValueError, TypeError):
+        return column
 
 
 def to_pickle(obj, out_path):
