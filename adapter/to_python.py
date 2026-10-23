@@ -80,10 +80,10 @@ class Excel:
 
         if isinstance(data_object_names, list):
             data_object_names = set(data_object_names)
-            missings = data_object_names - all_input_objects
-            if len(missings) > 0:
+            missing = data_object_names - all_input_objects
+            if len(missing) > 0:
                 raise ValueError(
-                    f"{missings} not found in the input file {self.file_path}."
+                    f"{missing} not found in the input file {self.file_path}."
                 )
 
         elif data_object_names is None or np.isnan(data_object_names):
@@ -287,7 +287,7 @@ class Db:
             )
         if self.pre_existing_keys is not None:
             # check for duplicates in tables_names,
-            # if table_names == None, check for duplcates for all the tables
+            # if table_names == None, check for duplicates for all the tables
             Debugger.check_for_duplicates(self.pre_existing_keys, table_names or keys)
             # skip pre_existing_keys
         if table_names is not None:

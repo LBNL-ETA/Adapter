@@ -665,7 +665,7 @@ class IO:
                         index=False,
                     )
                 except Exception as err:
-                    msg = "An error occurred when writting {} table to a db {}."
+                    msg = "An error occurred when writing {} table to a db {}."
                     log.error(msg.format(table_name, db_path))
                     raise ValueError from err
 
@@ -692,7 +692,7 @@ class IO:
         """Writes all dataframes from a dictionary of dataframes
         out into an existing database.
 
-        Paramters:
+        Parameters:
 
             type: str
                 String to indicate type of output
@@ -725,7 +725,7 @@ class IO:
                 'db_conn' - database connection
 
                 Set to None if passing the data, db
-                connection and run tag explicitely through
+                connection and run tag explicitly through
                 other kwargs. This functionality can
                 be used when the `load` method was not called.
 
@@ -881,7 +881,7 @@ class IO:
         Returns:
 
             list_of_cleaned_labels: list
-                A list with cleaned lables
+                A list with cleaned labels
         """
         list_of_labels = [str(x) for x in list_of_labels]
 

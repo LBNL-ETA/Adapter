@@ -25,7 +25,7 @@ class Sql:
 
         if isinstance(path_OR_dbconn, str):
             try:
-                # for aboslute or mounted paths
+                # for absolute or mounted paths
                 self.db = sqlite3.connect(path_OR_dbconn)
             except Exception:
                 # for paths relative to run path
@@ -53,7 +53,7 @@ class Sql:
         Returns:
 
             data: dict of pandas dataframes
-                Saves each of the sql tabels as a
+                Saves each of the sql tables as a
                 pandas dataframe under a sql table
                 name as a key
         """
@@ -166,7 +166,7 @@ class Sql:
         Parameters:
 
             sql_command: string
-                sql_command to exectute
+                sql_command to execute
 
         Returns:
 
