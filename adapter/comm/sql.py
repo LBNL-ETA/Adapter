@@ -7,8 +7,6 @@ import pandas as pd
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
-from pdb import set_trace as bp
-
 
 class Sql:
     """Performs python-sqlite db communication.

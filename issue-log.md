@@ -270,6 +270,7 @@ dedicated changes.
 - **Reproduce:** `uv run ruff check adapter/comm/sql.py --select F401` → `F401 'pdb.set_trace' imported but unused`;
   `uv run pre-commit run debug-statements --files adapter/comm/sql.py` (after hooks are set up) fails.
 - **Expected:** the import is removed.
+- **Status:** Resolved. The import is removed (`bp` was never used). No test changes needed.
 
 ## 25. Invalid escape sequences in string literals
 
