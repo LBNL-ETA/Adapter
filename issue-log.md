@@ -138,6 +138,12 @@ dedicated changes.
   `IO("adapter/tests/inputs/test.db").load(db_flavor="postgres")` →
   `UnboundLocalError: cannot access local variable 'db_res'`.
 - **Expected:** the original exception propagates (or a clear error is raised).
+- **Status:** Resolved on branch `fix_pyrefly_errors`. `IO.load()` logs and then raises
+  `ValueError("Not able to create a db ...")` from the original error (decision: raise rather
+  than continue). `IO.create_db()` raises `ValueError("Unsupported db flavor ...")` for any
+  flavor but `"sqlite"`, before creating anything. Tests:
+  `TestLoadOutput.test_raises_when_db_cannot_be_created`,
+  `TestHelpers.test_create_db_raises_for_unsupported_flavor`.
 
 ## 12. `to_numeric` passed as a string is silently ignored
 

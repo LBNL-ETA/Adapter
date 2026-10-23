@@ -337,6 +337,9 @@ class IO:
         if skip_writeout:
             outpath += "_will_not_be_used"
 
+        # db_path and db_conn, when a db gets written
+        db_res = {}
+
         if not skip_writeout:
             if not os.path.exists(outpath):
                 os.makedirs(outpath)
@@ -363,10 +366,11 @@ class IO:
                         close=close_db,
                     )
 
-                except Exception:
+                except Exception as err:
                     msg = "Not able to create a db of tables that were read in from {}."
 
                     log.error(msg.format(self.input_path))
+                    raise ValueError(msg.format(self.input_path)) from err
 
         if set_first_col_as_index:
             dict_of_dfs = self.first_col_to_index(
@@ -397,8 +401,7 @@ class IO:
         res["outpath"] = outpath
         res["run_tag"] = run_tag
 
-        if not skip_writeout and create_db:
-            res.update(db_res)
+        res.update(db_res)
 
         if clean_labels:
             input_tables_list = res["tables_as_dict_of_dfs"]
@@ -616,6 +619,10 @@ class IO:
         else:
             if flavor == "sqlite":
                 db_out_type = ".db"
+            else:
+                raise ValueError(
+                    f"Unsupported db flavor {flavor!r}; only 'sqlite' is implemented."
+                )
 
             if not os.path.exists(outpath):
                 os.makedirs(outpath)

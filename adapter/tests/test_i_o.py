@@ -388,6 +388,15 @@ class TestLoadOutput:
 
         assert caplog.text == ""
 
+    def test_raises_when_db_cannot_be_created(self):
+        """load() raises ValueError, caused by the original error, when the run db
+        can't be created (here: an unsupported db_flavor).
+        """
+        with pytest.raises(ValueError, match="Not able to create a db") as exc_info:
+            IO(TEST_XLSX).load(db_flavor="postgres")
+
+        assert isinstance(exc_info.value.__cause__, ValueError)
+
     def test_long_timestamp_format(self):
         """load(ts_format="long") uses a `YYYY_MM_DD_HHh_MMm` timestamp in the run tag."""
         res = IO(TEST_XLSX).load(skip_writeout=True, ts_format="long")
@@ -719,6 +728,17 @@ class TestHelpers:
             IO(None).create_db({"t": df}, run_tag="r1")
 
         assert exc_info.value.__cause__ is not None
+
+    def test_create_db_raises_for_unsupported_flavor(self):
+        """IO.create_db() raises ValueError for a flavor other than sqlite, before
+        writing anything.
+        """
+        with pytest.raises(ValueError, match="Unsupported db flavor"):
+            IO(None).create_db(
+                {"t": pd.DataFrame({"a": [1]})}, run_tag="r1", flavor="postgres"
+            )
+
+        assert os.listdir(os.getcwd()) == []
 
     def test_create_db_skip_writeout(self):
         """IO.create_db(skip_writeout=True) writes nothing and returns placeholder values."""
