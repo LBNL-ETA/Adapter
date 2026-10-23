@@ -74,9 +74,7 @@ class Excel:
         # check if any name in data_object_names not in excel file
         all_input_ranges = set(self.wb.defined_names.keys())
         all_input_tables = {
-            object_table
-            for ws in self.wb.worksheets
-            for object_table in ws.tables.keys()
+            object_table for ws in self.wb.worksheets for object_table in ws.tables
         }
         all_input_objects = all_input_ranges | all_input_tables
 
@@ -100,7 +98,7 @@ class Excel:
             msg = "Neither named tables nor named ranges found in the input file {}."
             log.info(msg.format(self.file_path))
 
-        dict_of_dfs = dict()
+        dict_of_dfs = {}
         if kind not in ["all", "ranges", "tables"]:
             raise ValueError(f"An unsupported value provided for kwarg kind {kind}.")
         # get named ranges
@@ -291,7 +289,7 @@ class Db:
         if table_names is not None:
             # only import given table names
             keys = keys & set(table_names)
-        dict_of_dfs = dict()
+        dict_of_dfs = {}
         for t in keys:
             dict_of_dfs[t] = pd.read_sql_table(f"{t}", con=con_str)
         return dict_of_dfs
@@ -317,7 +315,7 @@ class Db_sqlalchemy:
             from adapter.Secret import database_credentials
         except:
             raise ValueError(
-                """You must define your "Secret.py" file within the adapter folder.  
+                """You must define your "Secret.py" file within the adapter folder.
                                 Replace the example "Secret_example.py" with your credentials"""
             )
 
@@ -344,7 +342,7 @@ class Db_sqlalchemy:
         """
 
         try:
-            dict_of_dfs = dict()
+            dict_of_dfs = {}
             for table_name in table_names:
                 sql_string = f"SELECT * FROM {table_name}"
                 dict_of_dfs[table_name] = pd.read_sql(con=self.engine, sql=sql_string)
@@ -398,10 +396,9 @@ class Debugger:
 
         else:
             try:
-                if pre_existing_keys is not None:
-                    if table_names in pre_existing_keys:
-                        # log.error(msg.format(name))
-                        raise ValueError
+                if pre_existing_keys is not None and table_names in pre_existing_keys:
+                    # log.error(msg.format(name))
+                    raise ValueError
             except:
                 msg = "Unexpected table_name ({}) format."
                 log.error(msg.format(table_names))

@@ -226,9 +226,9 @@ class IO:
         # are there any further input files?
         # if that is the case, the file paths and further info
         # should be placed in an `inputs_from_files` table
-        qry_flags = dict()
+        qry_flags = {}
 
-        if self.la["extra_files"] in dict_of_dfs.keys():
+        if self.la["extra_files"] in dict_of_dfs:
             extra_files = dict_of_dfs[self.la["extra_files"]].reset_index()
 
             for inx in extra_files.index:
@@ -271,7 +271,7 @@ class IO:
 
             run_params_table = []
 
-            for key in dict_of_dfs.keys():
+            for key in dict_of_dfs:
                 if self.la["run_pars"] in key:
                     msg = "Identified run parameters table named {}"
                     log.info(msg.format(key))
@@ -303,12 +303,11 @@ class IO:
 
                 version = dict_of_dfs[run_params_table[0]].loc[0, self.la["version"]]
 
-                if not isinstance(version, str):
-                    # if it was read in as a number, as occurs in the test_input.xlsx on OSX
-                    if str(version).endswith(".0"):
-                        # Assume that the only case is when version "123" got read in as number "123.0"
-                        # period will be removed next
-                        version = str(version).rstrip("0")
+                # if it was read in as a number, as occurs in the test_input.xlsx on OSX
+                if not isinstance(version, str) and str(version).endswith(".0"):
+                    # Assume that the only case is when version "123" got read in as number "123.0"
+                    # period will be removed next
+                    version = str(version).rstrip("0")
 
                 # Removing '.', '\', '/' characters from version
                 # to avoid any errors during writing output
@@ -381,21 +380,20 @@ class IO:
                 )
                 log.error(msg.format(to_numeric))
 
-            for key in dict_of_dfs.keys():
-                if any([key in tb_nm for tb_nm in to_numeric]):
+            for key in dict_of_dfs:
+                if any(key in tb_nm for tb_nm in to_numeric):
                     dict_of_dfs[key] = dict_of_dfs[key].apply(
                         pd.to_numeric, errors="ignore", axis=1
                     )
 
-        res = dict()
+        res = {}
         res["tables_as_dict_of_dfs"] = dict_of_dfs
 
         res["outpath"] = outpath
         res["run_tag"] = run_tag
 
-        if skip_writeout == False:
-            if create_db == True:
-                res.update(db_res)
+        if skip_writeout == False and create_db == True:
+            res.update(db_res)
 
         if clean_labels == True:
             input_tables_list = res["tables_as_dict_of_dfs"]
@@ -461,7 +459,7 @@ class IO:
         file_path = convert_network_drive_path(file_path, mapping=self.os_mapping)
 
         if file_path is None:
-            dict_of_dfs = dict()
+            dict_of_dfs = {}
 
         elif isinstance(file_path, str):
             file_type = self.get_file_type(file_path)
@@ -514,7 +512,7 @@ class IO:
                     )
 
             elif file_type == "text":
-                dict_of_dfs = dict()
+                dict_of_dfs = {}
 
                 filename_to_tablename = ntpath.basename(file_path)
                 filename_to_tablename = re.split(r"\.", filename_to_tablename)[0]
@@ -622,7 +620,7 @@ class IO:
             db_con = sqlite3.connect(db_path)
 
             # write all input tables in the db
-            for table_name in dict_of_dfs.keys():
+            for table_name in dict_of_dfs:
                 try:
                     dict_of_dfs[table_name].to_sql(
                         name=table_name,
@@ -751,8 +749,6 @@ class IO:
             raise ValueError
 
         if "db" in type:
-            close = close_db
-
             if db_conn is None:
                 msg = "Missing db connection."
                 log.error(msg)
@@ -771,7 +767,7 @@ class IO:
             if not os.path.exists(outpath):
                 os.mkdir(outpath)
 
-            for key in data_as_dict_of_dfs.keys():
+            for key in data_as_dict_of_dfs:
                 df_to_write = data_as_dict_of_dfs[key]
 
                 df_to_write.to_csv(
@@ -827,8 +823,8 @@ class IO:
             log.error(msg.format(table_names))
             raise ValueError
 
-        res = dict()
-        for x in dict_of_dfs.keys():
+        res = {}
+        for x in dict_of_dfs:
             if x in table_names:
                 col = dict_of_dfs[x].columns[0]
                 res[x] = dict_of_dfs[x].copy().set_index(col, drop=True)

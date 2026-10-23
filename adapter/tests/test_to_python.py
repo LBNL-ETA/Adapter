@@ -204,5 +204,5 @@ class TestDbSqlalchemy:
         # regardless of whether a local Secret.py exists
         monkeypatch.setitem(sys.modules, "adapter.Secret", None)
 
-        with pytest.raises(ValueError, match="Secret.py"):
+        with pytest.raises(ValueError, match=r"Secret\.py"):
             Db_sqlalchemy("server.lbl.gov/database")

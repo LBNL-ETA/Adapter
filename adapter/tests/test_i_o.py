@@ -242,14 +242,14 @@ class TestPickle:
     def test_from_pickle_non_existing_file(self):
         """from_pickle() raises FileNotFoundError for a missing file."""
         with pytest.raises(FileNotFoundError):
-            result = from_pickle("non_existing_file.pkl.gz")
+            from_pickle("non_existing_file.pkl.gz")
 
     def test_from_pickle_empty_file(self):
         """from_pickle() raises EOFError for an empty gzip file."""
-        with gzip.open("empty.pkl.gz", "wb") as f:
+        with gzip.open("empty.pkl.gz", "wb"):
             pass
         with pytest.raises(EOFError):
-            result = from_pickle("empty.pkl.gz")
+            from_pickle("empty.pkl.gz")
 
 
 # Tests of the IO public API below run in a fresh temporary working

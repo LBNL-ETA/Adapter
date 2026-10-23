@@ -63,7 +63,7 @@ class Sql:
         cursor = self.db.cursor()
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
         tables = cursor.fetchall()
-        data = dict()
+        data = {}
         for table_name in tables:
             table_name = table_name[0]
             data[table_name] = pd.read_sql_query(
