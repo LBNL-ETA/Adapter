@@ -270,3 +270,27 @@ dedicated changes.
 - **Reproduce:** `uv run ruff check adapter/comm/sql.py --select F401` → `F401 'pdb.set_trace' imported but unused`;
   `uv run pre-commit run debug-statements --files adapter/comm/sql.py` (after hooks are set up) fails.
 - **Expected:** the import is removed.
+
+## 25. Invalid escape sequences in string literals
+
+- **File:** `adapter/i_o.py:88`, `:343`, `:344`, `:520` (regex patterns `"\."`);
+  `adapter/comm/tools.py:99`, `:107` (Windows paths in the `get_mount_point_len` docstring)
+- **Problem:** `"\."` is not a valid Python escape sequence. Python 3.12 treats it as a
+  backslash and a dot (so the regexes work) but emits `SyntaxWarning: invalid escape
+  sequence` when compiling the module, and a future Python version will make it a
+  `SyntaxError`, at which point `adapter.i_o` can't be imported. Found when
+  reformatting forced recompilation and the warnings appeared in the pytest output.
+- **Reproduce:** `uv run ruff check . --select W605` → 6 findings; or
+  `python -W error::SyntaxWarning -c "import ast; ast.parse(open('adapter/i_o.py').read())"`.
+- **Expected:** raw strings (`r"\."`), which compile to the same values without warnings
+  (ruff's W605 fix).
+
+## 26. `adapter/tests/__init__.py` imports the `comm` test module
+
+- **File:** `adapter/tests/__init__.py:1`
+- **Problem:** `import adapter.comm.tests.test_sql` was added (commit `f3fc051`) so that
+  `python -m unittest discover` would find the `comm` tests. With pytest, those tests are
+  collected through `testpaths`, so the import only makes importing `adapter.tests`
+  also import (and configure logging in) `test_sql`.
+- **Reproduce:** `python -c "import adapter.tests, sys; print('adapter.comm.tests.test_sql' in sys.modules)"` → `True`.
+- **Expected:** an empty `__init__.py`.
