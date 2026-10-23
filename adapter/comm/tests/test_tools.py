@@ -8,6 +8,7 @@ from adapter.comm.tools import (
     convert_network_drive_path,
     get_mount_point_len,
     mark_time,
+    process_column_labels,
 )
 
 
@@ -224,6 +225,17 @@ class Test:
             },
         )
         assert dir2 == "/Volumes/Abc/First_Level/Second_Level/Third_Level/input"
+
+    def test_process_column_labels(self):
+        """process_column_labels() strips string labels and collapses repeated spaces,
+        leaving other labels unchanged.
+        """
+        assert process_column_labels([" a   b ", "c ", 1, None]) == [
+            "a b",
+            "c",
+            1,
+            None,
+        ]
 
     def test_mark_time(self):
         """mark_time() returns `<prefix>_<timestamp>` in the short or long format, and

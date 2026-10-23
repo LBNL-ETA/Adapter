@@ -108,6 +108,15 @@ class ExcelTest:
             "xlsx_single_value_named_range",
         }
 
+    def test_load_cleans_column_labels(self):
+        """Excel.load() strips column labels and collapses repeated spaces."""
+        exl = Excel(
+            os.path.join(os.path.dirname(__file__), "inputs", "test_labels.xlsx")
+        )
+
+        # the raw labels are " label 1 " and "label 2 "
+        assert list(exl.load()["Table1"].columns) == ["label 1", "label 2"]
+
     def test_load_raises_for_names_not_in_file(self):
         """Excel.load() raises ValueError when a requested name isn't in the workbook."""
         with pytest.raises(ValueError, match="not found in the input file"):

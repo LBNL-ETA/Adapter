@@ -159,6 +159,10 @@ dedicated changes.
   `IO.process_column_labels`, but `clean_labels=False` and direct `Excel` users get raw labels.
 - **Reproduce:** `process_column_labels(["  a   b "])` → `["  a   b "]`.
 - **Expected:** `["a b"]` (presumably `isinstance(lbl, str)` was intended).
+- **Status:** Resolved on branch `fix_pyrefly_errors`: `isinstance(lbl, str)`. Excel tables now
+  have cleaned labels when loaded, including with `IO.load(clean_labels=False)` (CSV and db
+  inputs still keep their raw labels then). Tests: `Test.test_process_column_labels`,
+  `ExcelTest.test_load_cleans_column_labels`; golden fixtures unchanged.
 
 ## 14. `IO.write` returns `None`, docstring says `True`
 

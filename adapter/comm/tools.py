@@ -21,7 +21,8 @@ def process_column_labels(list_of_labels):
             A list with cleaned lables
     """
     list_of_cleaned_labels = [
-        re.sub(" +", " ", lbl.strip()) if lbl is str else lbl for lbl in list_of_labels
+        re.sub(" +", " ", lbl.strip()) if isinstance(lbl, str) else lbl
+        for lbl in list_of_labels
     ]
 
     return list_of_cleaned_labels
