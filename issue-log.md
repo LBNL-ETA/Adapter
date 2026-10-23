@@ -294,3 +294,17 @@ dedicated changes.
   also import (and configure logging in) `test_sql`.
 - **Reproduce:** `python -c "import adapter.tests, sys; print('adapter.comm.tests.test_sql' in sys.modules)"` → `True`.
 - **Expected:** an empty `__init__.py`.
+
+## 27. `Db_sqlalchemy.load()` fails unless `Query Only` flags are given
+
+- **File:** `adapter/to_python.py:338-365` (`Db_sqlalchemy.load`), `adapter/i_o.py:497-499`, `:543-548`
+- **Problem:** the docstring says `table_names=None` loads all tables, but the method
+  iterates `for table_name in table_names`, which raises `TypeError` for `None`; the bare
+  `except` turns it into `ValueError("Failed to read input tables ...")`. `IO.get_tables`
+  passes `table_names_for_conn`, which is `None` unless the `inputs_from_files` row has
+  `Query Only` flags, so a sqlalchemy input without flags always fails. Also flagged by
+  pyrefly (`Type None is not iterable`). Found by reading the code; not reproduced
+  (needs a Postgres server).
+- **Reproduce:** with a reachable server and `adapter/Secret.py`, an `inputs_from_files`
+  row `<host>.lbl.gov/<db>,,` (no table names or flags) → `ValueError`.
+- **Expected:** `None` loads all tables, as documented (or a clear error asking for table names).
