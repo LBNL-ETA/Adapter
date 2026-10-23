@@ -392,3 +392,16 @@ and the effect on the tests.
   (`unbound-name`).
 - **Status:** Resolved. Both variables are set to `None` before their `try`, so the
   message always builds (it says "None" in that rare case). No test changes needed.
+
+## 31. Temporary pyrefly ignores
+
+- **File:** `pyproject.toml`, `[tool.pyrefly]` section
+- **What:** two settings, added with explicit approval, that hide pyrefly errors:
+  - `project-excludes = ["adapter/comm/excel.py"]`: pyrefly doesn't check the unused
+    xlwings module (21 errors, including 4 undefined names). Remove when `excel.py` is
+    deleted or fixed (#16).
+  - `ignore-missing-imports = ["adapter.Secret"]`: pyrefly doesn't report the import of the
+    git-ignored credentials file in `Db_sqlalchemy.__init__`. Remove if credentials
+    loading is restructured (e.g. with #27).
+- **To remove:** delete the line from `[tool.pyrefly]` and run `uv run pyrefly check` to
+  see the errors it was hiding.

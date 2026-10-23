@@ -92,3 +92,8 @@ skip = "uv.lock,*.svg,*.ipynb"
 
 [tool.pyrefly]
 project-includes = ["adapter"]
+# Temporary ignores; remove each once its issue is resolved (issue-log.md #31):
+# - comm/excel.py: unused xlwings module, kept for now (#16)
+project-excludes = ["adapter/comm/excel.py"]
+# - adapter.Secret: credentials file that is git-ignored by design (#27, #31)
+ignore-missing-imports = ["adapter.Secret"]
