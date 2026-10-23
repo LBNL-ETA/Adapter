@@ -4,7 +4,7 @@ import traceback
 import numpy as np
 import openpyxl
 import pandas as pd
-from sqlalchemy import MetaData, create_engine
+from sqlalchemy import MetaData, create_engine, inspect
 
 from adapter.comm.tools import process_column_labels
 
@@ -346,6 +346,10 @@ class Db_sqlalchemy:
         """
 
         try:
+            if table_names is None:
+                # load all tables in the database
+                table_names = inspect(self.engine).get_table_names()
+
             dict_of_dfs = {}
             for table_name in table_names:
                 sql_string = f"SELECT * FROM {table_name}"

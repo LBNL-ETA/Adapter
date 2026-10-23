@@ -344,6 +344,12 @@ dedicated changes.
 - **Reproduce:** with a reachable server and `adapter/Secret.py`, an `inputs_from_files`
   row `<host>.lbl.gov/<db>,,` (no table names or flags) → `ValueError`.
 - **Expected:** `None` loads all tables, as documented (or a clear error asking for table names).
+- **Status:** Resolved on branch `fix_pyrefly_errors` (decision: load all tables).
+  `Db_sqlalchemy.load(None)` lists the database's tables with SQLAlchemy's `inspect` and
+  loads them all. Tests: `TestDbSqlalchemy.test_load_without_table_names_loads_all_tables`
+  and `test_load_named_tables`, which run `load()` against `test.db` through a sqlite
+  engine (the loader is created without `__init__`, which needs Postgres credentials).
+  Not yet verified against a real Postgres server.
 
 ## 28. Behavior changes from ruff lint fixes (group B)
 

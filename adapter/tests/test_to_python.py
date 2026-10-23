@@ -7,6 +7,7 @@ import pandas as pd
 import pytest
 from openpyxl.workbook.defined_name import DefinedName
 from pandas._testing import assert_frame_equal
+from sqlalchemy import create_engine
 
 from adapter.to_python import Db, Db_sqlalchemy, Excel
 
@@ -202,9 +203,36 @@ class TestDb:
 
 
 class TestDbSqlalchemy:
-    """to_python.Db_sqlalchemy (Postgres); only the credentials check runs
-    without a database server.
+    """to_python.Db_sqlalchemy (Postgres). Without a database server, load() is
+    tested against the local test.db through a sqlite engine.
     """
+
+    @pytest.fixture
+    def loader(self):
+        """A Db_sqlalchemy loader for test.db, created without __init__ (which needs
+        Postgres credentials)."""
+        file_path = os.path.join(os.path.dirname(__file__), "inputs", "test.db")
+        loader = Db_sqlalchemy.__new__(Db_sqlalchemy)
+        loader.engine = create_engine(f"sqlite:///{file_path}")
+        loader.file_path = file_path
+        loader.pre_existing_keys = None
+        yield loader
+        loader.engine.dispose()
+
+    def test_load_without_table_names_loads_all_tables(self, loader):
+        """Db_sqlalchemy.load() without table names loads every table in the database."""
+        tables = loader.load()
+
+        assert set(tables) == {"table1", "table2", "table3"}
+        expected = Db(loader.file_path).load(table_names=["table1"])["table1"]
+        assert_frame_equal(tables["table1"], expected)
+
+    def test_load_named_tables(self, loader):
+        """Db_sqlalchemy.load(table_names=[...]) loads only the named tables."""
+        assert set(loader.load(table_names=["table1", "table3"])) == {
+            "table1",
+            "table3",
+        }
 
     def test_raises_without_secret_file(self, monkeypatch):
         """Db_sqlalchemy() raises ValueError, caused by the ImportError, when
