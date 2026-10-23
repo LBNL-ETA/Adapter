@@ -2,13 +2,13 @@
 
 The `Adapter Python IO` software provides a convenient data table loader from various formats such as `xlsx`, `csv`, `db (sqlite database)`, and `sqlalchemy`. Its main feature is the ability to convert data tables identified in one main and optionally one or more additional input files into `database tables` and `Pandas DataFrames` for downstream usage in any compatible software.
 
-`Adapter` builds upon the existing Python packages that allow for the communication between `Python` and `MS Excel`, as well as `databases` and `csv` files. It provides inbuilt capabilities to specify the output location path, as well as a version identifier for a research code run. 
+`Adapter` builds upon the existing Python packages that allow for the communication between `Python` and `MS Excel`, as well as `databases` and `csv` files. It provides inbuilt capabilities to specify the output location path, as well as a version identifier for a research code run.
 
 In addition to the loading capability, an instance of the `Adapter` `IO` object has the write capability. If invoked, all loaded tables are written as either a single `database` or a set of `csv` files, or both.
 
 The purpose of this software is to support the development of research and analytical software through allowing for a simple multi-format IO with versioning and output path specification in the input data itself.
 
-The package is supported on `Windows` and `macOS`, as well as for `Linux` for the utilization without any `xlsx` inputs. 
+The package is supported on `Windows` and `macOS`, as well as for `Linux` for the utilization without any `xlsx` inputs.
 
 
 ## Installation
@@ -43,7 +43,7 @@ To automatically convert paths between platforms, for example if you are using a
 ```python
 from adapter.i_o import IO
 
-input_loader = IO(<fullpath_to_the_main_input_file>, 
+input_loader = IO(<fullpath_to_the_main_input_file>,
                                os_mapping={'win32': 'C:', 'darwin': '/Volumes/A', 'linux': '/media/A'})
 data = input_loader.load()
 ```
@@ -91,11 +91,11 @@ i_o.write(type="db&csv", data_connection=data_conn)
 ```
 Depending on the `type` flag, there is an option to writhe only a `db` or a `csv` formatted output.
 
-The `Adapter` also provides an option to only establish a `db` connection to certain tables that are for example large and the user would 
-rather query them instead of having them be loaded as a `Pandas DataFrame`. An example of how to provide such information through the input file is 
+The `Adapter` also provides an option to only establish a `db` connection to certain tables that are for example large and the user would
+rather query them instead of having them be loaded as a `Pandas DataFrame`. An example of how to provide such information through the input file is
 provided in this example input file [`adapter/tests/inputs/inputs_from_files_vTest.csv`](https://github.com/LBNL-ETA/Adapter/blob/master/adapter/tests/inputs/inputs_from_files_vTest.csv).
 
-Those with LBNL VPN access can also use [`API documentation`](https://atcd.lbl.gov/source/adapter.html) to explore the functionality of the modules.  
+Those with LBNL VPN access can also use [`API documentation`](https://atcd.lbl.gov/source/adapter.html) to explore the functionality of the modules.
 
 
 ## Testing
@@ -156,5 +156,5 @@ The initial purpose of this software was to serve certain `Python` analytical to
 
 ## Developers
 
-The codebase was developed at the Energy Efficiency Studies Department by Milica Grahovac, Youness Bennani, Thomas 
+The codebase was developed at the Energy Efficiency Studies Department by Milica Grahovac, Youness Bennani, Thomas
 Burke, Katie Coughlin, Mohan Ganeshalingam, Akhil Mathur, Evan Neill, Robert Hosbach, Akshay Sharma, Zheng He and Lyra Lan.

@@ -1,8 +1,8 @@
 # Guidelines for Contributors
 
-The `Adapter` software is open to contributions from the coder community. 
+The `Adapter` software is open to contributions from the coder community.
 
-The contributors should comply with the 
+The contributors should comply with the
 [University of California Standards of Ethical Conduct](https://policy.ucop.edu/doc/1100172/EthicalValuesandConduct).
 
 The contribution can be a bug fix, an improvement to an existing feature, or a fully new feature. If you wish to contribute any of those please follow this workflow:
