@@ -6,7 +6,7 @@ import openpyxl
 import pandas as pd
 import pytest
 from openpyxl.workbook.defined_name import DefinedName
-from pandas._testing import assert_frame_equal
+from pandas.testing import assert_frame_equal
 from sqlalchemy import create_engine
 
 from adapter.to_python import Db, Db_sqlalchemy, Excel
