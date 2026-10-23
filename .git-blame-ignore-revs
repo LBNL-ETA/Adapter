@@ -1,0 +1,9 @@
+# Whole-file rewrites that `git blame` should skip.
+# Use with: git blame --ignore-revs-file .git-blame-ignore-revs <file>
+# (GitHub applies this file automatically.)
+
+# Normalize line endings to LF
+b12efa2cd2c9d07819b76d943a42354834050c72
+
+# Format code with ruff format
+384115eb804db0a0740a890eca43b9b4567c8176
