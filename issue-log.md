@@ -472,3 +472,13 @@ code that uses `adapterio`:
   passes pandas extension dtypes (e.g. `str`) to `np.issubdtype`. No Copy-on-Write
   problems were found.
 - Tests: all pass on pandas 3.1.0 with every warning treated as an error.
+- **Pandas versions tested** (Python 3.12, with `uv run --with "pandas==X"`, not changing
+  the lock file):
+  - 3.0.0, 3.0.6, 3.1.0: all 105 tests pass. `pandas>=3.0.0` is the lowest bound that
+    passes the full suite.
+  - 2.1.4, 2.2.0 (both need `numpy<2`), 2.2.3, 2.3.0, 2.3.3: 99 pass; the 6 golden tests
+    fail only because text columns load as `object` instead of `str` (on 2.3.3 with
+    `future.infer_string` enabled, all 105 pass, so the data itself is identical).
+  - 2.0.3, 2.1.0: can't be installed on Python 3.12 (no wheels; building from source fails).
+  - Supporting pandas 2 would mean users get `object` or `str` text columns depending on
+    their pandas version, and golden fixtures that depend on the pandas version.
