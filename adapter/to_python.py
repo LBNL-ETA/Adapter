@@ -106,7 +106,7 @@ class Excel:
             try:
                 for name in data_object_names & all_input_ranges:
                     dict_of_dfs[name] = self.get_named_data_object(name)
-            except Exception:
+            except Exception as err:
                 msg = (
                     "Failed to read input named range {}"
                     " from input file {}. "
@@ -116,7 +116,7 @@ class Excel:
                     "and/or further check the data range or table "
                     "definition."
                 )
-                raise ValueError(msg.format(name, self.file_path))
+                raise ValueError(msg.format(name, self.file_path)) from err
 
         # get named tables
         if kind in ["all", "tables"]:
@@ -127,7 +127,7 @@ class Excel:
                             dict_of_dfs[table_name] = self.convert_data_object_to_df(
                                 ws[table_range], table_name
                             )
-            except Exception:
+            except Exception as err:
                 msg = (
                     "Failed to read input named table {}"
                     " from input file {}. "
@@ -137,7 +137,7 @@ class Excel:
                     "and/or further check the data range or table "
                     "definition."
                 )
-                raise ValueError(msg.format(table_name, self.file_path))
+                raise ValueError(msg.format(table_name, self.file_path)) from err
 
         if self.pre_existing_keys is not None:
             Debugger.check_for_duplicates(self.pre_existing_keys, dict_of_dfs.keys())
@@ -313,11 +313,11 @@ class Db_sqlalchemy:
         # Imports in this class so if you don;t need them it will still work
         try:
             from adapter.Secret import database_credentials
-        except ImportError:
+        except ImportError as err:
             raise ValueError(
                 """You must define your "Secret.py" file within the adapter folder.
                                 Replace the example "Secret_example.py" with your credentials"""
-            )
+            ) from err
 
         self.cxn_str = (
             "postgresql://"
@@ -352,11 +352,11 @@ class Db_sqlalchemy:
                     self.pre_existing_keys, dict_of_dfs.keys()
                 )
 
-        except Exception:
+        except Exception as err:
             traceback.print_exc()
             msg = "Failed to read input tables from {}."
             log.error(msg.format(self.file_path))
-            raise ValueError
+            raise ValueError from err
 
         return dict_of_dfs
 

@@ -197,12 +197,14 @@ class TestDbSqlalchemy:
     """
 
     def test_raises_without_secret_file(self, monkeypatch):
-        """Db_sqlalchemy() raises ValueError when adapter/Secret.py (the database
-        credentials) is missing.
+        """Db_sqlalchemy() raises ValueError, caused by the ImportError, when
+        adapter/Secret.py (the database credentials) is missing.
         """
         # a None entry in sys.modules makes `import adapter.Secret` fail,
         # regardless of whether a local Secret.py exists
         monkeypatch.setitem(sys.modules, "adapter.Secret", None)
 
-        with pytest.raises(ValueError, match=r"Secret\.py"):
+        with pytest.raises(ValueError, match=r"Secret\.py") as exc_info:
             Db_sqlalchemy("server.lbl.gov/database")
+
+        assert isinstance(exc_info.value.__cause__, ImportError)

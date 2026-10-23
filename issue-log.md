@@ -351,3 +351,11 @@ and the effect on the tests.
     error instead of the misleading "You must define your Secret.py" `ValueError`.
   - Tests: no changes needed. `TestDbSqlalchemy.test_raises_without_secret_file` still
     passes (a missing module raises `ModuleNotFoundError`, an `ImportError`).
+- **B904, `raise` inside `except` without `from`** (`i_o.py` `create_db`; `to_python.py`
+  `Excel.load` ×2, `Db_sqlalchemy.__init__`, `Db_sqlalchemy.load`): the same `ValueError`s
+  are raised, now `from err`, so the original error is the exception's `__cause__` and the
+  traceback says "The above exception was the direct cause of the following exception"
+  instead of "During handling of the above exception, another exception occurred".
+  Tests: `TestHelpers.test_create_db_raises_when_a_table_cannot_be_written` and
+  `TestDbSqlalchemy.test_raises_without_secret_file` now also assert the cause (both fail
+  on the previous code); their docstrings mention it.

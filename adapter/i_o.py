@@ -628,10 +628,10 @@ class IO:
                         if_exists="replace",
                         index=False,
                     )
-                except Exception:
+                except Exception as err:
                     msg = "An error occurred when writting {} table to a db {}."
                     log.error(msg.format(table_name, db_path))
-                    raise ValueError
+                    raise ValueError from err
 
                 msg = "Wrote tables in a database: {}."
                 log.info(msg.format(db_path))
