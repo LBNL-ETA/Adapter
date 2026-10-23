@@ -3,6 +3,7 @@ import os
 import sqlite3
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -81,6 +82,14 @@ PRIMARY KEY (Component)
     def test_accepts_existing_connection(self):
         """Sql() wraps an already open sqlite3 connection."""
         assert Sql(self.sql_api.db).db is self.sql_api.db
+
+    def test_accepts_str_subclass_path(self):
+        """Sql() accepts a str subclass such as numpy.str_ as a db path."""
+        sql_api = Sql(np.str_(self.test_db_fulpath))
+        try:
+            assert sql_api.pd2table(self.df, "pd2table")
+        finally:
+            sql_api.db.close()
 
     def test_raises_for_unsupported_argument(self):
         """Sql() raises ValueError for anything but a path or a sqlite3 connection."""

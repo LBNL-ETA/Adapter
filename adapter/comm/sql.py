@@ -23,7 +23,7 @@ class Sql:
         # *mig enable this for other db flavors, such
         # as sql db and postgres
 
-        if type(path_OR_dbconn) == str:
+        if isinstance(path_OR_dbconn, str):
             try:
                 # for aboslute or mounted paths
                 self.db = sqlite3.connect(path_OR_dbconn)
@@ -32,7 +32,7 @@ class Sql:
                 path = os.path.join(os.getcwd(), path_OR_dbconn)
                 self.db = sqlite3.connect(path)
 
-        elif type(path_OR_dbconn) == sqlite3.Connection:
+        elif isinstance(path_OR_dbconn, sqlite3.Connection):
             self.db = path_OR_dbconn
         else:
             log.error(

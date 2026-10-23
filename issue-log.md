@@ -315,3 +315,16 @@ dedicated changes.
 - **Reproduce:** with a reachable server and `adapter/Secret.py`, an `inputs_from_files`
   row `<host>.lbl.gov/<db>,,` (no table names or flags) → `ValueError`.
 - **Expected:** `None` loads all tables, as documented (or a clear error asking for table names).
+
+## 28. Behavior changes from ruff lint fixes (group B)
+
+Some ruff findings (outside `adapter/comm/excel.py`) can only be fixed by slightly
+changing behavior. Each was fixed in its own commit; this entry records what changed
+and the effect on the tests.
+
+- **E721, `type(x) == T` → `isinstance(x, T)`** (`adapter/comm/sql.py`, `Sql.__init__`):
+  subclasses are now accepted. A `str` subclass path, e.g. `numpy.str_`, used to raise
+  `ValueError` and now opens the db; a `sqlite3.Connection` subclass (custom `factory=`)
+  is now accepted as a connection. Tests: added
+  `SqlTests.test_accepts_str_subclass_path` (fails on the old code); no existing test
+  changed.
