@@ -248,12 +248,19 @@ class IO:
                 file_path = extra_files.loc[inx, self.la["inpath"]].strip()
 
                 table_names = extra_files.loc[inx, self.la["tbl_nam"]]
+                # blank cells are read as NaN; treat them as not given
+                if not isinstance(table_names, str) and pd.isna(table_names):
+                    table_names = None
 
                 if isinstance(table_names, str):
                     table_names = re.split(",", table_names)
                     table_names = [i.strip() for i in table_names]
 
                 qry_flags[file_path] = extra_files.loc[inx, self.la["query"]]
+                if not isinstance(qry_flags[file_path], str) and pd.isna(
+                    qry_flags[file_path]
+                ):
+                    qry_flags[file_path] = None
 
                 if (qry_flags[file_path] is not None) and isinstance(table_names, str):
                     qry_flags[file_path] = re.split(",", qry_flags[file_path])
@@ -487,29 +494,30 @@ class IO:
                 query_only = [i.strip() for i in query_only]
 
                 if table_names is None:
-                    if len(query_only) != 1:
-                        msg = (
-                            "All tables need to be loaded."
-                            "It is unclear which tables need to "
-                            "only be queried. Please provide a "
-                            "list of table names and query flags "
-                            "of the same length."
-                        )
-                        log.error(msg)
+                    msg = (
+                        f"Query Only flags {query_only} were given for {file_path} "
+                        "without table names. Please list the table names, "
+                        "with one flag per table."
+                    )
+                    log.error(msg)
+                    raise ValueError(msg)
 
-                    elif query_only[0] == "Y":
-                        # query all tables
-                        table_names_to_load = None
-                        table_names_for_conn = table_names
+                if len(query_only) != len(table_names):
+                    msg = (
+                        f"{len(query_only)} Query Only flags were given for "
+                        f"{len(table_names)} table names in {file_path}. "
+                        "Please give one flag per table."
+                    )
+                    log.error(msg)
+                    raise ValueError(msg)
 
-                else:
-                    # identify tables that require database connections
-                    inx = [i != "Y" for i in query_only]
-                    # load only these tables
-                    table_names_to_load = np.array(table_names)[inx].tolist()
-                    # others should be just connected to
-                    not_inx = [not i for i in inx]
-                    table_names_for_conn = np.array(table_names)[not_inx].tolist()
+                # identify tables that require database connections
+                inx = [i != "Y" for i in query_only]
+                # load only these tables
+                table_names_to_load = np.array(table_names)[inx].tolist()
+                # others should be just connected to
+                not_inx = [not i for i in inx]
+                table_names_for_conn = np.array(table_names)[not_inx].tolist()
 
             else:
                 table_names_to_load = table_names

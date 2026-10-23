@@ -122,6 +122,10 @@ dedicated changes.
 - **Reproduce:** `inputs_from_files.csv` with one row `adapter/tests/inputs/test.db,,` →
   `IO(<that csv>).load(skip_writeout=True)` → `TypeError: 'numpy.float64' object is not iterable`.
 - **Expected:** blank means "load all tables", as for Excel and CSV rows.
+- **Status:** Resolved on branch `fix_pyrefly_errors`: `IO.load()` treats blank (NaN)
+  `Table Name` and `Query Only` cells as not given (`None`), so a db row with a blank
+  `Table Name` loads all its tables. Test:
+  `TestLoadInputsFromFiles.test_blank_table_name_loads_all_tables_from_db`.
 
 ## 10. Non-string, non-".0" `Version` in `run_parameters` crashes
 
@@ -279,6 +283,12 @@ dedicated changes.
   `IndexError: too many indices for array: array is 0-dimensional, but 1 were indexed`.
 - **Expected:** to be decided; e.g. a single flag applies to all tables, and multiple flags
   without table names raise a clear `ValueError`.
+- **Status:** Resolved on branch `fix_pyrefly_errors` (decision: flags always need table
+  names). `Query Only` flags without table names raise `ValueError("... without table
+  names ...")`, and a different number of flags and table names raises
+  `ValueError("... one flag per table.")` (it used to fail with a numpy `IndexError`).
+  Tests: `TestLoadInputsFromFiles.test_query_only_flags_without_table_names_raise`,
+  `test_query_only_flag_count_must_match_table_names`.
 
 ## 24. Leftover debugger import in `comm/sql.py`
 

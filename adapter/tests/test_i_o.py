@@ -480,6 +480,28 @@ class TestLoadInputsFromFiles:
 
         assert set(tables) == {"inputs_from_files", "xlsx_table1", "xlsx_table2"}
 
+    def test_blank_table_name_loads_all_tables_from_db(self):
+        """A blank `Table Name` for a db file loads all its tables."""
+        path = write_inputs_from_files([(TEST_DB, None, None)])
+
+        tables = IO(path).load(skip_writeout=True)["tables_as_dict_of_dfs"]
+
+        assert set(tables) == {"inputs_from_files", "table1", "table2", "table3"}
+
+    def test_query_only_flags_without_table_names_raise(self):
+        """`Query Only` flags with a blank `Table Name` raise ValueError."""
+        path = write_inputs_from_files([(TEST_DB, None, "Y")])
+
+        with pytest.raises(ValueError, match="without table names"):
+            IO(path).load(skip_writeout=True)
+
+    def test_query_only_flag_count_must_match_table_names(self):
+        """A different number of `Query Only` flags and table names raises ValueError."""
+        path = write_inputs_from_files([(TEST_DB, "table1, table2", "N")])
+
+        with pytest.raises(ValueError, match="one flag per table"):
+            IO(path).load(skip_writeout=True)
+
     def test_inputs_from_files_table_is_returned(self):
         """The `inputs_from_files` table itself is returned with the loaded tables."""
         rows = [(TEST_DB, "table1", "N")]
