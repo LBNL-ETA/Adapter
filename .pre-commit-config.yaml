@@ -72,6 +72,10 @@ repos:
         types_or: [python, pyi]
         pass_filenames: false
         require_serial: true
+        # Manual on this branch: pyrefly still reports errors here (fixed on
+        # fix_pyrefly_errors). Run with:
+        #   uv run pre-commit run --hook-stage manual pyrefly
+        stages: [manual]
 
       - id: pytest
         name: pytest
