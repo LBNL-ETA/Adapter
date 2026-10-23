@@ -90,7 +90,7 @@ def convert_network_drive_path(
     elif sys.platform == "darwin" or sys.platform == "linux":
         return str(PurePosixPath(mapping[sys.platform]).joinpath(file_path))
     else:
-        raise IOError(f"Not supported OS: {sys.platform}!")
+        raise OSError(f"Not supported OS: {sys.platform}!")
 
 
 def get_mount_point_len(mapping: dict, str_or_path: str) -> int:

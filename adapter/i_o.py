@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 
-class IO(object):
+class IO:
     """Connects to the main input
     file that can be an excel sheet,
     a csv file or a database,

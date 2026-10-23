@@ -10,7 +10,7 @@ log.setLevel(logging.DEBUG)
 from pdb import set_trace as bp
 
 
-class Sql(object):
+class Sql:
     """Performs python-sqlite db communication.
 
     Parameters:
@@ -67,7 +67,7 @@ class Sql(object):
         for table_name in tables:
             table_name = table_name[0]
             data[table_name] = pd.read_sql_query(
-                """ SELECT * FROM '{}' """.format(table_name), self.db
+                f""" SELECT * FROM '{table_name}' """, self.db
             )
 
         if close:
@@ -93,7 +93,7 @@ class Sql(object):
                 Sql table read in as a pandas df.
         """
         df = pd.read_sql(
-            """ SELECT * FROM '{}' """.format(table_name),
+            f""" SELECT * FROM '{table_name}' """,
             self.db,
             index_col=None,
         )

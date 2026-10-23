@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 
-class Excel(object):
+class Excel:
     """Loads bulk named tables
     and ranges from excel to python as
     a dictionary of dataframes.
@@ -41,7 +41,7 @@ class Excel(object):
         )
         self.pre_existing_keys = pre_existing_keys
 
-        log.info("Connected to: {}".format(self.file_path))
+        log.info(f"Connected to: {self.file_path}")
 
     def load(self, data_object_names=None, kind="all"):
         """Grabs all or a subset of named tables and ranges
@@ -241,7 +241,7 @@ class Excel(object):
         return df
 
 
-class Db(object):
+class Db:
     """Loads tables from a sqlite3 database into python
     as a dictionary of dataframes.
 
@@ -283,7 +283,7 @@ class Db(object):
         keys = metadata.tables.keys()
         if len(keys) == 0:
             # check database integrity
-            raise IOError(
+            raise OSError(
                 f"0 table found in the database file! The input file: {self.file_path} may be unsupported or corrupted"
             )
         if self.pre_existing_keys is not None:
@@ -300,7 +300,7 @@ class Db(object):
         return dict_of_dfs
 
 
-class Db_sqlalchemy(object):
+class Db_sqlalchemy:
     """Loads tables from a database using sqlalchemy to python
     as a dictionary of dataframes.
 
@@ -349,7 +349,7 @@ class Db_sqlalchemy(object):
         try:
             dict_of_dfs = dict()
             for table_name in table_names:
-                sql_string = "SELECT * FROM {table}".format(table=table_name)
+                sql_string = f"SELECT * FROM {table_name}"
                 dict_of_dfs[table_name] = pd.read_sql(con=self.engine, sql=sql_string)
 
             if self.pre_existing_keys is not None:
@@ -366,7 +366,7 @@ class Db_sqlalchemy(object):
         return dict_of_dfs
 
 
-class Debugger(object):
+class Debugger:
     @staticmethod
     def check_for_duplicates(pre_existing_keys, table_names):
         """Checks if among data tables already
