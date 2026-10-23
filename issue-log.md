@@ -107,6 +107,12 @@ dedicated changes.
   `IO("x.txt").load(skip_writeout=True)` → `UnboundLocalError: cannot access local variable 'dict_of_dfs'`.
 - **Expected:** `pathlib.Path` is accepted like `str` (common for downstream callers);
   unsupported types/extensions raise a clear `ValueError`/`TypeError`.
+- **Status:** Resolved on branch `fix_pyrefly_errors`. `IO()` and `IO.get_tables()` accept
+  `os.PathLike` (converted with `os.fspath`); `IO()` raises `TypeError` for any other type but
+  `str`/`None`; `get_tables()` raises `ValueError("Unsupported input file type for <path>.")`
+  for unknown extensions (`get_file_type()` still returns `""` for them, so constructing an
+  `IO` doesn't fail). Tests: `TestLoadOptions.test_accepts_pathlib_path`,
+  `test_unsupported_file_extension_raises`, `TestHelpers.test_unsupported_path_type_raises`.
 
 ## 9. Blank "Table Name" for a `.db` row in `inputs_from_files` crashes
 

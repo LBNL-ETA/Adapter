@@ -72,6 +72,14 @@ class IO:
         else:
             self.os_mapping = os_mapping
 
+        if isinstance(path, os.PathLike):
+            path = os.fspath(path)
+        if path is not None and not isinstance(path, str):
+            raise TypeError(
+                f"Unsupported input path type {type(path).__name__}; "
+                "pass a str, an os.PathLike or None."
+            )
+
         path = convert_network_drive_path(path, mapping=os_mapping)
 
         self.input_path = path
@@ -464,6 +472,8 @@ class IO:
                 indicated using the query_only
                 flags, if applicable.
         """
+        if isinstance(file_path, os.PathLike):
+            file_path = os.fspath(file_path)
         file_path = convert_network_drive_path(file_path, mapping=self.os_mapping)
 
         if file_path is None:
@@ -554,9 +564,15 @@ class IO:
                     table_names=table_names_for_conn
                 )
 
+            else:
+                msg = "Unsupported input file type for {}."
+                log.error(msg.format(file_path))
+                raise ValueError(msg.format(file_path))
+
         else:
             msg = "Unsupported value ({}) provided as input file path."
             log.error(msg.format(file_path))
+            raise TypeError(msg.format(file_path))
 
         return dict_of_dfs
 

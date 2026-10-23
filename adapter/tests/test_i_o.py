@@ -3,6 +3,7 @@ import gzip
 import json
 import logging
 import os
+import pathlib
 import pickle
 import re
 import shutil
@@ -554,6 +555,26 @@ class TestLoadOptions:
 
         assert list(tables["Table1"].columns) == ["label 1", "label 2"]
 
+    def test_accepts_pathlib_path(self):
+        """IO accepts a pathlib.Path input and loads the same tables as for a str path."""
+        i_o = IO(pathlib.Path(TEST_DB))
+
+        tables = i_o.load(skip_writeout=True)["tables_as_dict_of_dfs"]
+
+        assert i_o.input_path == TEST_DB
+        expected = IO(TEST_DB).load(skip_writeout=True)["tables_as_dict_of_dfs"]
+        assert sorted(tables) == sorted(expected)
+        for name, df in expected.items():
+            assert_frame_equal(tables[name], df, obj=name)
+
+    def test_unsupported_file_extension_raises(self):
+        """load() raises ValueError naming the file when its extension isn't supported."""
+        with open("data.txt", "w") as f:
+            f.write("a\n1\n")
+
+        with pytest.raises(ValueError, match=r"Unsupported input file type.*data\.txt"):
+            IO(os.path.abspath("data.txt")).load(skip_writeout=True)
+
     def test_load_from_none_returns_no_tables(self):
         """IO(None).load() reads no input: it returns no tables, with the usual result keys."""
         res = IO(None).load()
@@ -670,6 +691,11 @@ class TestHelpers:
     def test_get_file_type(self, path, file_type):
         """IO.get_file_type() maps file extensions (and lbl.gov hosts) to input types."""
         assert IO(None).get_file_type(path) == file_type
+
+    def test_unsupported_path_type_raises(self):
+        """IO() raises TypeError for an input path that isn't a str, os.PathLike or None."""
+        with pytest.raises(TypeError, match="Unsupported input path type"):
+            IO(123)
 
     def test_os_mapping_list_of_tuples_is_converted(self):
         """IO accepts the legacy list-of-tuples os_mapping and converts it to a dict."""
