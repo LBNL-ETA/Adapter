@@ -27,10 +27,11 @@ def process_column_labels(list_of_labels):
     return list_of_cleaned_labels
 
 
-def convert_network_drive_path(
-    str_or_path,
-    mapping={"win32": "X:", "darwin": "/Volumes/A", "linux": "/media/b"},
-):
+# OS -> network drive mount point used when no mapping is passed
+DEFAULT_OS_MAPPING = {"win32": "X:", "darwin": "/Volumes/A", "linux": "/media/b"}
+
+
+def convert_network_drive_path(str_or_path, mapping=None):
     """
     Convert network drive paths from those formatted for one OS into those formatted for another. (works for Windows,
     OSX, Linux)
@@ -41,7 +42,7 @@ def convert_network_drive_path(
             string holding a filepath.
 
         mapping: dict
-            OS, mount point pair.
+            OS, mount point pair. Default: None, which uses DEFAULT_OS_MAPPING.
 
     Returns:
         str_or_path: str
@@ -51,6 +52,8 @@ def convert_network_drive_path(
     Raises:
         Exception: When no mapping is given or running on an unsupported OS
     """
+    if mapping is None:
+        mapping = DEFAULT_OS_MAPPING
     # backwards compatibility
     if not isinstance(mapping, dict):
         # automatically assume list of tuples

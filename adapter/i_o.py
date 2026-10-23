@@ -10,7 +10,7 @@ from shutil import copy
 import numpy as np
 import pandas as pd
 
-from adapter.comm.tools import convert_network_drive_path, mark_time
+from adapter.comm.tools import DEFAULT_OS_MAPPING, convert_network_drive_path, mark_time
 from adapter.label_map import Labels
 from adapter.to_python import Db, Db_sqlalchemy, Debugger, Excel
 
@@ -46,20 +46,25 @@ class IO:
             that provides an output path and a
             version substring.
 
-        mapping: list
-            list of 2-tuples where 0th entry of each
-            tuple is the name of a windows network drive
-            location (e.g. "A:") and the 1st entry is OSX
-            network drive location (e.g. "/Volumes/A").
-            Defaults to [("X:","/Volumes/my_folder")].
+        os_mapping: dict or list
+            Network drive mount point for each OS, as a dict
+            keyed by sys.platform (e.g. {"win32": "X:",
+            "darwin": "/Volumes/A", "linux": "/media/b"}).
+            For backwards compatibility, also accepts a list of
+            2-tuples where the 0th entry of the first tuple is
+            the windows network drive location (e.g. "A:") and
+            the 1st entry is the OSX location (e.g. "/Volumes/A").
+            Defaults to None, which uses
+            adapter.comm.tools.DEFAULT_OS_MAPPING.
 
     """
 
-    def __init__(
-        self,
-        path,
-        os_mapping={"win32": "X:", "darwin": "/Volumes/A", "linux": "/media/b"},
-    ):
+    def __init__(self, path, os_mapping=None):
+        if os_mapping is None:
+            # a new dict for each instance, so changing one IO's mapping
+            # doesn't change the default for others
+            os_mapping = dict(DEFAULT_OS_MAPPING)
+
         # backwards compatibility
         if not isinstance(os_mapping, dict):
             # automatically assume list of tuples

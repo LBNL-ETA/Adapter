@@ -359,3 +359,25 @@ and the effect on the tests.
   Tests: `TestHelpers.test_create_db_raises_when_a_table_cannot_be_written` and
   `TestDbSqlalchemy.test_raises_without_secret_file` now also assert the cause (both fail
   on the previous code); their docstrings mention it.
+- **B006, mutable default arguments** (`IO.__init__` `os_mapping`,
+  `comm.tools.convert_network_drive_path` `mapping`): both now default to `None`, meaning
+  the same mapping as before, now held once in `adapter.comm.tools.DEFAULT_OS_MAPPING`.
+  `IO` copies it per instance, which fixes #29. Visible differences: the signatures show
+  `None` as the default, and `IO(path, os_mapping=None)` now uses the default mapping
+  (it used to raise `TypeError`). The `IO` docstring's `os_mapping` entry was corrected
+  (it named the parameter `mapping` and gave a default that was never used).
+  Tests: added `TestHelpers.test_default_os_mapping_is_not_shared_between_instances`
+  (fails on the old code).
+
+## 29. Default `os_mapping` dict shared by all `IO` instances
+
+- **File:** `adapter/i_o.py:58-68` (`IO.__init__`)
+- **Problem:** the default `os_mapping` was a dict literal in the signature, created once
+  and stored as `self.os_mapping` by every `IO` created without `os_mapping`. Changing
+  one instance's mapping changed the default for every later instance. Found while fixing
+  ruff B006.
+- **Reproduce (before the fix):** `a = IO(None); a.os_mapping["darwin"] = "/Volumes/Changed";
+  IO(None).os_mapping["darwin"]` → `"/Volumes/Changed"`.
+- **Expected:** each instance gets its own copy of the default.
+- **Status:** Resolved with the B006 fix (see #28); covered by
+  `TestHelpers.test_default_os_mapping_is_not_shared_between_instances`.

@@ -669,6 +669,16 @@ class TestHelpers:
         assert i_o.os_mapping["win32"] == "A:"
         assert i_o.os_mapping["darwin"] == "/Volumes/A"
 
+    def test_default_os_mapping_is_not_shared_between_instances(self):
+        """Changing one IO's default os_mapping doesn't change the default for new IOs."""
+        IO(None).os_mapping["darwin"] = "/Volumes/Changed"
+
+        assert IO(None).os_mapping == {
+            "win32": "X:",
+            "darwin": "/Volumes/A",
+            "linux": "/media/b",
+        }
+
     def test_first_col_to_index_raises_for_unsupported_table_names(self):
         """IO.first_col_to_index() raises ValueError for table_names other than a bool or list."""
         with pytest.raises(ValueError):
