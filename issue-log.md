@@ -449,3 +449,23 @@ and the effect on the tests.
     loading is restructured (e.g. with #27).
 - **To remove:** delete the line from `[tool.pyrefly]` and run `uv run pyrefly check` to
   see the errors it was hiding.
+
+## 32. Behavior changes from the pandas 3 upgrade
+
+Branch `upgrade_pandas_3` requires `pandas>=3.0.0` (locked at 3.1.0). What changes for
+code that uses `adapterio`:
+
+- **Dependency:** packages that pin `pandas<3` can no longer install this version.
+- **Text columns** in the loaded tables have pandas' `str` dtype instead of `object`, and
+  their missing values are always `NaN`. Code that checks `dtype == object` must use
+  `pd.api.types.is_string_dtype`. The golden fixtures were regenerated for this (39 dtype
+  entries `object` -> `str`, no value changes).
+- **Copy-on-Write** is always on: chained assignment such as `df["a"][0] = 1` on loaded
+  tables no longer modifies them.
+- **`IO.load(to_numeric=[...])`** converts column by column (#21), since pandas 3 removed
+  `to_numeric(errors="ignore")` (#5).
+- **SQL errors** from `pd.read_sql*`/`to_sql` are raised as `pandas.errors.DatabaseError`.
+- Code changes needed in `adapter`: the numeric-column check in `Excel.load` no longer
+  passes pandas extension dtypes (e.g. `str`) to `np.issubdtype`. No Copy-on-Write
+  problems were found.
+- Tests: all pass on pandas 3.1.0 with every warning treated as an error.

@@ -23,7 +23,7 @@ authors = [
 ]
 keywords = ["data","tables","IO for research computation", "sql", "excel", "csv", "dataframe", "connection"]
 dependencies = [
-    "pandas<3.0.0",
+    "pandas>=3.0.0",
     "xlwings>=0.19.4",
     "psycopg2-binary>=2.8.6",
     "SQLAlchemy>=2.0.0",
