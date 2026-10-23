@@ -94,7 +94,7 @@ def convert_network_drive_path(
 
 
 def get_mount_point_len(mapping: dict, str_or_path: str) -> int:
-    """Get the length of the current mount point.
+    r"""Get the length of the current mount point.
     For example, get_mount_point_len(mapping={'win32': 'X:',
     'darwin': '/Volumes/A', 'linux': '/media/b'}, str_or_path=r'X:\Abc\1.txt') => 2.
     get_mount_point_len(mapping={'win32': 'X:',

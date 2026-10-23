@@ -85,7 +85,7 @@ class IO:
             path : string
                 File path
         """
-        extns = re.split("\.", path)[-1]
+        extns = re.split(r"\.", path)[-1]
 
         # extns = ...
         file_type = ""
@@ -340,8 +340,8 @@ class IO:
             if save_input and isinstance(self.input_path, str):
                 # self.input_path
                 filename = ntpath.basename(self.input_path)
-                filename_extns = re.split("\.", filename)[-1]
-                filename_only = re.split("\.", filename)[0]
+                filename_extns = re.split(r"\.", filename)[-1]
+                filename_only = re.split(r"\.", filename)[0]
 
                 versioned_filename = (
                     filename_only + "_" + run_tag + "." + filename_extns
@@ -517,7 +517,7 @@ class IO:
                 dict_of_dfs = dict()
 
                 filename_to_tablename = ntpath.basename(file_path)
-                filename_to_tablename = re.split("\.", filename_to_tablename)[0]
+                filename_to_tablename = re.split(r"\.", filename_to_tablename)[0]
 
                 Debugger.check_for_duplicates(pre_existing_keys, filename_to_tablename)
 

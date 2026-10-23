@@ -284,6 +284,9 @@ dedicated changes.
   `python -W error::SyntaxWarning -c "import ast; ast.parse(open('adapter/i_o.py').read())"`.
 - **Expected:** raw strings (`r"\."`), which compile to the same values without warnings
   (ruff's W605 fix).
+- **Status:** Resolved. The regex patterns are raw strings (`r"\."`, identical patterns) and
+  the `get_mount_point_len` docstring is a raw string, so its example path now reads
+  `X:\Abc\1.txt` instead of containing a `\x01` character. No test changes needed.
 
 ## 26. `adapter/tests/__init__.py` imports the `comm` test module
 
