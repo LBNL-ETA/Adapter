@@ -27,7 +27,7 @@ class Sql:
             try:
                 # for aboslute or mounted paths
                 self.db = sqlite3.connect(path_OR_dbconn)
-            except:
+            except Exception:
                 # for paths relative to run path
                 path = os.path.join(os.getcwd(), path_OR_dbconn)
                 self.db = sqlite3.connect(path)

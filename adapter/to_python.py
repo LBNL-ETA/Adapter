@@ -106,7 +106,7 @@ class Excel:
             try:
                 for name in data_object_names & all_input_ranges:
                     dict_of_dfs[name] = self.get_named_data_object(name)
-            except:
+            except Exception:
                 msg = (
                     "Failed to read input named range {}"
                     " from input file {}. "
@@ -127,7 +127,7 @@ class Excel:
                             dict_of_dfs[table_name] = self.convert_data_object_to_df(
                                 ws[table_range], table_name
                             )
-            except:
+            except Exception:
                 msg = (
                     "Failed to read input named table {}"
                     " from input file {}. "
@@ -313,7 +313,7 @@ class Db_sqlalchemy:
         # Imports in this class so if you don;t need them it will still work
         try:
             from adapter.Secret import database_credentials
-        except:
+        except ImportError:
             raise ValueError(
                 """You must define your "Secret.py" file within the adapter folder.
                                 Replace the example "Secret_example.py" with your credentials"""
@@ -352,7 +352,7 @@ class Db_sqlalchemy:
                     self.pre_existing_keys, dict_of_dfs.keys()
                 )
 
-        except:
+        except Exception:
             traceback.print_exc()
             msg = "Failed to read input tables from {}."
             log.error(msg.format(self.file_path))
@@ -399,6 +399,6 @@ class Debugger:
                 if pre_existing_keys is not None and table_names in pre_existing_keys:
                     # log.error(msg.format(name))
                     raise ValueError
-            except:
+            except Exception:
                 msg = "Unexpected table_name ({}) format."
                 log.error(msg.format(table_names))

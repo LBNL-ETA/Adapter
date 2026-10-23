@@ -340,3 +340,14 @@ and the effect on the tests.
     for `1`, `0` and numpy booleans, which now raise `ValueError` (`1` used to index all
     tables; `0` hit #17).
   - Tests: no changes needed; existing tests cover `True`, `False` and list values.
+- **E722, bare `except:`** (`comm/sql.py`, `i_o.py`, `to_python.py`):
+  - Seven handlers are now `except Exception:`. The only difference: `KeyboardInterrupt`
+    and `SystemExit` (Ctrl-C, interpreter exit) now propagate instead of being caught,
+    retried or converted to `ValueError`. The handlers behind #6 (`Debugger` swallowing
+    its own `ValueError`) and #11 (`IO.load` swallowing `create_db` failures) keep their
+    current behavior; fixing those stays separate.
+  - The `Secret.py` import in `Db_sqlalchemy.__init__` now catches `ImportError` only. A
+    `Secret.py` that exists but fails to import (e.g. a `NameError` in it) now raises that
+    error instead of the misleading "You must define your Secret.py" `ValueError`.
+  - Tests: no changes needed. `TestDbSqlalchemy.test_raises_without_secret_file` still
+    passes (a missing module raises `ModuleNotFoundError`, an `ImportError`).

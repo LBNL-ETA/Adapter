@@ -358,7 +358,7 @@ class IO:
                         close=close_db,
                     )
 
-                except:
+                except Exception:
                     msg = "Not able to create a db of tables that were read in from {}."
 
                     log.error(msg.format(self.input_path))
@@ -628,7 +628,7 @@ class IO:
                         if_exists="replace",
                         index=False,
                     )
-                except:
+                except Exception:
                     msg = "An error occurred when writting {} table to a db {}."
                     log.error(msg.format(table_name, db_path))
                     raise ValueError
