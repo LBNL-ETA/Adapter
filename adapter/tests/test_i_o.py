@@ -77,6 +77,7 @@ class IOTests:
     """IO.load() and IO.write() on the stored test inputs. Runs from the repo root
     (inputs use repo-relative paths); clean_output removes the output folders.
     """
+
     def setup_method(self):
         self.test_dir = os.path.join(os.path.dirname(__file__), "inputs")
 
@@ -118,7 +119,9 @@ class IOTests:
     def test_load_from_excel_no_run_parameters(self):
         """IO.load() loads an Excel file's tables when it has no `run_parameters` table."""
 
-        path = os.path.join(os.getcwd(), r"adapter/tests/inputs/test_no_run_parameters.xlsx")
+        path = os.path.join(
+            os.getcwd(), r"adapter/tests/inputs/test_no_run_parameters.xlsx"
+        )
         i_o = IO(path)
 
         res = i_o.load()
@@ -140,7 +143,9 @@ class IOTests:
         """IO.write(type="db") writes load()'s tables, or new dataframes, to the run's db,
         recreating the output folder if it was removed.
         """
-        path = os.path.join(os.getcwd(), r"adapter/tests/inputs/inputs_from_files_vTest.csv")
+        path = os.path.join(
+            os.getcwd(), r"adapter/tests/inputs/inputs_from_files_vTest.csv"
+        )
         i_o = IO(path)
         data_conn = i_o.load()
 
@@ -172,7 +177,9 @@ class IOTests:
         """IO.write(type="csv") writes load()'s tables, or new dataframes, as csv files,
         recreating the output folder if it was removed.
         """
-        path = os.path.join(os.getcwd(), r"adapter/tests/inputs/inputs_from_files_vTest.csv")
+        path = os.path.join(
+            os.getcwd(), r"adapter/tests/inputs/inputs_from_files_vTest.csv"
+        )
         i_o = IO(path)
         data_conn = i_o.load()
 
@@ -205,6 +212,7 @@ class TestPickle:
     """to_pickle() and from_pickle() with gzip-compressed pickle files.
     Runs in a temporary working directory (in_tmp_path).
     """
+
     def test_single_object_pickle(self):
         """to_pickle() writes a gzip-compressed pickle that pickle.load() reads back."""
         data = {"name": "John", "age": 30, "city": "New York"}
@@ -249,7 +257,6 @@ class TestPickle:
 # output. Paths passed to write() are kept under that directory (see
 # issue-log.md #22). Code paths with known bugs (issue-log.md) are
 # intentionally not tested here; their tests should come with the fixes.
-
 
 
 def write_inputs_from_files(rows, file_name="inputs_from_files.csv"):
@@ -328,9 +335,9 @@ class TestLoadOutput:
         res = IO(TEST_XLSX).load(close_db=False)
 
         try:
-            (count,) = res["db_conn"].execute(
-                "SELECT COUNT(*) FROM xlsx_table1"
-            ).fetchone()
+            (count,) = (
+                res["db_conn"].execute("SELECT COUNT(*) FROM xlsx_table1").fetchone()
+            )
         finally:
             res["db_conn"].close()
 
@@ -391,6 +398,7 @@ class TestLoadOutput:
 @pytest.mark.usefixtures("in_tmp_path")
 class TestLoadRunParameters:
     """How IO.load() builds the run tag and outpath from `run_parameters`."""
+
     def test_without_run_parameters_uses_cwd_output_folder(self):
         """Without a `run_parameters` table, load() writes to `<cwd>/output` and the run
         tag has no version.
@@ -414,7 +422,9 @@ class TestLoadRunParameters:
         with caplog.at_level(logging.WARNING, logger="adapter.i_o"):
             res = IO(path).load(skip_writeout=True)
 
-        assert {"run_parameters", "run_parameters30"} <= set(res["tables_as_dict_of_dfs"])
+        assert {"run_parameters", "run_parameters30"} <= set(
+            res["tables_as_dict_of_dfs"]
+        )
         assert re.fullmatch(r"v123_" + SHORT_TS, res["run_tag"])
         assert "Additional run parameters table(s)" in caplog.text
 
@@ -430,7 +440,9 @@ class TestLoadRunParameters:
 
     def test_version_dots_and_slashes_are_removed(self):
         """`.`, `/` and `\\` are removed from the version in the run tag."""
-        run_parameters = pd.DataFrame({"Output Path": ["output"], "Version": ["v1.2/3\\4"]})
+        run_parameters = pd.DataFrame(
+            {"Output Path": ["output"], "Version": ["v1.2/3\\4"]}
+        )
         path = write_db("run.db", {"run_parameters": run_parameters})
 
         res = IO(path).load(skip_writeout=True)
@@ -441,11 +453,10 @@ class TestLoadRunParameters:
 @pytest.mark.usefixtures("in_tmp_path")
 class TestLoadInputsFromFiles:
     """IO.load() of an `inputs_from_files` table that lists further input files."""
+
     def test_query_only_tables_are_not_loaded(self):
         """Tables flagged `Query Only` = Y are not loaded."""
-        path = write_inputs_from_files(
-            [(TEST_DB, "table1, table2, table3", "N, Y, N")]
-        )
+        path = write_inputs_from_files([(TEST_DB, "table1, table2, table3", "N, Y, N")])
 
         tables = IO(path).load(skip_writeout=True)["tables_as_dict_of_dfs"]
 
@@ -472,6 +483,7 @@ class TestLoadInputsFromFiles:
 @pytest.mark.usefixtures("in_tmp_path")
 class TestLoadOptions:
     """Other IO.load() options and input handling."""
+
     def test_csv_unnamed_index_column_is_dropped(self):
         """load() drops a CSV's unnamed index column (`Unnamed: 0`)."""
         df = pd.DataFrame({"a": [1, 2], "b": ["x", "y"]})
@@ -500,9 +512,9 @@ class TestLoadOptions:
         """load(set_first_col_as_index=[...]) indexes only the listed tables."""
         expected = IO(TEST_DB).load(skip_writeout=True)["tables_as_dict_of_dfs"]
 
-        tables = IO(TEST_DB).load(skip_writeout=True, set_first_col_as_index=["table1"])[
-            "tables_as_dict_of_dfs"
-        ]
+        tables = IO(TEST_DB).load(
+            skip_writeout=True, set_first_col_as_index=["table1"]
+        )["tables_as_dict_of_dfs"]
 
         assert_frame_equal(tables["table1"], expected["table1"].set_index("column1"))
         assert_frame_equal(tables["table2"], expected["table2"])
@@ -544,6 +556,7 @@ class TestLoadOptions:
 @pytest.mark.usefixtures("in_tmp_path")
 class TestWrite:
     """IO.write() of a dict of dataframes to csv files and/or a sqlite db."""
+
     df = pd.DataFrame({"a": [1, 2], "b": ["x", "y"]})
 
     def test_csv_to_explicit_outpath(self):
@@ -551,7 +564,10 @@ class TestWrite:
         outpath = os.path.join(os.getcwd(), "out")
 
         IO(None).write(
-            type="csv", data_as_dict_of_dfs={"t": self.df}, outpath=outpath, run_tag="r1"
+            type="csv",
+            data_as_dict_of_dfs={"t": self.df},
+            outpath=outpath,
+            run_tag="r1",
         )
 
         written = pd.read_csv(os.path.join(outpath, "t_r1.csv"), index_col=0)
@@ -568,7 +584,9 @@ class TestWrite:
         data_conn = IO(TEST_DB).load()
 
         IO(TEST_DB).write(
-            type="db", data_connection=data_conn, data_as_dict_of_dfs={"new_table": self.df}
+            type="db",
+            data_connection=data_conn,
+            data_as_dict_of_dfs={"new_table": self.df},
         )
 
         assert_frame_equal(read_db_table(data_conn["db_path"], "new_table"), self.df)
@@ -585,7 +603,9 @@ class TestWrite:
         data_conn = IO(TEST_DB).load()
 
         IO(TEST_DB).write(
-            type="db&csv", data_connection=data_conn, data_as_dict_of_dfs={"new_table": self.df}
+            type="db&csv",
+            data_connection=data_conn,
+            data_as_dict_of_dfs={"new_table": self.df},
         )
 
         assert_frame_equal(read_db_table(data_conn["db_path"], "new_table"), self.df)
@@ -627,6 +647,7 @@ class TestWrite:
 @pytest.mark.usefixtures("in_tmp_path")
 class TestHelpers:
     """Smaller IO methods that downstream packages may call directly."""
+
     @pytest.mark.parametrize(
         "path, file_type",
         [
@@ -651,7 +672,9 @@ class TestHelpers:
     def test_first_col_to_index_raises_for_unsupported_table_names(self):
         """IO.first_col_to_index() raises ValueError for table_names other than a bool or list."""
         with pytest.raises(ValueError):
-            IO(None).first_col_to_index({"t": pd.DataFrame({"a": [1]})}, table_names="t")
+            IO(None).first_col_to_index(
+                {"t": pd.DataFrame({"a": [1]})}, table_names="t"
+            )
 
     def test_process_column_labels_converts_to_str_and_strips(self):
         """IO.process_column_labels() also converts non-string labels to str."""
@@ -704,7 +727,9 @@ def test_load_matches_golden(input_file, tmp_path, monkeypatch):
     for name, expected in golden["tables"].items():
         actual = tables[name]
         assert [str(c) for c in actual.columns] == expected["columns"], name
-        assert {str(c): str(t) for c, t in actual.dtypes.items()} == expected["dtypes"], name
+        assert {str(c): str(t) for c, t in actual.dtypes.items()} == expected[
+            "dtypes"
+        ], name
         # compare both in the golden representation, where None and NaN
         # missing values in object columns are the same
         assert_frame_equal(

@@ -38,8 +38,7 @@ class Sql(object):
             self.db = path_OR_dbconn
         else:
             log.error(
-                "Neither a path to a db file, "
-                "nor a database connection got passed."
+                "Neither a path to a db file, nor a database connection got passed."
             )
             raise ValueError
 
@@ -154,9 +153,7 @@ class Sql(object):
                 If True, closes the connection to db
         """
 
-        csv = pd.read_csv(
-            path_to_csv, converters=converters, header=column_label_row
-        )
+        csv = pd.read_csv(path_to_csv, converters=converters, header=column_label_row)
 
         csv.to_sql(table_name, self.db, if_exists="replace", index=False)
 

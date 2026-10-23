@@ -169,7 +169,6 @@ class Book(xw.main.Book):
         df_content = rg.value
         # If the named_range is 2D, assume it has a header and no index.
         if type(df_content) == list and type(df_content[0]) == list:
-
             # Get dataframe using ```xl2pd```.
             df = xl2pd(self, rg, header_row=1, index_col=index_col)
 
@@ -218,9 +217,7 @@ def _parse_address(full_address):
         address = splitaddr[0]
     elif len(splitaddr) == 2:
         characters_to_strip = list("'<>=")
-        sheet_name = reduce(
-            lambda x, y: x.strip(y), characters_to_strip, splitaddr[0]
-        )
+        sheet_name = reduce(lambda x, y: x.strip(y), characters_to_strip, splitaddr[0])
         sheet_name = sheet_name.split("]")[-1]
         address = splitaddr[1].strip(">")
     else:
@@ -249,9 +246,7 @@ def get_tables(wb):
         return_dict = dict()
         for ws in wb.sheets:
             objects = ws.api.list_objects()
-            if (
-                objects
-            ):  # Can be a mysterious "k.missingvalue" when there are no excel tables, which gets interpreted as False by bool
+            if objects:  # Can be a mysterious "k.missingvalue" when there are no excel tables, which gets interpreted as False by bool
                 for obj in objects:
                     return_dict[obj.name()] = Table(
                         obj.name(),  # name of table
@@ -440,9 +435,7 @@ def create_named_range(
         rg = rg.current_region
 
     # Create the named range.
-    rg.name = (
-        sheet_name + "!" if local and "!" not in range_name else ""
-    ) + range_name
+    rg.name = (sheet_name + "!" if local and "!" not in range_name else "") + range_name
 
     if verbose:
         info_string = " as a named range local to sheet," if local else ""
@@ -455,9 +448,7 @@ def create_named_range(
     return rg
 
 
-def xl2pd(
-    workbook, myrange, index_col=0, header_row=0, formulas=False, **kwargs
-):
+def xl2pd(workbook, myrange, index_col=0, header_row=0, formulas=False, **kwargs):
     """Turn a named range from an Excel workbook into a Pandas dataframe.
 
     Args:
@@ -557,9 +548,7 @@ def xl2pd(
                     # we do not use the column name directly as it would cause issues if several
                     # columns have the same name
                     ret_df.columns = pd.Index(range(len(ret_df.columns)))
-                    ret_df.set_index(
-                        list(ret_df.columns)[:index_col], inplace=True
-                    )
+                    ret_df.set_index(list(ret_df.columns)[:index_col], inplace=True)
 
                     ret_df.index.names = pd.Index(
                         value[header_row - 1][:index_col]
@@ -593,7 +582,7 @@ def pd2xl(
     close=False,
     clear=False,
     resize=False,
-    **kwargs
+    **kwargs,
 ):
     """Write a Pandas dataframe to an Excel workbook.
 

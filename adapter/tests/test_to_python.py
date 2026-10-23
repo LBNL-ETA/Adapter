@@ -10,29 +10,30 @@ import logging
 
 logging.basicConfig(level=logging.DEBUG)
 
+
 class ExcelTest:
     """to_python.Excel: loading named tables and ranges from test.xlsx."""
+
     def setup_method(self):
         """Opens test.xlsx with to_python.Excel."""
-        self.exl_loader = Excel(os.path.join(os.path.dirname(__file__), "inputs", "test.xlsx"))
+        self.exl_loader = Excel(
+            os.path.join(os.path.dirname(__file__), "inputs", "test.xlsx")
+        )
 
     def test_load(self):
         """Excel.load() returns all named tables and ranges, or only the requested
         names of the requested kind.
         """
         dict_of_dfs = self.exl_loader.load(kind="all")
-        assert (
-            set(dict_of_dfs.keys())
-            == {
-                "xlsx_table1",
-                "xlsx_table2",
-                "run_parameters",
-                "xlsx_single_col_table",
-                "xlsx_named_range1",
-                "xlsx_single_col_range",
-                "xlsx_single_value_named_range",
-            }
-        )
+        assert set(dict_of_dfs.keys()) == {
+            "xlsx_table1",
+            "xlsx_table2",
+            "run_parameters",
+            "xlsx_single_col_table",
+            "xlsx_named_range1",
+            "xlsx_single_col_range",
+            "xlsx_single_value_named_range",
+        }
 
         some_tables = self.exl_loader.load(
             data_object_names=["xlsx_table1", "xlsx_table2"], kind="tables"
@@ -45,10 +46,7 @@ class ExcelTest:
             kind="ranges",
         )
 
-        assert (
-            set(some_ranges.keys())
-            == {"xlsx_named_range1", "xlsx_single_col_range"}
-        )
+        assert set(some_ranges.keys()) == {"xlsx_named_range1", "xlsx_single_col_range"}
 
     def test_get_unnamed_range(self):
         """Excel.get_named_data_object() reads a `sheet!B2:C3` reference as the same
@@ -115,7 +113,9 @@ class ExcelTest:
 
     def test_load_raises_for_unsupported_kind(self):
         """Excel.load() raises ValueError for a kind other than all, tables or ranges."""
-        with pytest.raises(ValueError, match="unsupported value provided for kwarg kind"):
+        with pytest.raises(
+            ValueError, match="unsupported value provided for kwarg kind"
+        ):
             self.exl_loader.load(kind="charts")
 
     def test_get_range_with_quoted_sheet_name(self):
@@ -142,15 +142,24 @@ class ExcelTest:
         with pytest.raises(ValueError, match="contains more than one region"):
             Excel(path).get_named_data_object("multi")
 
+
 class TestDb:
     """to_python.Db: loading tables from a sqlite db."""
+
     def setup_method(self):
         """Creates Db loaders for test.db (with and without already loaded table1)
         and for corrupt.db.
         """
-        self.db = Db(file_path=os.path.join(os.path.dirname(__file__), "inputs", "test.db"), pre_existing_keys=['table1'])
-        self.good_db = Db(file_path=os.path.join(os.path.dirname(__file__), "inputs", "test.db"))
-        self.bad_db = Db(file_path=os.path.join(os.path.dirname(__file__), "inputs", "corrupt.db"))
+        self.db = Db(
+            file_path=os.path.join(os.path.dirname(__file__), "inputs", "test.db"),
+            pre_existing_keys=["table1"],
+        )
+        self.good_db = Db(
+            file_path=os.path.join(os.path.dirname(__file__), "inputs", "test.db")
+        )
+        self.bad_db = Db(
+            file_path=os.path.join(os.path.dirname(__file__), "inputs", "corrupt.db")
+        )
 
     def test_load_pre_keys(self):
         """Db.load() raises ValueError for tables already loaded (pre_existing_keys) and
@@ -160,9 +169,9 @@ class TestDb:
         with pytest.raises(ValueError):
             self.db.load()
         # test file load with table names and pre_expisting keys
-        assert set(self.db.load(table_names=['table2']).keys()) == {'table2'}
+        assert set(self.db.load(table_names=["table2"]).keys()) == {"table2"}
         with pytest.raises(ValueError):
-            self.db.load(table_names=['table1'])
+            self.db.load(table_names=["table1"])
 
     def test_load_bad_db(self):
         """Db.load() raises IOError for a db with no tables (corrupt.db)."""
@@ -175,12 +184,16 @@ class TestDb:
             {"column_A": ["att1", "att2"], "column_B": ["value1", "value2"]}
         )
 
-        assert_frame_equal(self.good_db.load(table_names=['table3'])['table3'], expected)
+        assert_frame_equal(
+            self.good_db.load(table_names=["table3"])["table3"], expected
+        )
+
 
 class TestDbSqlalchemy:
     """to_python.Db_sqlalchemy (Postgres); only the credentials check runs
     without a database server.
     """
+
     def test_raises_without_secret_file(self, monkeypatch):
         """Db_sqlalchemy() raises ValueError when adapter/Secret.py (the database
         credentials) is missing.

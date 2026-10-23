@@ -55,15 +55,15 @@ class IO(object):
 
     """
 
-    def __init__(self, path, os_mapping={'win32': 'X:', 'darwin': '/Volumes/A',
-                                         'linux': '/media/b'}):
+    def __init__(
+        self,
+        path,
+        os_mapping={"win32": "X:", "darwin": "/Volumes/A", "linux": "/media/b"},
+    ):
         # backwards compatibility
         if not isinstance(os_mapping, dict):
             # automatically assume list of tuples
-            self.os_mapping = {
-                'win32': os_mapping[0][0],
-                'darwin': os_mapping[0][1]
-            }
+            self.os_mapping = {"win32": os_mapping[0][0], "darwin": os_mapping[0][1]}
         else:
             self.os_mapping = os_mapping
 
@@ -211,13 +211,17 @@ class IO(object):
         """
         dict_of_dfs = self.get_tables(self.input_path)
 
-        if skip_writeout==True:
-            if save_input==True:
-                log.warning("No input will be written out, as the "\
-                    "skip_writeout kwarg indicates no writeout.")
-            if create_db==True:
-                log.warning("No database will be created, as the "\
-                    "skip_writeout kwarg indicates no writeout.")
+        if skip_writeout == True:
+            if save_input == True:
+                log.warning(
+                    "No input will be written out, as the "
+                    "skip_writeout kwarg indicates no writeout."
+                )
+            if create_db == True:
+                log.warning(
+                    "No database will be created, as the "
+                    "skip_writeout kwarg indicates no writeout."
+                )
 
         # are there any further input files?
         # if that is the case, the file paths and further info
@@ -225,11 +229,9 @@ class IO(object):
         qry_flags = dict()
 
         if self.la["extra_files"] in dict_of_dfs.keys():
-
             extra_files = dict_of_dfs[self.la["extra_files"]].reset_index()
 
             for inx in extra_files.index:
-
                 file_path = extra_files.loc[inx, self.la["inpath"]].strip()
 
                 table_names = extra_files.loc[inx, self.la["tbl_nam"]]
@@ -241,7 +243,6 @@ class IO(object):
                 qry_flags[file_path] = extra_files.loc[inx, self.la["query"]]
 
                 if (qry_flags[file_path] is not None) and isinstance(table_names, str):
-
                     qry_flags[file_path] = re.split(",", qry_flags[file_path])
                     qry_flags[file_path] = [i.strip() for i in qry_flags[file_path]]
 
@@ -271,9 +272,7 @@ class IO(object):
             run_params_table = []
 
             for key in dict_of_dfs.keys():
-
                 if self.la["run_pars"] in key:
-
                     msg = "Identified run parameters table named {}"
                     log.info(msg.format(key))
 
@@ -293,7 +292,6 @@ class IO(object):
                 log.warning(msg.format(run_params_table[0], run_params_table[1:]))
 
             if len(run_params_table) != 0:
-
                 outpath = convert_network_drive_path(
                     dict_of_dfs[run_params_table[0]].loc[0, self.la["outpath"]],
                     mapping=self.os_mapping,
@@ -345,12 +343,13 @@ class IO(object):
                 filename_extns = re.split("\.", filename)[-1]
                 filename_only = re.split("\.", filename)[0]
 
-                versioned_filename = filename_only + "_" + run_tag + "." + filename_extns
+                versioned_filename = (
+                    filename_only + "_" + run_tag + "." + filename_extns
+                )
 
                 copy(self.input_path, os.path.join(outpath, versioned_filename))
 
             if create_db == True:
-                
                 try:
                     db_res = self.create_db(
                         dict_of_dfs,
@@ -359,9 +358,9 @@ class IO(object):
                         flavor=db_flavor,
                         close=close_db,
                     )
-                    
+
                 except:
-                    msg = "Not able to create a db of tables " "that were read in from {}."
+                    msg = "Not able to create a db of tables that were read in from {}."
 
                     log.error(msg.format(self.input_path))
 
@@ -399,11 +398,9 @@ class IO(object):
                 res.update(db_res)
 
         if clean_labels == True:
-
             input_tables_list = res["tables_as_dict_of_dfs"]
 
             for table in input_tables_list:
-
                 table_columns = input_tables_list[table].columns
 
                 clean_cols = self.process_column_labels(table_columns)
@@ -464,15 +461,12 @@ class IO(object):
         file_path = convert_network_drive_path(file_path, mapping=self.os_mapping)
 
         if file_path is None:
-
             dict_of_dfs = dict()
 
         elif isinstance(file_path, str):
-
             file_type = self.get_file_type(file_path)
 
             if isinstance(query_only, str):
-
                 query_only = re.split(",", query_only)
                 query_only = [i.strip() for i in query_only]
 
@@ -511,15 +505,14 @@ class IO(object):
                 dict_of_dfs = Excel(file_path, pre_existing_keys).load(
                     data_object_names=table_names_to_load
                 )
-                
+
                 # if no tables were found, try reading
                 # all sheets as individual tables
                 if not dict_of_dfs:
                     dict_of_dfs = pd.read_excel(
-                        file_path, sheet_name=None,
-                        skiprows=5, header=0
-                        )
-                    
+                        file_path, sheet_name=None, skiprows=5, header=0
+                    )
+
             elif file_type == "text":
                 dict_of_dfs = dict()
 
@@ -532,16 +525,12 @@ class IO(object):
                 if self.la["extra_files"] in filename_to_tablename:
                     filename_to_tablename = self.la["extra_files"]
 
-                dict_of_dfs[filename_to_tablename] = pd.read_csv(
-                    file_path)
-                
-                if "Unnamed: 0" in dict_of_dfs[
-                    filename_to_tablename].columns:
+                dict_of_dfs[filename_to_tablename] = pd.read_csv(file_path)
 
-                    dict_of_dfs[filename_to_tablename] = \
-                        dict_of_dfs[filename_to_tablename].drop(
-                            columns="Unnamed: 0"
-                        )
+                if "Unnamed: 0" in dict_of_dfs[filename_to_tablename].columns:
+                    dict_of_dfs[filename_to_tablename] = dict_of_dfs[
+                        filename_to_tablename
+                    ].drop(columns="Unnamed: 0")
 
             elif file_type == "database":
                 # load all tables found in the
@@ -619,8 +608,7 @@ class IO(object):
             outpath = os.path.join(os.getcwd(), "output")
 
         if skip_writeout:
-            res = {"db_path": "no_output_written", 
-                   "db_conn": "no_output_written"}
+            res = {"db_path": "no_output_written", "db_conn": "no_output_written"}
 
         else:
             if flavor == "sqlite":
@@ -643,7 +631,7 @@ class IO(object):
                         index=False,
                     )
                 except:
-                    msg = "An error occurred when writting {} table " "to a db {}."
+                    msg = "An error occurred when writting {} table to a db {}."
                     log.error(msg.format(table_name, db_path))
                     raise ValueError
 
@@ -658,14 +646,14 @@ class IO(object):
         return res
 
     def write(
-            self,
-            type="db",
-            data_connection=None,
-            data_as_dict_of_dfs=None,
-            outpath=None,
-            run_tag="",
-            db_conn=None,
-            close_db=True,
+        self,
+        type="db",
+        data_connection=None,
+        data_as_dict_of_dfs=None,
+        outpath=None,
+        run_tag="",
+        db_conn=None,
+        close_db=True,
     ):
         """Writes all dataframes from a dictionary of dataframes
         out into an existing database.
@@ -739,7 +727,6 @@ class IO(object):
             True
         """
         if data_connection is not None:
-
             if data_as_dict_of_dfs is None:
                 data_as_dict_of_dfs = data_connection["tables_as_dict_of_dfs"]
 
@@ -759,12 +746,11 @@ class IO(object):
             log.error(msg)
             raise ValueError
         elif not isinstance(data_as_dict_of_dfs, dict):
-            msg = "Data needs to be in a " "dictionary of dataframes format."
+            msg = "Data needs to be in a dictionary of dataframes format."
             log.error(msg)
             raise ValueError
 
         if "db" in type:
-
             close = close_db
 
             if db_conn is None:
@@ -782,7 +768,6 @@ class IO(object):
             )
 
         if "csv" in type:
-
             if not os.path.exists(outpath):
                 os.mkdir(outpath)
 

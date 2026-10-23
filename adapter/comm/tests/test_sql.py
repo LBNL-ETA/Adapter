@@ -36,9 +36,7 @@ class SqlTests:
         self.sql_api = Sql(test_db_fulpath)
 
         # example dict to write to db
-        self.df = pd.DataFrame(
-            data=[["a", 1], ["b", 2]], columns=["comp", "cost"]
-        )
+        self.df = pd.DataFrame(data=[["a", 1], ["b", 2]], columns=["comp", "cost"])
 
         # example dict to write to db as table
         self.dict = {"k1": [12, 13, 14], "k2": ["a", "b", "c"]}

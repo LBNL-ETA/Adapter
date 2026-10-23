@@ -6,4 +6,3 @@
 # build dist backup: drive, Public Code/Adapter
 
 __version__ = "1.8.0"
-

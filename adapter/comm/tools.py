@@ -21,8 +21,7 @@ def process_column_labels(list_of_labels):
             A list with cleaned lables
     """
     list_of_cleaned_labels = [
-        re.sub(" +", " ", lbl.strip()) if lbl is str else lbl
-        for lbl in list_of_labels
+        re.sub(" +", " ", lbl.strip()) if lbl is str else lbl for lbl in list_of_labels
     ]
 
     return list_of_cleaned_labels
@@ -140,10 +139,7 @@ def user_select_file(user_message="", mul_fls=False):
     root = tk.Tk()
     root.withdraw()
 
-    print(
-        user_message
-        + " (You may have to search for the file prompt window)"
-    )
+    print(user_message + " (You may have to search for the file prompt window)")
 
     if mul_fls:
         fpath = fd.askdirectory(title=user_message)
@@ -187,8 +183,8 @@ def mark_time(prefix: str = "", ts_format: str = "short") -> str:
 
     """
     if ts_format == "short":
-        return f'{prefix}_{datetime.now().strftime("%y%m%d_%H%M")}'
+        return f"{prefix}_{datetime.now().strftime('%y%m%d_%H%M')}"
     elif ts_format == "long":
-        return f'{prefix}_{datetime.now().strftime("%Y_%m_%d_%Hh_%Mm")}'
+        return f"{prefix}_{datetime.now().strftime('%Y_%m_%d_%Hh_%Mm')}"
     else:
         raise ValueError("Unsupported timestamp format!")

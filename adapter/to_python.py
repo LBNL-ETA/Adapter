@@ -14,6 +14,7 @@ import logging
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
+
 class Excel(object):
     """Loads bulk named tables
     and ranges from excel to python as
@@ -43,11 +44,11 @@ class Excel(object):
         log.info("Connected to: {}".format(self.file_path))
 
     def load(self, data_object_names=None, kind="all"):
-        """Grabs all or a subset of named tables and ranges 
+        """Grabs all or a subset of named tables and ranges
         found in excel file as a dictionary of dataframes
 
         This function replaces the older version of Excel.load
-        
+
         Parameters:
 
             data_object_names: list
@@ -74,51 +75,56 @@ class Excel(object):
                 values
         """
         # check if any name in data_object_names not in excel file
-        all_input_ranges = set(self.wb.defined_names.keys())    
-        all_input_tables = {object_table for ws in self.wb.worksheets for object_table in ws.tables.keys()}
+        all_input_ranges = set(self.wb.defined_names.keys())
+        all_input_tables = {
+            object_table
+            for ws in self.wb.worksheets
+            for object_table in ws.tables.keys()
+        }
         all_input_objects = all_input_ranges | all_input_tables
 
         if isinstance(data_object_names, list):
             data_object_names = set(data_object_names)
             missings = data_object_names - all_input_objects
             if len(missings) > 0:
-                raise ValueError(f"{missings} not found in the input file {self.file_path}.")
+                raise ValueError(
+                    f"{missings} not found in the input file {self.file_path}."
+                )
 
         elif data_object_names is None or np.isnan(data_object_names):
             data_object_names = all_input_objects
 
         else:
-            raise ValueError(f"Unsupported type ({type(data_object_names)}) passed for data object names {data_object_names}.")
+            raise ValueError(
+                f"Unsupported type ({type(data_object_names)}) passed for data object names {data_object_names}."
+            )
 
         if len(all_input_objects) == 0:
-            msg = (
-                "Neither named tables nor named ranges found in "
-                "the input file {}."
-            )
+            msg = "Neither named tables nor named ranges found in the input file {}."
             log.info(msg.format(self.file_path))
 
         dict_of_dfs = dict()
         if kind not in ["all", "ranges", "tables"]:
             raise ValueError(f"An unsupported value provided for kwarg kind {kind}.")
         # get named ranges
-        if kind in ['all', 'ranges']:
+        if kind in ["all", "ranges"]:
             try:
                 for name in data_object_names & all_input_ranges:
                     dict_of_dfs[name] = self.get_named_data_object(name)
             except:
                 msg = (
-                "Failed to read input named range {}"
-                " from input file {}. "
-                "If the data contained in the table "
-                "is needed in the analysis please attempt"
-                " to rename the table/range using strings and numerals "
-                "and/or further check the data range or table "
-                "definition."
+                    "Failed to read input named range {}"
+                    " from input file {}. "
+                    "If the data contained in the table "
+                    "is needed in the analysis please attempt"
+                    " to rename the table/range using strings and numerals "
+                    "and/or further check the data range or table "
+                    "definition."
                 )
                 raise ValueError(msg.format(name, self.file_path))
 
         # get named tables
-        if kind in ['all', 'tables']:
+        if kind in ["all", "tables"]:
             try:
                 for ws in self.wb.worksheets:
                     for table_name, table_range in ws.tables.items():
@@ -128,19 +134,18 @@ class Excel(object):
                             )
             except:
                 msg = (
-                "Failed to read input named table {}"
-                " from input file {}. "
-                "If the data contained in the table "
-                "is needed in the analysis please attempt"
-                " to rename the table/range using strings and numerals "
-                "and/or further check the data range or table "
-                "definition."
+                    "Failed to read input named table {}"
+                    " from input file {}. "
+                    "If the data contained in the table "
+                    "is needed in the analysis please attempt"
+                    " to rename the table/range using strings and numerals "
+                    "and/or further check the data range or table "
+                    "definition."
                 )
                 raise ValueError(msg.format(table_name, self.file_path))
 
         if self.pre_existing_keys is not None:
-            Debugger.check_for_duplicates(
-                self.pre_existing_keys, dict_of_dfs.keys())
+            Debugger.check_for_duplicates(self.pre_existing_keys, dict_of_dfs.keys())
 
         for k, df in dict_of_dfs.items():
             # xlwings-based Excel class converted all numbers to float types.
@@ -270,7 +275,7 @@ class Db(object):
         # if not os.path.exists(self.file_path):
         #     # check if file exists
         #     raise ImportError(f'Cannot find {self.file_path}')
-        con_str = f'sqlite+pysqlite:///{self.file_path}'
+        con_str = f"sqlite+pysqlite:///{self.file_path}"
         engine = create_engine(con_str)
         metadata = MetaData()
         metadata.reflect(bind=engine)
@@ -279,20 +284,19 @@ class Db(object):
         if len(keys) == 0:
             # check database integrity
             raise IOError(
-                f'0 table found in the database file! The input file: {self.file_path} may be unsupported or corrupted')
+                f"0 table found in the database file! The input file: {self.file_path} may be unsupported or corrupted"
+            )
         if self.pre_existing_keys is not None:
             # check for duplicates in tables_names,
             # if table_names == None, check for duplcates for all the tables
-            Debugger.check_for_duplicates(
-                self.pre_existing_keys, table_names or keys
-            )
+            Debugger.check_for_duplicates(self.pre_existing_keys, table_names or keys)
             # skip pre_existing_keys
         if table_names is not None:
             # only import given table names
             keys = keys & set(table_names)
         dict_of_dfs = dict()
         for t in keys:
-            dict_of_dfs[t] = pd.read_sql_table(f'{t}', con=con_str)
+            dict_of_dfs[t] = pd.read_sql_table(f"{t}", con=con_str)
         return dict_of_dfs
 
 
@@ -321,12 +325,12 @@ class Db_sqlalchemy(object):
             )
 
         self.cxn_str = (
-                "postgresql://"
-                + database_credentials["Username"]
-                + ":"
-                + database_credentials["Password"]
-                + "@"
-                + file_path
+            "postgresql://"
+            + database_credentials["Username"]
+            + ":"
+            + database_credentials["Password"]
+            + "@"
+            + file_path
         )
         self.engine = create_engine(self.cxn_str)
         self.file_path = file_path

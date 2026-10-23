@@ -78,9 +78,7 @@ where the `res` output is a dictionary with the same keys as in the example abov
 
 An another example especially useful for `Linux` users would be to provide several or all inputs as `csv` files through listing their paths in the main `csv` input file. The `Adapter` can then be used to load all inputs at once. This can be done as follows:
 ```python
-path = os.path.join(
-    os.getcwd(), r"adapter/tests/inputs/inputs_from_files_vTest.csv"
-)
+path = os.path.join(os.getcwd(), r"adapter/tests/inputs/inputs_from_files_vTest.csv")
 i_o = IO(path)
 data_conn = i_o.load()
 ```
@@ -89,10 +87,7 @@ If one of the input tables is named `run_parameters` and contains columns `Outpu
 
 To write the loaded data into either a single `db` and a number of `csv` files the user can run:
 ```python
-i_o.write(
-    type='db&csv',
-    data_connection=data_conn
-)
+i_o.write(type="db&csv", data_connection=data_conn)
 ```
 Depending on the `type` flag, there is an option to writhe only a `db` or a `csv` formatted output.
 
