@@ -1,6 +1,6 @@
 {
   "input_file": "inputs_from_files_vTest.csv",
-  "pandas_version": "2.3.3",
+  "pandas_version": "3.1.0",
   "rtol": 1e-09,
   "tables": {
     "inputs_from_files": {
