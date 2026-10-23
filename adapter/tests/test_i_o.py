@@ -679,6 +679,15 @@ class TestHelpers:
             "linux": "/media/b",
         }
 
+    def test_first_col_to_index_false_returns_unchanged_copies(self):
+        """IO.first_col_to_index(table_names=False) returns copies of the tables, unchanged."""
+        tables = {"t": pd.DataFrame({"a": [1, 2], "b": [3, 4]})}
+
+        res = IO(None).first_col_to_index(tables, table_names=False)
+
+        assert_frame_equal(res["t"], tables["t"])
+        assert res["t"] is not tables["t"]
+
     def test_first_col_to_index_raises_for_unsupported_table_names(self):
         """IO.first_col_to_index() raises ValueError for table_names other than a bool or list."""
         with pytest.raises(ValueError):

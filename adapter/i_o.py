@@ -821,7 +821,7 @@ class IO:
             log.info(msg.format(table_names))
 
         elif table_names is False:
-            pass
+            table_names = []
 
         else:
             msg = "Unsupported value {} passed to table_names kwarg."

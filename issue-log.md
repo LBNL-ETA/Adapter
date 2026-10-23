@@ -195,6 +195,9 @@ dedicated changes.
   → `TypeError: argument of type 'bool' is not iterable`.
   (`IO.load` never calls it with `False`, so `load()` is unaffected.)
 - **Expected:** returns copies of all tables unchanged.
+- **Status:** Resolved on branch `fix_pyrefly_errors`: `False` now selects no tables, so all
+  tables are returned as unchanged copies. Test:
+  `TestHelpers.test_first_col_to_index_false_returns_unchanged_copies`.
 
 ## 18. Legacy list-of-tuples `os_mapping` breaks on Linux
 
