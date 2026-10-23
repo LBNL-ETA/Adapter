@@ -260,3 +260,13 @@ dedicated changes.
   `IndexError: too many indices for array: array is 0-dimensional, but 1 were indexed`.
 - **Expected:** to be decided; e.g. a single flag applies to all tables, and multiple flags
   without table names raise a clear `ValueError`.
+
+## 24. Leftover debugger import in `comm/sql.py`
+
+- **File:** `adapter/comm/sql.py:10`
+- **Problem:** `from pdb import set_trace as bp` is imported but never used. It is dead
+  code, and the `debug-statements` pre-commit hook rejects any commit that includes
+  this file until it is removed.
+- **Reproduce:** `uv run ruff check adapter/comm/sql.py --select F401` → `F401 'pdb.set_trace' imported but unused`;
+  `uv run pre-commit run debug-statements --files adapter/comm/sql.py` (after hooks are set up) fails.
+- **Expected:** the import is removed.

@@ -46,12 +46,16 @@ version = {attr = "adapter.__version__"}
 
 [dependency-groups]
 dev = [
+    "pre-commit>=4.7.0",
+    "pre-commit-uv>=4.4.0",
+    "pyrefly>=1.4.0",
     "pytest>=9.1.1",
     "pytest-cov>=7.1.0",
+    "ruff>=0.17.2",
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["adapter"]
+testpaths = ["adapter/tests", "adapter/comm/tests"]
 python_classes = ["Test*", "*Test", "*Tests"]
 
 [tool.coverage.run]
@@ -61,3 +65,30 @@ omit = ["*/tests/*"]
 
 [tool.coverage.report]
 show_missing = true
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "UP",   # pyupgrade
+    "SIM",  # flake8-simplify
+    "C4",   # flake8-comprehensions
+    "RUF",  # ruff-specific rules
+]
+ignore = ["E501"]  # line length is handled by the formatter
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.codespell]
+skip = "uv.lock,*.svg,*.ipynb"
+
+[tool.pyrefly]
+project-includes = ["adapter"]
