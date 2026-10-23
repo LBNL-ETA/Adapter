@@ -381,3 +381,14 @@ and the effect on the tests.
 - **Expected:** each instance gets its own copy of the default.
 - **Status:** Resolved with the B006 fix (see #28); covered by
   `TestHelpers.test_default_os_mapping_is_not_shared_between_instances`.
+
+## 30. `Excel.load` error message could fail to build
+
+- **File:** `adapter/to_python.py` (`Excel.load`, the named range and named table
+  `try`/`except` blocks)
+- **Problem:** the `ValueError` message uses the loop variable (`name` / `table_name`).
+  If reading failed before the loop assigned it, building the message raised
+  `UnboundLocalError`, hiding the real error. Unlikely in practice; found by pyrefly
+  (`unbound-name`).
+- **Status:** Resolved. Both variables are set to `None` before their `try`, so the
+  message always builds (it says "None" in that rare case). No test changes needed.

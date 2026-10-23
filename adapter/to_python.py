@@ -103,6 +103,8 @@ class Excel:
             raise ValueError(f"An unsupported value provided for kwarg kind {kind}.")
         # get named ranges
         if kind in ["all", "ranges"]:
+            # set before the loop, so the error message below can always be built
+            name = None
             try:
                 for name in data_object_names & all_input_ranges:
                     dict_of_dfs[name] = self.get_named_data_object(name)
@@ -120,6 +122,8 @@ class Excel:
 
         # get named tables
         if kind in ["all", "tables"]:
+            # set before the loop, so the error message below can always be built
+            table_name = None
             try:
                 for ws in self.wb.worksheets:
                     for table_name, table_range in ws.tables.items():
