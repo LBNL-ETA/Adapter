@@ -133,6 +133,7 @@ class ExcelTest:
         """
         wb = openpyxl.Workbook()
         ws = wb.active
+        assert ws is not None  # a new Workbook always has an active sheet
         ws.title = "S"
         ws["A1"], ws["A2"], ws["C1"], ws["C2"] = "h1", 1, "h2", 2
         wb.defined_names["multi"] = DefinedName(
