@@ -9,7 +9,7 @@
         "column2"
       ],
       "dtypes": {
-        "column1": "object",
+        "column1": "str",
         "column2": "int64"
       },
       "index": [
@@ -38,7 +38,7 @@
         "col2"
       ],
       "dtypes": {
-        "col1": "object",
+        "col1": "str",
         "col2": "int64"
       },
       "index": [
@@ -62,8 +62,8 @@
         "column_B"
       ],
       "dtypes": {
-        "column_A": "object",
-        "column_B": "object"
+        "column_A": "str",
+        "column_B": "str"
       },
       "index": [
         0,

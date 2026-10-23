@@ -11,7 +11,7 @@
       ],
       "dtypes": {
         "csv_col_1": "int64",
-        "csv_col_2": "object",
+        "csv_col_2": "str",
         "csv_col_3": "int64"
       },
       "index": [

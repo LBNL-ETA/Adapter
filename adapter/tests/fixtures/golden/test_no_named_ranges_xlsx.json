@@ -74,7 +74,7 @@
         "Weight"
       ],
       "dtypes": {
-        "Equipment Class": "object",
+        "Equipment Class": "str",
         "Region": "int64",
         "Weight": "float64"
       },
