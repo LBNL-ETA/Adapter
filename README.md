@@ -13,19 +13,37 @@ The package is supported on `Windows` and `macOS`, as well as for `Linux` for th
 
 ## Installation
 
-To install the package remotely use:
-```
-pip install git+https://github.com/LBNL-ETA/Adapter.git@vX.Y.Z
-```
-where `@X.Y.Z` is optional and represents the tag version. Available tags can be listed using a command `git tag -n` from the repo root folder or one can see them on the github repo.
+`adapterio` requires Python 3.12 or newer. Its dependencies are installed automatically.
 
-Alternatively, you may use `uv` to build it locally:
+To install the package from GitHub:
+```bash
+pip install "git+https://github.com/LBNL-ETA/Adapter.git@vX.Y.Z"
 ```
-uv sync
-```
-which will create (or modify) a .venv in your repo root to be used by `uv` commands.
+where `@vX.Y.Z` is optional and selects a tagged release; without it, the latest `master` is installed. Available tags are listed on the GitHub repository, or with `git tag -n` in a clone. The requirements above apply to the current version; older tagged releases may differ.
 
-To use the `sqlalchemy` connections to remote server(s) you must edit the example secret file located in `adapter\Secret_example.py` for your database credentials and save it as `adapter\Secret.py`.
+In a project managed with [uv](https://docs.astral.sh/uv/), add it as a dependency instead:
+```bash
+uv add "adapterio @ git+https://github.com/LBNL-ETA/Adapter.git@vX.Y.Z"
+```
+
+To install from a local clone, run from its root folder:
+```bash
+pip install .
+```
+
+To use the `sqlalchemy` connections to remote server(s), copy the example secret file `adapter/Secret_example.py` to `adapter/Secret.py` and fill in your database credentials. `adapter/Secret.py` is ignored by git, so your credentials are never committed.
+
+### Development setup
+
+To work on the package itself, clone the repository and, from its root folder, install the locked dependencies, including the development tools (pytest, ruff, pyrefly and pre-commit), with [uv](https://docs.astral.sh/uv/):
+```bash
+uv sync --locked
+```
+Then install the git hooks, which run ruff, pyrefly, codespell and other checks on each commit, and the tests before each push:
+```bash
+uv run pre-commit install
+```
+See [Testing](#testing) for running the tests.
 
 
 ## Usage
