@@ -13,16 +13,17 @@ The package is supported on `Windows` and `macOS`, as well as for `Linux` for th
 
 ## Installation
 
-To install the package use:
+To install the package remotely use:
 ```
 pip install git+https://github.com/LBNL-ETA/Adapter.git@vX.Y.Z
 ```
 where `@X.Y.Z` is optional and represents the tag version. Available tags can be listed using a command `git tag -n` from the repo root folder or one can see them on the github repo.
 
-Alternatively, you may clone the repository and from its root folder run:
+Alternatively, you may use `uv` to build it locally:
 ```
-python setup.py
+uv sync
 ```
+which will create (or modify) a .venv in your repo root to be used by `uv` commands.
 
 To use the `sqlalchemy` connections to remote server(s) you must edit the example secret file located in `adapter\Secret_example.py` for your database credentials and save it as `adapter\Secret.py`.
 
