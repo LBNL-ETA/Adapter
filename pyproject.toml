@@ -1,6 +1,99 @@
 [build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
-]
+requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "adapterio"
+dynamic = ["version"]
+license = { text = "BSD-3-Clause-LBNL" }
+description = "I/O Module"
+readme = "README.md"
+requires-python = ">=3.14"
+authors = [
+    {name = "Milica Grahovac"},
+    {name = "Youness Bennani"},
+    {name = "Thomas Burke"},
+    {name = "Katie Coughlin"},
+    {name = "Mohan Ganeshalingam"},
+    {name = "Akhil Mathur"},
+    {name = "Evan Neill"},
+    {name = "Akshay Sharma"},
+    {name = "Zheng He"},
+    {name = "Lyra Lan"},
+]
+keywords = ["data","tables","IO for research computation", "sql", "excel", "csv", "dataframe", "connection"]
+dependencies = [
+    "pandas<3.0.0",
+    "xlwings>=0.19.4",
+    "psycopg2-binary>=2.8.6",
+    "SQLAlchemy>=2.0.0",
+    "openpyxl>=3.1.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/LBNL-ETA/Adapter"
+
+[tool.setuptools]
+packages = ["adapter"]
+package-data = {}
+include-package-data = true
+
+[tool.setuptools.exclude-package-data]
+"*" = ["contrib/*", "docs/*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "adapter.__version__"}
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.7.0",
+    "pre-commit-uv>=4.4.0",
+    "pyrefly>=1.4.0",
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.2",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["adapter/tests", "adapter/comm/tests"]
+python_classes = ["Test*", "*Test", "*Tests"]
+
+[tool.coverage.run]
+source = ["adapter"]
+branch = true
+omit = ["*/tests/*"]
+
+[tool.coverage.report]
+show_missing = true
+
+[tool.ruff]
+line-length = 88
+target-version = "py314"
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "UP",   # pyupgrade
+    "SIM",  # flake8-simplify
+    "C4",   # flake8-comprehensions
+    "RUF",  # ruff-specific rules
+]
+ignore = ["E501"]  # line length is handled by the formatter
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.codespell]
+skip = "uv.lock,*.svg,*.ipynb"
+
+[tool.pyrefly]
+project-includes = ["adapter"]
+# Temporary ignores; remove each once its issue is resolved (issue-log.md #31):
+# - comm/excel.py: unused xlwings module, kept for now (#16)
+project-excludes = ["adapter/comm/excel.py"]
+# - adapter.Secret: credentials file that is git-ignored by design (#27, #31)
+ignore-missing-imports = ["adapter.Secret"]

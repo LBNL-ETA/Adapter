@@ -1,5 +1,5 @@
-import os
 import logging
+import os
 import sqlite3
 
 import pandas as pd
@@ -7,10 +7,8 @@ import pandas as pd
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
-from pdb import set_trace as bp
 
-
-class Sql(object):
+class Sql:
     """Performs python-sqlite db communication.
 
     Parameters:
@@ -25,21 +23,20 @@ class Sql(object):
         # *mig enable this for other db flavors, such
         # as sql db and postgres
 
-        if type(path_OR_dbconn) == str:
+        if isinstance(path_OR_dbconn, str):
             try:
                 # for aboslute or mounted paths
                 self.db = sqlite3.connect(path_OR_dbconn)
-            except:
+            except Exception:
                 # for paths relative to run path
                 path = os.path.join(os.getcwd(), path_OR_dbconn)
                 self.db = sqlite3.connect(path)
 
-        elif type(path_OR_dbconn) == sqlite3.Connection:
+        elif isinstance(path_OR_dbconn, sqlite3.Connection):
             self.db = path_OR_dbconn
         else:
             log.error(
-                "Neither a path to a db file, "
-                "nor a database connection got passed."
+                "Neither a path to a db file, nor a database connection got passed."
             )
             raise ValueError
 
@@ -64,11 +61,11 @@ class Sql(object):
         cursor = self.db.cursor()
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
         tables = cursor.fetchall()
-        data = dict()
+        data = {}
         for table_name in tables:
             table_name = table_name[0]
             data[table_name] = pd.read_sql_query(
-                """ SELECT * FROM '{}' """.format(table_name), self.db
+                f""" SELECT * FROM '{table_name}' """, self.db
             )
 
         if close:
@@ -94,7 +91,7 @@ class Sql(object):
                 Sql table read in as a pandas df.
         """
         df = pd.read_sql(
-            """ SELECT * FROM '{}' """.format(table_name),
+            f""" SELECT * FROM '{table_name}' """,
             self.db,
             index_col=None,
         )
@@ -154,9 +151,7 @@ class Sql(object):
                 If True, closes the connection to db
         """
 
-        csv = pd.read_csv(
-            path_to_csv, converters=converters, header=column_label_row
-        )
+        csv = pd.read_csv(path_to_csv, converters=converters, header=column_label_row)
 
         csv.to_sql(table_name, self.db, if_exists="replace", index=False)
 

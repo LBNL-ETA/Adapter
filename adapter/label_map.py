@@ -1,4 +1,4 @@
-class Labels(object):
+class Labels:
     """Label maps related to
     functional input tables parsed
     by the adapter.

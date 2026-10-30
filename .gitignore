@@ -44,6 +44,7 @@ Thumbs.db
 *.pydevproject
 *.pyc
 *.pyo
+.coverage
 
 # latex files #
 ######################

@@ -1,0 +1,84 @@
+{
+  "input_file": "test.db",
+  "pandas_version": "2.3.3",
+  "rtol": 1e-09,
+  "tables": {
+    "table1": {
+      "columns": [
+        "column1",
+        "column2"
+      ],
+      "dtypes": {
+        "column1": "object",
+        "column2": "int64"
+      },
+      "index": [
+        0,
+        1,
+        2
+      ],
+      "data": [
+        [
+          "aa",
+          1
+        ],
+        [
+          "bb",
+          2
+        ],
+        [
+          "cc",
+          3
+        ]
+      ]
+    },
+    "table2": {
+      "columns": [
+        "col1",
+        "col2"
+      ],
+      "dtypes": {
+        "col1": "object",
+        "col2": "int64"
+      },
+      "index": [
+        0,
+        1
+      ],
+      "data": [
+        [
+          "a",
+          1
+        ],
+        [
+          "b",
+          2
+        ]
+      ]
+    },
+    "table3": {
+      "columns": [
+        "column_A",
+        "column_B"
+      ],
+      "dtypes": {
+        "column_A": "object",
+        "column_B": "object"
+      },
+      "index": [
+        0,
+        1
+      ],
+      "data": [
+        [
+          "att1",
+          "value1"
+        ],
+        [
+          "att2",
+          "value2"
+        ]
+      ]
+    }
+  }
+}

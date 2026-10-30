@@ -2,29 +2,48 @@
 
 The `Adapter Python IO` software provides a convenient data table loader from various formats such as `xlsx`, `csv`, `db (sqlite database)`, and `sqlalchemy`. Its main feature is the ability to convert data tables identified in one main and optionally one or more additional input files into `database tables` and `Pandas DataFrames` for downstream usage in any compatible software.
 
-`Adapter` builds upon the existing Python packages that allow for the communication between `Python` and `MS Excel`, as well as `databases` and `csv` files. It provides inbuilt capabilities to specify the output location path, as well as a version identifier for a research code run. 
+`Adapter` builds upon the existing Python packages that allow for the communication between `Python` and `MS Excel`, as well as `databases` and `csv` files. It provides inbuilt capabilities to specify the output location path, as well as a version identifier for a research code run.
 
 In addition to the loading capability, an instance of the `Adapter` `IO` object has the write capability. If invoked, all loaded tables are written as either a single `database` or a set of `csv` files, or both.
 
 The purpose of this software is to support the development of research and analytical software through allowing for a simple multi-format IO with versioning and output path specification in the input data itself.
 
-The package is supported on `Windows` and `macOS`, as well as for `Linux` for the utilization without any `xlsx` inputs. 
+The package is supported on `Windows` and `macOS`, as well as for `Linux` for the utilization without any `xlsx` inputs.
 
 
 ## Installation
 
-To install the package use:
-```
-pip install git+https://github.com/LBNL-ETA/Adapter.git@vX.Y.Z
-```
-where `@X.Y.Z` is optional and represents the tag version. Available tags can be listed using a command `git tag -n` from the repo root folder or one can see them on the github repo.
+`adapterio` requires Python 3.12 or newer. Its dependencies are installed automatically.
 
-Alternatively, you may clone the repository and from its root folder run:
+To install the package from GitHub:
+```bash
+pip install "git+https://github.com/LBNL-ETA/Adapter.git@vX.Y.Z"
 ```
-python setup.py
+where `@vX.Y.Z` is optional and selects a tagged release; without it, the latest `master` is installed. Available tags are listed on the GitHub repository, or with `git tag -n` in a clone. The requirements above apply to the current version; older tagged releases may differ.
+
+In a project managed with [uv](https://docs.astral.sh/uv/), add it as a dependency instead:
+```bash
+uv add "adapterio @ git+https://github.com/LBNL-ETA/Adapter.git@vX.Y.Z"
 ```
 
-To use the `sqlalchemy` connections to remote server(s) you must edit the example secret file located in `adapter\Secret_example.py` for your database credentials and save it as `adapter\Secret.py`.
+To install from a local clone, run from its root folder:
+```bash
+pip install .
+```
+
+To use the `sqlalchemy` connections to remote server(s), copy the example secret file `adapter/Secret_example.py` to `adapter/Secret.py` and fill in your database credentials. `adapter/Secret.py` is ignored by git, so your credentials are never committed.
+
+### Development setup
+
+To work on the package itself, clone the repository and, from its root folder, install the locked dependencies, including the development tools (pytest, ruff, pyrefly and pre-commit), with [uv](https://docs.astral.sh/uv/):
+```bash
+uv sync --locked
+```
+Then install the git hooks, which run ruff, pyrefly, codespell and other checks on each commit, and the tests before each push:
+```bash
+uv run pre-commit install
+```
+See [Testing](#testing) for running the tests.
 
 
 ## Usage
@@ -43,7 +62,7 @@ To automatically convert paths between platforms, for example if you are using a
 ```python
 from adapter.i_o import IO
 
-input_loader = IO(<fullpath_to_the_main_input_file>, 
+input_loader = IO(<fullpath_to_the_main_input_file>,
                                os_mapping={'win32': 'C:', 'darwin': '/Volumes/A', 'linux': '/media/A'})
 data = input_loader.load()
 ```
@@ -59,14 +78,14 @@ where `data` is a dictionary with the following keys:
     'db_conn' - database connection
 ```
 
-The input tables may be specified in a single `xlsx`, a `database` file, or a `csv` file, or any combination of those. The `Adapter` standardizes the way to provide inputs from additional files through using either a table named `inputs_from_files`, or by having the string `inputs_from_files` be the start of the main `csv` input file name. The example inputs files, also used in the unit tests, are located in [the test suite folder](https://github.com/LBNL-ETA/Adapter/tree/master/adapter/tests). One can take the test input files as examples and guides on how to structure the main input file such that one can fetch either all the data from the main input file or, in addition to those, fetch data from other input files as specified in the standardized `inputs_from_files` table.
+The input tables may be specified in a single `xlsx`, a `database` file, or a `csv` file, or any combination of those. The `Adapter` standardizes the way to provide inputs from additional files through using either a table named `inputs_from_files`, or by having the string `inputs_from_files` be the start of the main `csv` input file name. The example inputs files, also used in the unit tests, are located in [the test inputs folder](https://github.com/LBNL-ETA/Adapter/tree/master/adapter/tests/inputs). One can take the test input files as examples and guides on how to structure the main input file such that one can fetch either all the data from the main input file or, in addition to those, fetch data from other input files as specified in the standardized `inputs_from_files` table.
 
 For example, to load all objects defined as data tables and named ranges specified in an excel input file, as a
 `Python dictionary` of `Pandas DataFrames`:
 
 ```python
 path = os.path.join(
-    os.getcwd(), r"adapter/tests/test_w_inputs_from_files_table.xlsx"
+    os.getcwd(), r"adapter/tests/inputs/test_w_inputs_from_files_table.xlsx"
 )
 
 i_o = IO(path)
@@ -78,9 +97,7 @@ where the `res` output is a dictionary with the same keys as in the example abov
 
 An another example especially useful for `Linux` users would be to provide several or all inputs as `csv` files through listing their paths in the main `csv` input file. The `Adapter` can then be used to load all inputs at once. This can be done as follows:
 ```python
-path = os.path.join(
-    os.getcwd(), r"adapter/tests/inputs_from_files_vTest.csv"
-)
+path = os.path.join(os.getcwd(), r"adapter/tests/inputs/inputs_from_files_vTest.csv")
 i_o = IO(path)
 data_conn = i_o.load()
 ```
@@ -89,30 +106,61 @@ If one of the input tables is named `run_parameters` and contains columns `Outpu
 
 To write the loaded data into either a single `db` and a number of `csv` files the user can run:
 ```python
-i_o.write(
-    type='db&csv',
-    data_connection=data_conn
-)
+i_o.write(type="db&csv", data_connection=data_conn)
 ```
 Depending on the `type` flag, there is an option to writhe only a `db` or a `csv` formatted output.
 
-The `Adapter` also provides an option to only establish a `db` connection to certain tables that are for example large and the user would 
-rather query them instead of having them be loaded as a `Pandas DataFrame`. An example of how to provide such information through the input file is 
-provided in this example input file [`adapter/tests/inputs_from_files_vTest.csv`](https://github.com/LBNL-ETA/Adapter/blob/master/adapter/tests/inputs_from_files_vTest.csv).
+The `Adapter` also provides an option to only establish a `db` connection to certain tables that are for example large and the user would
+rather query them instead of having them be loaded as a `Pandas DataFrame`. An example of how to provide such information through the input file is
+provided in this example input file [`adapter/tests/inputs/inputs_from_files_vTest.csv`](https://github.com/LBNL-ETA/Adapter/blob/master/adapter/tests/inputs/inputs_from_files_vTest.csv).
 
-Those with LBNL VPN access can also use [`API documentation`](https://atcd.lbl.gov/source/adapter.html) to explore the functionality of the modules.  
+Those with LBNL VPN access can also use [`API documentation`](https://atcd.lbl.gov/source/adapter.html) to explore the functionality of the modules.
 
 
 ## Testing
 
-As already mentioned in the Usage section, the example input files are [provided in the `test` folder](https://github.com/LBNL-ETA/Adapter/blob/master/adapter/tests/).
-
-To run tests it is recommended to use the [`unittest` framework](https://docs.python.org/3/library/unittest.html). All test modules have names that start with `test_`.
-
-Individual test module can be run with the following command, for example the `test_i_o` module:
+The tests use [pytest](https://docs.pytest.org/). Development dependencies, including `pytest` and `pytest-cov`, are in the `dev` dependency group and are installed with [uv](https://docs.astral.sh/uv/):
+```bash
+uv sync --locked
 ```
-python -m unittest adapter.tests.test_i_o
+
+Run the tests from the repo root, because some test inputs reference other inputs with repo-relative paths:
+```bash
+uv run pytest                                      # full suite
+uv run pytest adapter/tests/test_i_o.py            # one module
+uv run pytest adapter/tests/test_i_o.py -k TestWrite   # tests matching a name
+uv run pytest --cov --cov-report=term-missing      # with a coverage report
 ```
+
+### Layout
+
+- `adapter/tests/test_i_o.py`: the `IO` class, the package's main entry point: `load()` options and outputs, `write()`, helper methods, and the golden fixture comparison.
+- `adapter/tests/test_to_python.py`: the `Excel`, `Db` and `Db_sqlalchemy` loaders that `IO.load()` uses.
+- `adapter/comm/tests/test_sql.py` and `test_tools.py`: the `Sql` helper, network-drive path conversion and run-tag timestamps.
+- `adapter/tests/inputs/`: the synthetic input files the tests load. They also serve as examples of how to structure input files.
+- `adapter/tests/fixtures/golden/`: golden fixtures (see below).
+- `adapter/tests/conftest.py`: shared fixtures. `in_tmp_path` runs a test in a temporary working directory; `clean_output` removes the `output/` folders created by tests that must run from the repo root.
+
+Tests don't leave files in the repository. Known bugs, documented in [`issue-log.md`](issue-log.md), are intentionally not tested yet; their tests should come with the fixes.
+
+### Golden fixtures
+
+A golden fixture is a saved copy of what the code produced when it was trusted. `test_load_matches_golden` in `adapter/tests/test_i_o.py` loads each input listed in `GOLDEN_CASES` (at the top of that file) with `IO(<input>).load(skip_writeout=True)` and compares the result with its JSON file in `adapter/tests/fixtures/golden/`. This catches unintended changes to loaded data, notably when upgrading dependencies such as pandas.
+
+Each JSON file holds the input file name, the pandas version used to generate it (informational), the float tolerance (`rtol`), and, for every loaded table, its columns, dtypes, index labels and row-major values (`null` for missing values). The test checks:
+
+- that the same set of tables is loaded;
+- each table's column labels and dtypes, exactly;
+- each table's index and values with `pandas.testing.assert_frame_equal(check_exact=False, rtol=1e-9)`.
+
+Missing values are stored as `null`, so `None` and `NaN` in object columns compare equal. A dtype change, such as `object` → `str` under pandas 3's string dtype, fails by design.
+
+When a golden test fails, find out why before changing anything. Regenerate the fixtures only when a change to the loaded data is intended, for example a reviewed bug fix, an accepted dependency change, or an edited or added input file (add new inputs to `GOLDEN_CASES` first). From the repo root:
+```bash
+uv run python -m adapter.tests.regenerate_golden_fixtures
+git diff adapter/tests/fixtures/golden/
+```
+The script rewrites the fixtures for all inputs, so check that every changed line in the diff is explained by the intended change, then commit the fixtures in their own commit. To remove an input, delete it from `GOLDEN_CASES` and delete its JSON file.
 
 
 ## Contributing
@@ -127,5 +175,5 @@ The initial purpose of this software was to serve certain `Python` analytical to
 
 ## Developers
 
-The codebase was developed at the Energy Efficiency Studies Department by Milica Grahovac, Youness Bennani, Thomas 
+The codebase was developed at the Energy Efficiency Studies Department by Milica Grahovac, Youness Bennani, Thomas
 Burke, Katie Coughlin, Mohan Ganeshalingam, Akhil Mathur, Evan Neill, Robert Hosbach, Akshay Sharma, Zheng He and Lyra Lan.
