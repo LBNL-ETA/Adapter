@@ -8,7 +8,7 @@ dynamic = ["version"]
 license = { text = "BSD-3-Clause-LBNL" }
 description = "I/O Module"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 authors = [
     {name = "Milica Grahovac"},
     {name = "Youness Bennani"},
@@ -68,7 +68,7 @@ show_missing = true
 
 [tool.ruff]
 line-length = 88
-target-version = "py312"
+target-version = "py314"
 
 [tool.ruff.lint]
 select = [
