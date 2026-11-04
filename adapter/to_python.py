@@ -1,20 +1,18 @@
 import logging
-import os
 import traceback
-import openpyxl
 
 import numpy as np
+import openpyxl
 import pandas as pd
-from sqlalchemy import create_engine, MetaData
+from sqlalchemy import MetaData, create_engine
 
 from adapter.comm.tools import process_column_labels
-
-import logging
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
-class Excel(object):
+
+class Excel:
     """Loads bulk named tables
     and ranges from excel to python as
     a dictionary of dataframes.
@@ -40,14 +38,14 @@ class Excel(object):
         )
         self.pre_existing_keys = pre_existing_keys
 
-        log.info("Connected to: {}".format(self.file_path))
+        log.info(f"Connected to: {self.file_path}")
 
     def load(self, data_object_names=None, kind="all"):
-        """Grabs all or a subset of named tables and ranges 
+        """Grabs all or a subset of named tables and ranges
         found in excel file as a dictionary of dataframes
 
         This function replaces the older version of Excel.load
-        
+
         Parameters:
 
             data_object_names: list
@@ -74,51 +72,58 @@ class Excel(object):
                 values
         """
         # check if any name in data_object_names not in excel file
-        all_input_ranges = set(self.wb.defined_names.keys())    
-        all_input_tables = {object_table for ws in self.wb.worksheets for object_table in ws.tables.keys()}
+        all_input_ranges = set(self.wb.defined_names.keys())
+        all_input_tables = {
+            object_table for ws in self.wb.worksheets for object_table in ws.tables
+        }
         all_input_objects = all_input_ranges | all_input_tables
 
         if isinstance(data_object_names, list):
             data_object_names = set(data_object_names)
             missings = data_object_names - all_input_objects
             if len(missings) > 0:
-                raise ValueError(f"{missings} not found in the input file {self.file_path}.")
+                raise ValueError(
+                    f"{missings} not found in the input file {self.file_path}."
+                )
 
         elif data_object_names is None or np.isnan(data_object_names):
             data_object_names = all_input_objects
 
         else:
-            raise ValueError(f"Unsupported type ({type(data_object_names)}) passed for data object names {data_object_names}.")
+            raise ValueError(
+                f"Unsupported type ({type(data_object_names)}) passed for data object names {data_object_names}."
+            )
 
         if len(all_input_objects) == 0:
-            msg = (
-                "Neither named tables nor named ranges found in "
-                "the input file {}."
-            )
+            msg = "Neither named tables nor named ranges found in the input file {}."
             log.info(msg.format(self.file_path))
 
-        dict_of_dfs = dict()
+        dict_of_dfs = {}
         if kind not in ["all", "ranges", "tables"]:
             raise ValueError(f"An unsupported value provided for kwarg kind {kind}.")
         # get named ranges
-        if kind in ['all', 'ranges']:
+        if kind in ["all", "ranges"]:
+            # set before the loop, so the error message below can always be built
+            name = None
             try:
                 for name in data_object_names & all_input_ranges:
                     dict_of_dfs[name] = self.get_named_data_object(name)
-            except:
+            except Exception as err:
                 msg = (
-                "Failed to read input named range {}"
-                " from input file {}. "
-                "If the data contained in the table "
-                "is needed in the analysis please attempt"
-                " to rename the table/range using strings and numerals "
-                "and/or further check the data range or table "
-                "definition."
+                    "Failed to read input named range {}"
+                    " from input file {}. "
+                    "If the data contained in the table "
+                    "is needed in the analysis please attempt"
+                    " to rename the table/range using strings and numerals "
+                    "and/or further check the data range or table "
+                    "definition."
                 )
-                raise ValueError(msg.format(name, self.file_path))
+                raise ValueError(msg.format(name, self.file_path)) from err
 
         # get named tables
-        if kind in ['all', 'tables']:
+        if kind in ["all", "tables"]:
+            # set before the loop, so the error message below can always be built
+            table_name = None
             try:
                 for ws in self.wb.worksheets:
                     for table_name, table_range in ws.tables.items():
@@ -126,21 +131,20 @@ class Excel(object):
                             dict_of_dfs[table_name] = self.convert_data_object_to_df(
                                 ws[table_range], table_name
                             )
-            except:
+            except Exception as err:
                 msg = (
-                "Failed to read input named table {}"
-                " from input file {}. "
-                "If the data contained in the table "
-                "is needed in the analysis please attempt"
-                " to rename the table/range using strings and numerals "
-                "and/or further check the data range or table "
-                "definition."
+                    "Failed to read input named table {}"
+                    " from input file {}. "
+                    "If the data contained in the table "
+                    "is needed in the analysis please attempt"
+                    " to rename the table/range using strings and numerals "
+                    "and/or further check the data range or table "
+                    "definition."
                 )
-                raise ValueError(msg.format(table_name, self.file_path))
+                raise ValueError(msg.format(table_name, self.file_path)) from err
 
         if self.pre_existing_keys is not None:
-            Debugger.check_for_duplicates(
-                self.pre_existing_keys, dict_of_dfs.keys())
+            Debugger.check_for_duplicates(self.pre_existing_keys, dict_of_dfs.keys())
 
         for k, df in dict_of_dfs.items():
             # xlwings-based Excel class converted all numbers to float types.
@@ -236,7 +240,7 @@ class Excel(object):
         return df
 
 
-class Db(object):
+class Db:
     """Loads tables from a sqlite3 database into python
     as a dictionary of dataframes.
 
@@ -270,7 +274,7 @@ class Db(object):
         # if not os.path.exists(self.file_path):
         #     # check if file exists
         #     raise ImportError(f'Cannot find {self.file_path}')
-        con_str = f'sqlite+pysqlite:///{self.file_path}'
+        con_str = f"sqlite+pysqlite:///{self.file_path}"
         engine = create_engine(con_str)
         metadata = MetaData()
         metadata.reflect(bind=engine)
@@ -278,25 +282,24 @@ class Db(object):
         keys = metadata.tables.keys()
         if len(keys) == 0:
             # check database integrity
-            raise IOError(
-                f'0 table found in the database file! The input file: {self.file_path} may be unsupported or corrupted')
+            raise OSError(
+                f"0 table found in the database file! The input file: {self.file_path} may be unsupported or corrupted"
+            )
         if self.pre_existing_keys is not None:
             # check for duplicates in tables_names,
             # if table_names == None, check for duplcates for all the tables
-            Debugger.check_for_duplicates(
-                self.pre_existing_keys, table_names or keys
-            )
+            Debugger.check_for_duplicates(self.pre_existing_keys, table_names or keys)
             # skip pre_existing_keys
         if table_names is not None:
             # only import given table names
             keys = keys & set(table_names)
-        dict_of_dfs = dict()
+        dict_of_dfs = {}
         for t in keys:
-            dict_of_dfs[t] = pd.read_sql_table(f'{t}', con=con_str)
+            dict_of_dfs[t] = pd.read_sql_table(f"{t}", con=con_str)
         return dict_of_dfs
 
 
-class Db_sqlalchemy(object):
+class Db_sqlalchemy:
     """Loads tables from a database using sqlalchemy to python
     as a dictionary of dataframes.
 
@@ -314,19 +317,19 @@ class Db_sqlalchemy(object):
         # Imports in this class so if you don;t need them it will still work
         try:
             from adapter.Secret import database_credentials
-        except:
+        except ImportError as err:
             raise ValueError(
-                """You must define your "Secret.py" file within the adapter folder.  
+                """You must define your "Secret.py" file within the adapter folder.
                                 Replace the example "Secret_example.py" with your credentials"""
-            )
+            ) from err
 
         self.cxn_str = (
-                "postgresql://"
-                + database_credentials["Username"]
-                + ":"
-                + database_credentials["Password"]
-                + "@"
-                + file_path
+            "postgresql://"
+            + database_credentials["Username"]
+            + ":"
+            + database_credentials["Password"]
+            + "@"
+            + file_path
         )
         self.engine = create_engine(self.cxn_str)
         self.file_path = file_path
@@ -343,9 +346,9 @@ class Db_sqlalchemy(object):
         """
 
         try:
-            dict_of_dfs = dict()
+            dict_of_dfs = {}
             for table_name in table_names:
-                sql_string = "SELECT * FROM {table}".format(table=table_name)
+                sql_string = f"SELECT * FROM {table_name}"
                 dict_of_dfs[table_name] = pd.read_sql(con=self.engine, sql=sql_string)
 
             if self.pre_existing_keys is not None:
@@ -353,16 +356,16 @@ class Db_sqlalchemy(object):
                     self.pre_existing_keys, dict_of_dfs.keys()
                 )
 
-        except:
+        except Exception as err:
             traceback.print_exc()
             msg = "Failed to read input tables from {}."
             log.error(msg.format(self.file_path))
-            raise ValueError
+            raise ValueError from err
 
         return dict_of_dfs
 
 
-class Debugger(object):
+class Debugger:
     @staticmethod
     def check_for_duplicates(pre_existing_keys, table_names):
         """Checks if among data tables already
@@ -397,10 +400,9 @@ class Debugger(object):
 
         else:
             try:
-                if pre_existing_keys is not None:
-                    if table_names in pre_existing_keys:
-                        # log.error(msg.format(name))
-                        raise ValueError
-            except:
+                if pre_existing_keys is not None and table_names in pre_existing_keys:
+                    # log.error(msg.format(name))
+                    raise ValueError
+            except Exception:
                 msg = "Unexpected table_name ({}) format."
                 log.error(msg.format(table_names))

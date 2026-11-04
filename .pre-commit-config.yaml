@@ -1,0 +1,86 @@
+# See https://pre-commit.com for more information
+default_install_hook_types: [pre-commit, pre-push]
+default_stages: [pre-commit]
+
+repos:
+  # General-purpose hygiene hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      # test inputs are data: change them only on purpose
+      - id: trailing-whitespace
+        exclude: ^adapter/tests/inputs/
+      - id: end-of-file-fixer
+        exclude: ^adapter/tests/inputs/
+      - id: mixed-line-ending
+        args: [--fix=lf]
+        exclude: ^adapter/tests/inputs/
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: check-added-large-files
+        args: [--maxkb=1000]
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-symlinks
+      - id: detect-private-key
+      - id: debug-statements
+
+  # Keep uv.lock in sync with pyproject.toml
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.13.5
+    hooks:
+      - id: uv-lock
+
+  # Validate pyproject.toml against the packaging spec
+  - repo: https://github.com/abravalheri/validate-pyproject
+    rev: v0.27
+    hooks:
+      - id: validate-pyproject
+
+  # Strip outputs and noisy metadata from Jupyter notebooks
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.9.1
+    hooks:
+      - id: nbstripout
+        args:
+          - --drop-empty-cells
+          - --extra-keys=metadata.kernelspec metadata.language_info.version
+
+  # Ruff: linting (with autofix) then formatting
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.2
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  # Catch common spelling mistakes in code and docs
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.3
+    hooks:
+      - id: codespell
+        additional_dependencies: [tomli]
+
+  # Hooks that run from the project venv
+  - repo: local
+    hooks:
+      - id: pyrefly
+        name: pyrefly
+        entry: uv run --frozen pyrefly check
+        language: system
+        types_or: [python, pyi]
+        pass_filenames: false
+        require_serial: true
+        # Manual on this branch: pyrefly still reports errors here (fixed on
+        # fix_pyrefly_errors). Run with:
+        #   uv run pre-commit run --hook-stage manual pyrefly
+        stages: [manual]
+
+      - id: pytest
+        name: pytest
+        entry: uv run --frozen pytest -q
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]

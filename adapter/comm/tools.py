@@ -1,9 +1,9 @@
 import os
 import re
 import sys
-from datetime import datetime
-from pathlib import PureWindowsPath, PurePosixPath
 import tkinter as tk
+from datetime import datetime
+from pathlib import PurePosixPath, PureWindowsPath
 from tkinter import filedialog as fd
 
 
@@ -21,17 +21,17 @@ def process_column_labels(list_of_labels):
             A list with cleaned lables
     """
     list_of_cleaned_labels = [
-        re.sub(" +", " ", lbl.strip()) if lbl is str else lbl
-        for lbl in list_of_labels
+        re.sub(" +", " ", lbl.strip()) if lbl is str else lbl for lbl in list_of_labels
     ]
 
     return list_of_cleaned_labels
 
 
-def convert_network_drive_path(
-    str_or_path,
-    mapping={"win32": "X:", "darwin": "/Volumes/A", "linux": "/media/b"},
-):
+# OS -> network drive mount point used when no mapping is passed
+DEFAULT_OS_MAPPING = {"win32": "X:", "darwin": "/Volumes/A", "linux": "/media/b"}
+
+
+def convert_network_drive_path(str_or_path, mapping=None):
     """
     Convert network drive paths from those formatted for one OS into those formatted for another. (works for Windows,
     OSX, Linux)
@@ -42,7 +42,7 @@ def convert_network_drive_path(
             string holding a filepath.
 
         mapping: dict
-            OS, mount point pair.
+            OS, mount point pair. Default: None, which uses DEFAULT_OS_MAPPING.
 
     Returns:
         str_or_path: str
@@ -52,6 +52,8 @@ def convert_network_drive_path(
     Raises:
         Exception: When no mapping is given or running on an unsupported OS
     """
+    if mapping is None:
+        mapping = DEFAULT_OS_MAPPING
     # backwards compatibility
     if not isinstance(mapping, dict):
         # automatically assume list of tuples
@@ -91,11 +93,11 @@ def convert_network_drive_path(
     elif sys.platform == "darwin" or sys.platform == "linux":
         return str(PurePosixPath(mapping[sys.platform]).joinpath(file_path))
     else:
-        raise IOError(f"Not supported OS: {sys.platform}!")
+        raise OSError(f"Not supported OS: {sys.platform}!")
 
 
 def get_mount_point_len(mapping: dict, str_or_path: str) -> int:
-    """Get the length of the current mount point.
+    r"""Get the length of the current mount point.
     For example, get_mount_point_len(mapping={'win32': 'X:',
     'darwin': '/Volumes/A', 'linux': '/media/b'}, str_or_path=r'X:\Abc\1.txt') => 2.
     get_mount_point_len(mapping={'win32': 'X:',
@@ -140,10 +142,7 @@ def user_select_file(user_message="", mul_fls=False):
     root = tk.Tk()
     root.withdraw()
 
-    print(
-        user_message
-        + " (You may have to search for the file prompt window)"
-    )
+    print(user_message + " (You may have to search for the file prompt window)")
 
     if mul_fls:
         fpath = fd.askdirectory(title=user_message)
@@ -187,8 +186,8 @@ def mark_time(prefix: str = "", ts_format: str = "short") -> str:
 
     """
     if ts_format == "short":
-        return f'{prefix}_{datetime.now().strftime("%y%m%d_%H%M")}'
+        return f"{prefix}_{datetime.now().strftime('%y%m%d_%H%M')}"
     elif ts_format == "long":
-        return f'{prefix}_{datetime.now().strftime("%Y_%m_%d_%Hh_%Mm")}'
+        return f"{prefix}_{datetime.now().strftime('%Y_%m_%d_%Hh_%Mm')}"
     else:
         raise ValueError("Unsupported timestamp format!")

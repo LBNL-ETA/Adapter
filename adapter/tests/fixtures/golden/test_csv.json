@@ -1,0 +1,41 @@
+{
+  "input_file": "test.csv",
+  "pandas_version": "2.3.3",
+  "rtol": 1e-09,
+  "tables": {
+    "test": {
+      "columns": [
+        "csv_col_1",
+        "csv_col_2",
+        "csv_col_3"
+      ],
+      "dtypes": {
+        "csv_col_1": "int64",
+        "csv_col_2": "object",
+        "csv_col_3": "int64"
+      },
+      "index": [
+        0,
+        1,
+        2
+      ],
+      "data": [
+        [
+          1,
+          "a",
+          12
+        ],
+        [
+          1,
+          "b",
+          13
+        ],
+        [
+          1,
+          "c",
+          45
+        ]
+      ]
+    }
+  }
+}
