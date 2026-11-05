@@ -61,6 +61,7 @@ Archive *
 Output*
 *.egg-info/
 build/
+issue-log.md
 .ipynb_checkpoints
 *checkpoint.ipynb
 Secret.py
