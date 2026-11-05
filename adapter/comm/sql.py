@@ -1,5 +1,4 @@
 import logging
-import os
 import sqlite3
 
 import pandas as pd
@@ -24,13 +23,8 @@ class Sql:
         # as sql db and postgres
 
         if isinstance(path_OR_dbconn, str):
-            try:
-                # for absolute or mounted paths
-                self.db = sqlite3.connect(path_OR_dbconn)
-            except Exception:
-                # for paths relative to run path
-                path = os.path.join(os.getcwd(), path_OR_dbconn)
-                self.db = sqlite3.connect(path)
+            # absolute, mounted, or relative to the working directory
+            self.db = sqlite3.connect(path_OR_dbconn)
 
         elif isinstance(path_OR_dbconn, sqlite3.Connection):
             self.db = path_OR_dbconn
