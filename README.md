@@ -13,7 +13,7 @@ The package is supported on `Windows` and `macOS`, as well as for `Linux` for th
 
 ## Installation
 
-`adapterio` requires Python 3.12 or newer. Its dependencies, including pandas 3, are installed automatically.
+`adapterio` requires Python 3.14 or newer. Its dependencies are installed automatically.
 
 To install the package from GitHub:
 ```bash
@@ -37,7 +37,7 @@ To use the `sqlalchemy` connections to remote server(s), copy the example secret
 
 To work on the package itself, clone the repository and, from its root folder, install the locked dependencies, including the development tools (pytest, ruff, pyrefly and pre-commit), with [uv](https://docs.astral.sh/uv/):
 ```bash
-uv sync --locked
+uv sync --frozen
 ```
 Then install the git hooks, which run ruff, pyrefly, codespell and other checks on each commit, and the tests before each push:
 ```bash
@@ -119,13 +119,11 @@ Those with LBNL VPN access can also use [`API documentation`](https://atcd.lbl.g
 
 ## Testing
 
-The tests use [pytest](https://docs.pytest.org/). Development dependencies, including `pytest` and `pytest-cov`, are in the `dev` dependency group and are installed with [uv](https://docs.astral.sh/uv/):
-```bash
-uv sync --locked
-```
+The tests use [pytest](https://docs.pytest.org/). Development dependencies, including `pytest` and `pytest-cov`, are in the `dev` dependency group and are installed with [uv](https://docs.astral.sh/uv/).
 
 Run the tests from the repo root, because some test inputs reference other inputs with repo-relative paths:
 ```bash
+uv lock --check                                    # verify uv.lock matches pyproject.toml before testing
 uv run pytest                                      # full suite
 uv run pytest adapter/tests/test_i_o.py            # one module
 uv run pytest adapter/tests/test_i_o.py -k TestWrite   # tests matching a name
