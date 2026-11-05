@@ -508,9 +508,14 @@ code that uses `adapterio`:
   keep the db file locked.
 - **Reproduce:** `uv run pytest -W error`; or run `Db("adapter/tests/inputs/test.db").load()`
   with `-W always::ResourceWarning` and `gc.collect()`.
-- **Status:** Partially resolved on branch `upgrade_pandas_3`. `IO.create_db` closes the
-  connection whenever writing fails (`except BaseException: db_con.close(); raise`) and
-  now lets the original error propagate instead of wrapping it in `ValueError` (see #28);
-  test `TestHelpers.test_create_db_raises_when_a_table_cannot_be_written` updated. The
-  `Db.load` fix (dispose of the engine, and pass it to `read_sql_table`) is not committed
-  yet; with both fixes, 0 of 80 connections are left open and `pytest -W error` passes.
+- **Status:** Resolved on branch `upgrade_pandas_3`.
+  - `IO.create_db` closes the connection whenever writing fails
+    (`except BaseException: db_con.close(); raise`) and now lets the original error
+    propagate instead of wrapping it in `ValueError` (see #28); test
+    `TestHelpers.test_create_db_raises_when_a_table_cannot_be_written` updated.
+  - `Db.load` creates one engine, passes it to `read_sql_table` (instead of a connection
+    string, which made pandas create an engine per table), and disposes of it in a
+    `finally` that covers everything after `create_engine`, including the `OSError` for a
+    db without tables and the duplicate-table `ValueError`.
+  - Result: 0 of 80 connections are left open over the suite (was 30 of 136), and
+    `uv run pytest -W error` passes.

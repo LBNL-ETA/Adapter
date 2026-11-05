@@ -271,37 +271,41 @@ class Db:
             table_names: list
                 List of table names to load. Assuming the given tables always exist in the db file
                 Default: None = load all tables
-        Notes
-        -----
-        input file checking comment out for now because it crashes LCC. this section should be uncommented
-        once LCC fixes the issue.
         """
-        # if not os.path.exists(self.file_path):
-        #     # check if file exists
-        #     raise ImportError(f'Cannot find {self.file_path}')
         con_str = f"sqlite+pysqlite:///{self.file_path}"
         engine = create_engine(con_str)
-        metadata = MetaData()
-        metadata.reflect(bind=engine)
 
-        keys = metadata.tables.keys()
-        if len(keys) == 0:
-            # check database integrity
-            raise OSError(
-                f"0 table found in the database file! The input file: {self.file_path} may be unsupported or corrupted"
-            )
-        if self.pre_existing_keys is not None:
-            # check for duplicates in tables_names,
-            # if table_names == None, check for duplicates for all the tables
-            Debugger.check_for_duplicates(self.pre_existing_keys, table_names or keys)
-            # skip pre_existing_keys
-        if table_names is not None:
-            # only import given table names
-            keys = keys & set(table_names)
-        dict_of_dfs = {}
-        for t in keys:
-            dict_of_dfs[t] = pd.read_sql_table(f"{t}", con=con_str)
-        return dict_of_dfs
+        try:
+            metadata = MetaData()
+            metadata.reflect(bind=engine)
+
+            keys = metadata.tables.keys()
+            if len(keys) == 0:
+                # check database integrity
+                raise OSError(
+                    f"0 table found in the database file! The input file: {self.file_path} may be unsupported or corrupted"
+                )
+            if self.pre_existing_keys is not None:
+                # check for duplicates in tables_names,
+                # if table_names == None, check for duplicates for all the tables
+                Debugger.check_for_duplicates(
+                    self.pre_existing_keys, table_names or keys
+                )
+
+            if table_names is not None:
+                # only import given table names
+                keys = keys & set(table_names)
+
+            dict_of_dfs = {}
+            for t in keys:
+                dict_of_dfs[t] = pd.read_sql_table(t, con=engine)
+
+            return dict_of_dfs
+
+        finally:
+            # close the engine's pooled connections, so the db file isn't left open
+            # Even if a read error occurs.
+            engine.dispose()
 
 
 class Db_sqlalchemy:
