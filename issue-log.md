@@ -454,6 +454,8 @@ and the effect on the tests.
   (`unbound-name`).
 - **Status:** Resolved. Both variables are set to `None` before their `try`, so the
   message always builds (it says "None" in that rare case). No test changes needed.
+  - Superseded on branch `upgrade_pandas_3` (#34): the handlers no longer build a message
+    from the loop variable (they add a note naming the file), so those lines are removed.
 
 ## 31. Temporary pyrefly and ruff ignores
 
@@ -555,3 +557,11 @@ something fails.
   "Raised while creating the run database for input file <input>". Test:
   `TestLoadOutput.test_raises_when_db_cannot_be_created` updated to expect the original
   error and the note (fails on the old code).
+- **`Excel.load`** (`to_python.py`), named ranges and named tables: no longer replace any
+  reading error with `ValueError("Failed to read input named range/table <name> from
+  input file <file>. If the data ... definition.")`. The original error propagates (e.g.
+  `KeyError: 'Worksheet Missing does not exist.'` for a named range on a missing sheet),
+  with a note naming the file: "Raised while reading named ranges/tables from <file>".
+  The error no longer names the range or table. Tests:
+  `ExcelTest.test_load_range_error_names_the_file`,
+  `test_load_table_error_names_the_file` (both fail on the old code).

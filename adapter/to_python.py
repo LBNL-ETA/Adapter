@@ -102,27 +102,15 @@ class Excel:
             raise ValueError(f"An unsupported value provided for kwarg kind {kind}.")
         # get named ranges
         if kind in ["all", "ranges"]:
-            # set before the loop, so the error message below can always be built
-            name = None
             try:
                 for name in data_object_names & all_input_ranges:
                     dict_of_dfs[name] = self.get_named_data_object(name)
             except Exception as err:
-                msg = (
-                    "Failed to read input named range {}"
-                    " from input file {}. "
-                    "If the data contained in the table "
-                    "is needed in the analysis please attempt"
-                    " to rename the table/range using strings and numerals "
-                    "and/or further check the data range or table "
-                    "definition."
-                )
-                raise ValueError(msg.format(name, self.file_path)) from err
+                err.add_note(f"Raised while reading named ranges from {self.file_path}")
+                raise
 
         # get named tables
         if kind in ["all", "tables"]:
-            # set before the loop, so the error message below can always be built
-            table_name = None
             try:
                 for ws in self.wb.worksheets:
                     for table_name, table_range in ws.tables.items():
@@ -131,16 +119,8 @@ class Excel:
                                 ws[table_range], table_name
                             )
             except Exception as err:
-                msg = (
-                    "Failed to read input named table {}"
-                    " from input file {}. "
-                    "If the data contained in the table "
-                    "is needed in the analysis please attempt"
-                    " to rename the table/range using strings and numerals "
-                    "and/or further check the data range or table "
-                    "definition."
-                )
-                raise ValueError(msg.format(table_name, self.file_path)) from err
+                err.add_note(f"Raised while reading named tables from {self.file_path}")
+                raise
 
         if self.pre_existing_keys is not None:
             Debugger.check_for_duplicates(self.pre_existing_keys, dict_of_dfs.keys())

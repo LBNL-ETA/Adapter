@@ -118,6 +118,40 @@ class ExcelTest:
         # the raw labels are " label 1 " and "label 2 "
         assert list(exl.load()["Table1"].columns) == ["label 1", "label 2"]
 
+    def test_load_range_error_names_the_file(self, tmp_path):
+        """Excel.load() re-raises an error reading a named range, with a note naming
+        the file.
+        """
+        wb = openpyxl.Workbook()
+        # a named range on a sheet that doesn't exist
+        wb.defined_names["broken"] = DefinedName(
+            "broken", attr_text="Missing!$A$1:$A$2"
+        )
+        path = str(tmp_path / "broken.xlsx")
+        wb.save(path)
+
+        with pytest.raises(KeyError, match="Missing") as exc_info:
+            Excel(path).load(kind="ranges")
+
+        assert any(path in note for note in exc_info.value.__notes__)
+
+    def test_load_table_error_names_the_file(self, monkeypatch):
+        """Excel.load() re-raises an error reading a named table, with a note naming
+        the file.
+        """
+
+        def fail(self, data_object, name):
+            raise RuntimeError("cannot convert")
+
+        monkeypatch.setattr(Excel, "convert_data_object_to_df", fail)
+
+        with pytest.raises(RuntimeError, match="cannot convert") as exc_info:
+            self.exl_loader.load(kind="tables")
+
+        assert any(
+            self.exl_loader.file_path in note for note in exc_info.value.__notes__
+        )
+
     def test_load_raises_for_names_not_in_file(self):
         """Excel.load() raises ValueError when a requested name isn't in the workbook."""
         with pytest.raises(ValueError, match="not found in the input file"):
