@@ -255,9 +255,10 @@ class TestPickle:
 
 # Tests of the IO public API below run in a fresh temporary working
 # directory (in_tmp_path), which is where load() and write() put their
-# output. Paths passed to write() are kept under that directory (see
-# issue-log.md #22). Code paths with known bugs (issue-log.md) are
-# intentionally not tested here; their tests should come with the fixes.
+# output. Paths passed to write() are kept under that directory, because
+# new absolute paths outside it are rewritten onto the network drive.
+# Code paths with known, unfixed bugs are intentionally not tested here;
+# their tests should come with the fixes.
 
 
 def write_inputs_from_files(rows, file_name="inputs_from_files.csv"):

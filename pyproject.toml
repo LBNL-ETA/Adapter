@@ -94,6 +94,6 @@ skip = "uv.lock,*.svg,*.ipynb"
 
 [tool.pyrefly]
 project-includes = ["adapter"]
-# Temporary ignores; remove each once its issue is resolved (issue-log.md #31):
-# - adapter.Secret: credentials file that is git-ignored by design (#27, #31)
+# Temporary ignore: adapter.Secret is a credentials file that is git-ignored
+# by design. Remove if loading credentials is restructured.
 ignore-missing-imports = ["adapter.Secret"]

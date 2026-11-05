@@ -139,7 +139,7 @@ uv run pytest --cov --cov-report=term-missing      # with a coverage report
 - `adapter/tests/fixtures/golden/`: golden fixtures (see below).
 - `adapter/tests/conftest.py`: shared fixtures. `in_tmp_path` runs a test in a temporary working directory; `clean_output` removes the `output/` folders created by tests that must run from the repo root.
 
-Any warning raised during a test (for example a deprecation or an unclosed database connection) makes it fail, as set by `filterwarnings` in `pyproject.toml`. Tests don't leave files in the repository. Known bugs, documented in [`issue-log.md`](issue-log.md), are intentionally not tested yet; their tests should come with the fixes.
+Any warning raised during a test (for example a deprecation or an unclosed database connection) makes it fail, as set by `filterwarnings` in `pyproject.toml`. Tests don't leave files in the repository. Known bugs that aren't fixed yet are intentionally not tested; their tests should come with the fixes.
 
 ### Golden fixtures
 
