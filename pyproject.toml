@@ -24,7 +24,6 @@ authors = [
 keywords = ["data","tables","IO for research computation", "sql", "excel", "csv", "dataframe", "connection"]
 dependencies = [
     "pandas>=3.0.0",
-    "xlwings>=0.19.4",
     "psycopg2-binary>=2.8.6",
     "SQLAlchemy>=2.0.0",
     "openpyxl>=3.1.2",
@@ -70,8 +69,6 @@ show_missing = true
 [tool.ruff]
 line-length = 88
 target-version = "py314"
-# Temporary: unused xlwings module, kept for now (#16); remove with it (issue-log.md #31)
-extend-exclude = ["adapter/comm/excel.py"]
 
 [tool.ruff.lint]
 select = [
@@ -96,7 +93,5 @@ skip = "uv.lock,*.svg,*.ipynb"
 [tool.pyrefly]
 project-includes = ["adapter"]
 # Temporary ignores; remove each once its issue is resolved (issue-log.md #31):
-# - comm/excel.py: unused xlwings module, kept for now (#16)
-project-excludes = ["adapter/comm/excel.py"]
 # - adapter.Secret: credentials file that is git-ignored by design (#27, #31)
 ignore-missing-imports = ["adapter.Secret"]

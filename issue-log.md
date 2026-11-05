@@ -203,6 +203,12 @@ dedicated changes.
 - **Problem:** not imported by the package or by any test (0% coverage). It is the only
   user of the `xlwings` dependency. Decide whether to remove it (and possibly `xlwings`)
   in a dedicated change.
+- **Status:** Resolved on branch `upgrade_pandas_3`: `excel.py` and the `xlwings` dependency
+  are removed (with `appscript`, `lxml`, `psutil` and `pywin32`, which only `xlwings`
+  needed). Its last user was removed in commit `cc920af` (2022), when the openpyxl-based
+  `to_python.Excel` replaced it. **Breaking** for any downstream code that imports
+  `adapter.comm.excel` (`Book`, `xl2pd`, `pd2xl`, ...). Its ruff and pyrefly exclusions
+  (#31) are removed; total test coverage rises from 64% to 92%.
 
 ## 17. `IO.first_col_to_index(..., table_names=False)` raises `TypeError`
 
@@ -441,15 +447,12 @@ and the effect on the tests.
 
 - **File:** `pyproject.toml`, `[tool.pyrefly]` and `[tool.ruff]` sections
 - **What:** settings, added with explicit approval, that hide pyrefly and ruff errors:
-  - `project-excludes = ["adapter/comm/excel.py"]`: pyrefly doesn't check the unused
-    xlwings module (21 errors, including 4 undefined names). Remove when `excel.py` is
-    deleted or fixed (#16).
+  - ~~`project-excludes = ["adapter/comm/excel.py"]`~~: removed with `excel.py` (#16).
   - `ignore-missing-imports = ["adapter.Secret"]`: pyrefly doesn't report the import of the
     git-ignored credentials file in `Db_sqlalchemy.__init__`. Remove if credentials
     loading is restructured (e.g. with #27).
-  - `[tool.ruff]` `extend-exclude = ["adapter/comm/excel.py"]` (branch `upgrade_pandas_3`):
-    ruff and the ruff pre-commit hooks skip `excel.py` (18 findings, including the same 4
-    undefined names). Remove when `excel.py` is deleted or fixed (#16).
+  - ~~`[tool.ruff]` `extend-exclude = ["adapter/comm/excel.py"]`~~: removed with
+    `excel.py` (#16).
 - **To remove:** delete the line and run `uv run pyrefly check` / `uv run ruff check .` to
   see the errors it was hiding.
 
