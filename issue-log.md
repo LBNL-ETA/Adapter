@@ -519,3 +519,20 @@ code that uses `adapterio`:
     db without tables and the duplicate-table `ValueError`.
   - Result: 0 of 80 connections are left open over the suite (was 30 of 136), and
     `uv run pytest -W error` passes.
+
+## 34. Behavior changes from simplifying `try`/`except` blocks
+
+Several `try`/`except` blocks only replaced an error with a less informative one. On
+branch `upgrade_pandas_3` they are removed or changed to add context to the original
+error. Successful calls are unaffected; what changes is the error a caller sees when
+something fails.
+
+- **`Sql.__init__`** (`comm/sql.py`): removed the retry with `os.getcwd()` joined to the
+  path. It always targeted the same file and failed with the same error. No behavior
+  change. Test: `SqlTests.test_raises_for_path_that_cannot_be_opened`.
+- **`Db_sqlalchemy.load`** (`to_python.py`): no longer catches every error, prints a
+  traceback to stderr and raises an empty `ValueError`. The original error propagates
+  (e.g. `pandas.errors.DatabaseError` for a table that can't be read; `ValueError` with
+  its message for a table already loaded) and nothing is printed. Tests:
+  `TestDbSqlalchemy.test_load_missing_table_raises_original_error`,
+  `test_load_raises_for_tables_already_loaded` (both fail on the old code).

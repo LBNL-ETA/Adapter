@@ -227,6 +227,22 @@ class TestDbSqlalchemy:
         expected = Db(loader.file_path).load(table_names=["table1"])["table1"]
         assert_frame_equal(tables["table1"], expected)
 
+    def test_load_missing_table_raises_original_error(self, loader, capsys):
+        """Db_sqlalchemy.load() raises the database error for a table that can't be
+        read, without printing a traceback.
+        """
+        with pytest.raises(pd.errors.DatabaseError, match="missing_table"):
+            loader.load(table_names=["missing_table"])
+
+        assert capsys.readouterr().err == ""
+
+    def test_load_raises_for_tables_already_loaded(self, loader):
+        """Db_sqlalchemy.load() raises ValueError naming a table that was already loaded."""
+        loader.pre_existing_keys = {"table1": None}.keys()
+
+        with pytest.raises(ValueError, match="table1 was already read in"):
+            loader.load(table_names=["table1"])
+
     def test_load_named_tables(self, loader):
         """Db_sqlalchemy.load(table_names=[...]) loads only the named tables."""
         assert set(loader.load(table_names=["table1", "table3"])) == {

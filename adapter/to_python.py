@@ -1,5 +1,4 @@
 import logging
-import traceback
 
 import numpy as np
 import openpyxl
@@ -354,26 +353,17 @@ class Db_sqlalchemy:
                 Default: None = load all tables
         """
 
-        try:
-            if table_names is None:
-                # load all tables in the database
-                table_names = inspect(self.engine).get_table_names()
+        if table_names is None:
+            # load all tables in the database
+            table_names = inspect(self.engine).get_table_names()
 
-            dict_of_dfs = {}
-            for table_name in table_names:
-                sql_string = f"SELECT * FROM {table_name}"
-                dict_of_dfs[table_name] = pd.read_sql(con=self.engine, sql=sql_string)
+        dict_of_dfs = {}
+        for table_name in table_names:
+            sql_string = f"SELECT * FROM {table_name}"
+            dict_of_dfs[table_name] = pd.read_sql(con=self.engine, sql=sql_string)
 
-            if self.pre_existing_keys is not None:
-                Debugger.check_for_duplicates(
-                    self.pre_existing_keys, dict_of_dfs.keys()
-                )
-
-        except Exception as err:
-            traceback.print_exc()
-            msg = "Failed to read input tables from {}."
-            log.error(msg.format(self.file_path))
-            raise ValueError from err
+        if self.pre_existing_keys is not None:
+            Debugger.check_for_duplicates(self.pre_existing_keys, dict_of_dfs.keys())
 
         return dict_of_dfs
 
