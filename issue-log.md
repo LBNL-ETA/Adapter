@@ -409,6 +409,10 @@ and the effect on the tests.
   Tests: `TestHelpers.test_create_db_raises_when_a_table_cannot_be_written` and
   `TestDbSqlalchemy.test_raises_without_secret_file` now also assert the cause (both fail
   on the previous code); their docstrings mention it.
+  - Superseded for `IO.create_db` on branch `upgrade_pandas_3` (#33): a table that can't be
+    written now raises the original error (e.g. `sqlite3.OperationalError`) instead of a
+    `ValueError`; the test asserts that instead. `IO.load()` still raises
+    `ValueError("Not able to create a db ...")` from the original error (#11).
 - **B006, mutable default arguments** (`IO.__init__` `os_mapping`,
   `comm.tools.convert_network_drive_path` `mapping`): both now default to `None`, meaning
   the same mapping as before, now held once in `adapter.comm.tools.DEFAULT_OS_MAPPING`.
@@ -485,3 +489,28 @@ code that uses `adapterio`:
   - 2.0.3, 2.1.0: can't be installed on Python 3.12 (no wheels; building from source fails).
   - Supporting pandas 2 would mean users get `object` or `str` text columns depending on
     their pandas version, and golden fixtures that depend on the pandas version.
+
+## 33. sqlite database connections left open
+
+- **File:** `adapter/to_python.py` (`Db.load`), `adapter/i_o.py` (`IO.create_db`)
+- **Problem:** Python 3.13+ reports a `ResourceWarning: unclosed database` when a sqlite
+  connection is garbage-collected without being closed; `uv run pytest -W error` failed
+  (`1 failed, 104 passed`, 29 more reports). Tracking `sqlite3.connect` over the suite
+  found 30 of 136 connections never closed:
+  - 29 from `Db.load` (so every `IO.load()` of a `.db` file): its SQLAlchemy engine is
+    never disposed, so its pooled connection stays open (also when it raises `OSError`
+    for a db without tables). It also passes `pd.read_sql_table` a connection string,
+    which makes pandas create another engine for every table.
+  - 1 from `IO.create_db` when writing a table fails: it raised without closing the
+    connection. (With `close=False`, the connection returned on success is meant to be
+    open.)
+  Open connections can exhaust file handles in long-running processes, and on Windows
+  keep the db file locked.
+- **Reproduce:** `uv run pytest -W error`; or run `Db("adapter/tests/inputs/test.db").load()`
+  with `-W always::ResourceWarning` and `gc.collect()`.
+- **Status:** Partially resolved on branch `upgrade_pandas_3`. `IO.create_db` closes the
+  connection whenever writing fails (`except BaseException: db_con.close(); raise`) and
+  now lets the original error propagate instead of wrapping it in `ValueError` (see #28);
+  test `TestHelpers.test_create_db_raises_when_a_table_cannot_be_written` updated. The
+  `Db.load` fix (dispose of the engine, and pass it to `read_sql_table`) is not committed
+  yet; with both fixes, 0 of 80 connections are left open and `pytest -W error` passes.

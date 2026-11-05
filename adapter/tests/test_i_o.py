@@ -784,16 +784,14 @@ class TestHelpers:
         assert_frame_equal(read_db_table(res["db_path"], "t"), df)
 
     def test_create_db_raises_when_a_table_cannot_be_written(self):
-        """IO.create_db() raises ValueError, caused by the original error, when a table
-        can't be written to sqlite.
+        """IO.create_db() raises the original error when a table can't be written to
+        sqlite, and closes the database connection.
         """
         # sqlite can't store a table with duplicate column labels
         df = pd.DataFrame([[1, 2]], columns=["a", "a"])
 
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(sqlite3.OperationalError, match="duplicate column name"):
             IO(None).create_db({"t": df}, run_tag="r1")
-
-        assert exc_info.value.__cause__ is not None
 
     def test_create_db_raises_for_unsupported_flavor(self):
         """IO.create_db() raises ValueError for a flavor other than sqlite, before

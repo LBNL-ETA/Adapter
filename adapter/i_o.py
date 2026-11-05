@@ -654,21 +654,19 @@ class IO:
             db_con = sqlite3.connect(db_path)
 
             # write all input tables in the db
-            for table_name in dict_of_dfs:
-                try:
+            try:
+                for table_name in dict_of_dfs:
                     dict_of_dfs[table_name].to_sql(
                         name=table_name,
                         con=db_con,
                         if_exists="replace",
                         index=False,
                     )
-                except Exception as err:
-                    msg = "An error occurred when writing {} table to a db {}."
-                    log.error(msg.format(table_name, db_path))
-                    raise ValueError from err
-
-                msg = "Wrote tables in a database: {}."
-                log.info(msg.format(db_path))
+                    log.info(f"Wrote '{table_name}' into {db_path}.")
+            except BaseException:
+                # don't leave the db file open when writing fails
+                db_con.close()
+                raise
 
             if close:
                 db_con.close()
