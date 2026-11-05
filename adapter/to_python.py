@@ -85,7 +85,10 @@ class Excel:
                     f"{missing} not found in the input file {self.file_path}."
                 )
 
-        elif data_object_names is None or np.isnan(data_object_names):
+        elif data_object_names is None or (
+            # a blank cell read as NaN
+            isinstance(data_object_names, float) and np.isnan(data_object_names)
+        ):
             data_object_names = all_input_objects
 
         else:
@@ -179,7 +182,7 @@ class Excel:
         else:
             # pass a named range;
             # find the cells in the workbook
-            full_range = self.wb.defined_names[data_object_name]
+            full_range = self.wb.defined_names.get(data_object_name)
             if full_range is None:
                 raise ValueError(f'Range "{data_object_name}" not found in workbook.')
 

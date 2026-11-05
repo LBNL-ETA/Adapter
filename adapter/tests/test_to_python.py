@@ -157,6 +157,16 @@ class ExcelTest:
         with pytest.raises(ValueError, match="not found in the input file"):
             self.exl_loader.load(data_object_names=["xlsx_table1", "missing_table"])
 
+    def test_load_raises_for_names_given_as_a_string(self):
+        """Excel.load() raises ValueError when data_object_names is a str, not a list."""
+        with pytest.raises(ValueError, match="Unsupported type"):
+            self.exl_loader.load(data_object_names="xlsx_table1")
+
+    def test_get_named_data_object_raises_for_unknown_name(self):
+        """Excel.get_named_data_object() raises ValueError for a name not in the workbook."""
+        with pytest.raises(ValueError, match='Range "missing_range" not found'):
+            self.exl_loader.get_named_data_object("missing_range")
+
     def test_load_raises_for_unsupported_kind(self):
         """Excel.load() raises ValueError for a kind other than all, tables or ranges."""
         with pytest.raises(
