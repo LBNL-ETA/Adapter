@@ -9,7 +9,7 @@ from openpyxl.workbook.defined_name import DefinedName
 from pandas.testing import assert_frame_equal
 from sqlalchemy import create_engine
 
-from adapter.to_python import Db, Db_sqlalchemy, Excel
+from adapter.to_python import Db, Db_sqlalchemy, Debugger, Excel
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -262,3 +262,14 @@ class TestDbSqlalchemy:
             Db_sqlalchemy("server.lbl.gov/database")
 
         assert isinstance(exc_info.value.__cause__, ImportError)
+
+
+class TestDebugger:
+    """to_python.Debugger: detecting table names that were already loaded."""
+
+    def test_duplicate_single_table_name_raises(self):
+        """check_for_duplicates() raises ValueError for a single (str) table name that
+        was already loaded, as it does for a list of names.
+        """
+        with pytest.raises(ValueError, match="xlsx_table1 was already read in"):
+            Debugger.check_for_duplicates({"xlsx_table1": None}.keys(), "xlsx_table1")

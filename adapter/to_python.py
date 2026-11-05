@@ -401,11 +401,6 @@ class Debugger:
                     log.error(msg.format(name))
                     raise ValueError(msg.format(name))
 
-        else:
-            try:
-                if pre_existing_keys is not None and table_names in pre_existing_keys:
-                    # log.error(msg.format(name))
-                    raise ValueError
-            except Exception:
-                msg = "Unexpected table_name ({}) format."
-                log.error(msg.format(table_names))
+        elif pre_existing_keys is not None and table_names in pre_existing_keys:
+            log.error(msg.format(table_names))
+            raise ValueError(msg.format(table_names))

@@ -86,6 +86,11 @@ dedicated changes.
   → no error; `xlsx_table1` holds the CSV's data. Directly:
   `Debugger.check_for_duplicates(["xlsx_table1"], "xlsx_table1")` returns `None`.
 - **Expected:** `ValueError` regardless of input order, matching the list branch.
+- **Status:** Resolved on branch `upgrade_pandas_3`: the self-catching `try`/`except` in
+  the string branch is removed, so a single duplicate name logs and raises `ValueError`
+  like the list branch (see #34). Tests: `TestDebugger.test_duplicate_single_table_name_raises`,
+  `TestLoadInputsFromFiles.test_duplicate_table_from_later_csv_raises` (both fail on the
+  old code).
 
 ## 7. `from_pickle` fails on DataFrames and on falsy objects
 
@@ -536,3 +541,7 @@ something fails.
   its message for a table already loaded) and nothing is printed. Tests:
   `TestDbSqlalchemy.test_load_missing_table_raises_original_error`,
   `test_load_raises_for_tables_already_loaded` (both fail on the old code).
+- **`Debugger.check_for_duplicates`** (`to_python.py`), string branch: removed the
+  `try`/`except` that caught its own `ValueError` and only logged "Unexpected table_name
+  format". A CSV input whose table name was already loaded now raises `ValueError`
+  instead of silently overwriting that table (fixes #6). Tests: see #6.

@@ -502,6 +502,18 @@ class TestLoadInputsFromFiles:
         with pytest.raises(ValueError, match="one flag per table"):
             IO(path).load(skip_writeout=True)
 
+    def test_duplicate_table_from_later_csv_raises(self):
+        """A CSV input whose table name was already loaded from an earlier input
+        raises ValueError instead of overwriting that table.
+        """
+        csv_path = os.path.join(INPUTS_DIR, "xlsx_table1.csv")
+        path = write_inputs_from_files(
+            [(TEST_XLSX, None, None), (csv_path, None, None)]
+        )
+
+        with pytest.raises(ValueError, match="xlsx_table1 was already read in"):
+            IO(path).load(skip_writeout=True)
+
     def test_inputs_from_files_table_is_returned(self):
         """The `inputs_from_files` table itself is returned with the loaded tables."""
         rows = [(TEST_DB, "table1", "N")]
