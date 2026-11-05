@@ -161,6 +161,9 @@ dedicated changes.
   flavor but `"sqlite"`, before creating anything. Tests:
   `TestLoadOutput.test_raises_when_db_cannot_be_created`,
   `TestHelpers.test_create_db_raises_for_unsupported_flavor`.
+  - Changed on branch `upgrade_pandas_3` (#34): `IO.load()` now re-raises the original
+    error with a note naming the input file, instead of a `ValueError("Not able to create
+    a db ...")`.
 
 ## 12. `to_numeric` passed as a string is silently ignored
 
@@ -416,8 +419,8 @@ and the effect on the tests.
   on the previous code); their docstrings mention it.
   - Superseded for `IO.create_db` on branch `upgrade_pandas_3` (#33): a table that can't be
     written now raises the original error (e.g. `sqlite3.OperationalError`) instead of a
-    `ValueError`; the test asserts that instead. `IO.load()` still raises
-    `ValueError("Not able to create a db ...")` from the original error (#11).
+    `ValueError`; the test asserts that instead. `IO.load()` re-raises it with a note
+    naming the input file (#11, #34).
 - **B006, mutable default arguments** (`IO.__init__` `os_mapping`,
   `comm.tools.convert_network_drive_path` `mapping`): both now default to `None`, meaning
   the same mapping as before, now held once in `adapter.comm.tools.DEFAULT_OS_MAPPING`.
@@ -545,3 +548,10 @@ something fails.
   `try`/`except` that caught its own `ValueError` and only logged "Unexpected table_name
   format". A CSV input whose table name was already loaded now raises `ValueError`
   instead of silently overwriting that table (fixes #6). Tests: see #6.
+- **`IO.load`** (`i_o.py`), creating the run database: no longer replaces the error with
+  `ValueError("Not able to create a db of tables that were read in from <input>.")` (and
+  no longer logs it). The original error propagates, with a note (`add_note`) naming the
+  input file, e.g. `ValueError: Unsupported db flavor 'postgres' ...` followed by
+  "Raised while creating the run database for input file <input>". Test:
+  `TestLoadOutput.test_raises_when_db_cannot_be_created` updated to expect the original
+  error and the note (fails on the old code).

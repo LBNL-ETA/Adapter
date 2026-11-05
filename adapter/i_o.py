@@ -382,10 +382,11 @@ class IO:
                     )
 
                 except Exception as err:
-                    msg = "Not able to create a db of tables that were read in from {}."
-
-                    log.error(msg.format(self.input_path))
-                    raise ValueError(msg.format(self.input_path)) from err
+                    err.add_note(
+                        f"Raised while creating the run database for input file "
+                        f"{self.input_path}"
+                    )
+                    raise
 
         if set_first_col_as_index:
             dict_of_dfs = self.first_col_to_index(

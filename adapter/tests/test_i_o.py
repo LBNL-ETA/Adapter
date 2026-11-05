@@ -390,13 +390,13 @@ class TestLoadOutput:
         assert caplog.text == ""
 
     def test_raises_when_db_cannot_be_created(self):
-        """load() raises ValueError, caused by the original error, when the run db
-        can't be created (here: an unsupported db_flavor).
+        """load() raises the original error, with a note naming the input file, when
+        the run db can't be created (here: an unsupported db_flavor).
         """
-        with pytest.raises(ValueError, match="Not able to create a db") as exc_info:
+        with pytest.raises(ValueError, match="Unsupported db flavor") as exc_info:
             IO(TEST_XLSX).load(db_flavor="postgres")
 
-        assert isinstance(exc_info.value.__cause__, ValueError)
+        assert any(TEST_XLSX in note for note in exc_info.value.__notes__)
 
     def test_long_timestamp_format(self):
         """load(ts_format="long") uses a `YYYY_MM_DD_HHh_MMm` timestamp in the run tag."""
