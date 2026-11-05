@@ -57,6 +57,8 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["adapter/tests", "adapter/comm/tests"]
 python_classes = ["Test*", "*Test", "*Tests"]
+# fail any test that raises a warning (deprecations, unclosed resources, ...)
+filterwarnings = ["error"]
 
 [tool.coverage.run]
 source = ["adapter"]
