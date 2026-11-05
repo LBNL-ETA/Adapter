@@ -255,8 +255,8 @@ class TestPickle:
 
 # Tests of the IO public API below run in a fresh temporary working
 # directory (in_tmp_path), which is where load() and write() put their
-# output. Paths passed to write() are kept under that directory, because
-# new absolute paths outside it are rewritten onto the network drive.
+# output. Paths passed to write() are kept under temporary directories, so
+# the tests leave nothing behind.
 # Code paths with known, unfixed bugs are intentionally not tested here;
 # their tests should come with the fixes.
 
@@ -655,6 +655,15 @@ class TestWrite:
 
         written = pd.read_csv(os.path.join(outpath, "t_r1.csv"), index_col=0)
         assert_frame_equal(written, self.df)
+
+    def test_csv_to_new_folder_outside_cwd(self, tmp_path):
+        """write() creates and writes to a new folder outside the cwd, at the given path."""
+        # a sibling of the cwd (tmp_path), so it doesn't contain the cwd's path
+        outpath = str(tmp_path.parent / f"new_output_{tmp_path.name}")
+
+        IO(None).write(type="csv", data_as_dict_of_dfs={"t": self.df}, outpath=outpath)
+
+        assert os.listdir(outpath) == ["t_.csv"]
 
     def test_csv_defaults_to_cwd(self):
         """write() without a data_connection or outpath writes to the cwd."""

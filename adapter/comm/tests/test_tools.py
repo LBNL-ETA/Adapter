@@ -161,6 +161,16 @@ class Test:
         str_or_path = r"output\output_folder"
         assert convert_network_drive_path(str_or_path) == str_or_path
 
+    @pytest.mark.parametrize("platform", ["darwin", "linux", "win32"])
+    def test_convert_network_drive_path_keeps_unmapped_absolute_path(self, platform):
+        """convert_network_drive_path() leaves an absolute POSIX path that isn't under a
+        mapped mount point unchanged, even if it doesn't exist yet.
+        """
+        path = "/nonexistent_adapter_folder/new_output/file.csv"
+
+        with patch("sys.platform", platform):
+            assert convert_network_drive_path(path) == path
+
     def test_get_mount_point_len(self):
         """get_mount_point_len() returns the length of the path's mount point, or 0."""
         assert (
