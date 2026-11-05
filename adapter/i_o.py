@@ -895,7 +895,7 @@ def _to_numeric_if_possible(column):
     otherwise returns it unchanged."""
     try:
         return pd.to_numeric(column)
-    except (ValueError, TypeError):
+    except ValueError, TypeError:
         return column
 
 
