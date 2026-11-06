@@ -32,8 +32,12 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/LBNL-ETA/Adapter"
 
+# find adapter and its sub-packages (e.g. adapter.comm), but not the tests
+[tool.setuptools.packages.find]
+include = ["adapter*"]
+exclude = ["*.tests", "*.tests.*"]
+
 [tool.setuptools]
-packages = ["adapter"]
 package-data = {}
 include-package-data = true
 
