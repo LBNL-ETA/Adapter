@@ -1,5 +1,4 @@
 import logging
-import os
 import sqlite3
 
 import pandas as pd
@@ -24,13 +23,8 @@ class Sql:
         # as sql db and postgres
 
         if isinstance(path_OR_dbconn, str):
-            try:
-                # for aboslute or mounted paths
-                self.db = sqlite3.connect(path_OR_dbconn)
-            except Exception:
-                # for paths relative to run path
-                path = os.path.join(os.getcwd(), path_OR_dbconn)
-                self.db = sqlite3.connect(path)
+            # absolute, mounted, or relative to the working directory
+            self.db = sqlite3.connect(path_OR_dbconn)
 
         elif isinstance(path_OR_dbconn, sqlite3.Connection):
             self.db = path_OR_dbconn
@@ -53,7 +47,7 @@ class Sql:
         Returns:
 
             data: dict of pandas dataframes
-                Saves each of the sql tabels as a
+                Saves each of the sql tables as a
                 pandas dataframe under a sql table
                 name as a key
         """
@@ -166,7 +160,7 @@ class Sql:
         Parameters:
 
             sql_command: string
-                sql_command to exectute
+                sql_command to execute
 
         Returns:
 

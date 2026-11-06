@@ -6,9 +6,10 @@ import openpyxl
 import pandas as pd
 import pytest
 from openpyxl.workbook.defined_name import DefinedName
-from pandas._testing import assert_frame_equal
+from pandas.testing import assert_frame_equal
+from sqlalchemy import create_engine
 
-from adapter.to_python import Db, Db_sqlalchemy, Excel
+from adapter.to_python import Db, Db_sqlalchemy, Debugger, Excel
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -108,10 +109,63 @@ class ExcelTest:
             "xlsx_single_value_named_range",
         }
 
+    def test_load_cleans_column_labels(self):
+        """Excel.load() strips column labels and collapses repeated spaces."""
+        exl = Excel(
+            os.path.join(os.path.dirname(__file__), "inputs", "test_labels.xlsx")
+        )
+
+        # the raw labels are " label 1 " and "label 2 "
+        assert list(exl.load()["Table1"].columns) == ["label 1", "label 2"]
+
+    def test_load_range_error_names_the_file(self, tmp_path):
+        """Excel.load() re-raises an error reading a named range, with a note naming
+        the file.
+        """
+        wb = openpyxl.Workbook()
+        # a named range on a sheet that doesn't exist
+        wb.defined_names["broken"] = DefinedName(
+            "broken", attr_text="Missing!$A$1:$A$2"
+        )
+        path = str(tmp_path / "broken.xlsx")
+        wb.save(path)
+
+        with pytest.raises(KeyError, match="Missing") as exc_info:
+            Excel(path).load(kind="ranges")
+
+        assert any(path in note for note in exc_info.value.__notes__)
+
+    def test_load_table_error_names_the_file(self, monkeypatch):
+        """Excel.load() re-raises an error reading a named table, with a note naming
+        the file.
+        """
+
+        def fail(self, data_object, name):
+            raise RuntimeError("cannot convert")
+
+        monkeypatch.setattr(Excel, "convert_data_object_to_df", fail)
+
+        with pytest.raises(RuntimeError, match="cannot convert") as exc_info:
+            self.exl_loader.load(kind="tables")
+
+        assert any(
+            self.exl_loader.file_path in note for note in exc_info.value.__notes__
+        )
+
     def test_load_raises_for_names_not_in_file(self):
         """Excel.load() raises ValueError when a requested name isn't in the workbook."""
         with pytest.raises(ValueError, match="not found in the input file"):
             self.exl_loader.load(data_object_names=["xlsx_table1", "missing_table"])
+
+    def test_load_raises_for_names_given_as_a_string(self):
+        """Excel.load() raises ValueError when data_object_names is a str, not a list."""
+        with pytest.raises(ValueError, match="Unsupported type"):
+            self.exl_loader.load(data_object_names="xlsx_table1")
+
+    def test_get_named_data_object_raises_for_unknown_name(self):
+        """Excel.get_named_data_object() raises ValueError for a name not in the workbook."""
+        with pytest.raises(ValueError, match='Range "missing_range" not found'):
+            self.exl_loader.get_named_data_object("missing_range")
 
     def test_load_raises_for_unsupported_kind(self):
         """Excel.load() raises ValueError for a kind other than all, tables or ranges."""
@@ -193,9 +247,52 @@ class TestDb:
 
 
 class TestDbSqlalchemy:
-    """to_python.Db_sqlalchemy (Postgres); only the credentials check runs
-    without a database server.
+    """to_python.Db_sqlalchemy (Postgres). Without a database server, load() is
+    tested against the local test.db through a sqlite engine.
     """
+
+    @pytest.fixture
+    def loader(self):
+        """A Db_sqlalchemy loader for test.db, created without __init__ (which needs
+        Postgres credentials)."""
+        file_path = os.path.join(os.path.dirname(__file__), "inputs", "test.db")
+        loader = Db_sqlalchemy.__new__(Db_sqlalchemy)
+        loader.engine = create_engine(f"sqlite:///{file_path}")
+        loader.file_path = file_path
+        loader.pre_existing_keys = None
+        yield loader
+        loader.engine.dispose()
+
+    def test_load_without_table_names_loads_all_tables(self, loader):
+        """Db_sqlalchemy.load() without table names loads every table in the database."""
+        tables = loader.load()
+
+        assert set(tables) == {"table1", "table2", "table3"}
+        expected = Db(loader.file_path).load(table_names=["table1"])["table1"]
+        assert_frame_equal(tables["table1"], expected)
+
+    def test_load_missing_table_raises_original_error(self, loader, capsys):
+        """Db_sqlalchemy.load() raises the database error for a table that can't be
+        read, without printing a traceback.
+        """
+        with pytest.raises(pd.errors.DatabaseError, match="missing_table"):
+            loader.load(table_names=["missing_table"])
+
+        assert capsys.readouterr().err == ""
+
+    def test_load_raises_for_tables_already_loaded(self, loader):
+        """Db_sqlalchemy.load() raises ValueError naming a table that was already loaded."""
+        loader.pre_existing_keys = {"table1": None}.keys()
+
+        with pytest.raises(ValueError, match="table1 was already read in"):
+            loader.load(table_names=["table1"])
+
+    def test_load_named_tables(self, loader):
+        """Db_sqlalchemy.load(table_names=[...]) loads only the named tables."""
+        assert set(loader.load(table_names=["table1", "table3"])) == {
+            "table1",
+            "table3",
+        }
 
     def test_raises_without_secret_file(self, monkeypatch):
         """Db_sqlalchemy() raises ValueError, caused by the ImportError, when
@@ -209,3 +306,14 @@ class TestDbSqlalchemy:
             Db_sqlalchemy("server.lbl.gov/database")
 
         assert isinstance(exc_info.value.__cause__, ImportError)
+
+
+class TestDebugger:
+    """to_python.Debugger: detecting table names that were already loaded."""
+
+    def test_duplicate_single_table_name_raises(self):
+        """check_for_duplicates() raises ValueError for a single (str) table name that
+        was already loaded, as it does for a list of names.
+        """
+        with pytest.raises(ValueError, match="xlsx_table1 was already read in"):
+            Debugger.check_for_duplicates({"xlsx_table1": None}.keys(), "xlsx_table1")

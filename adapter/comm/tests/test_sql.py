@@ -91,6 +91,11 @@ PRIMARY KEY (Component)
         finally:
             sql_api.db.close()
 
+    def test_raises_for_path_that_cannot_be_opened(self, tmp_path):
+        """Sql() raises sqlite3.OperationalError for a db path that can't be opened."""
+        with pytest.raises(sqlite3.OperationalError):
+            Sql(str(tmp_path / "missing_folder" / "test.db"))
+
     def test_raises_for_unsupported_argument(self):
         """Sql() raises ValueError for anything but a path or a sqlite3 connection."""
         with pytest.raises(ValueError):

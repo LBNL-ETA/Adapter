@@ -1,10 +1,9 @@
 import logging
-import traceback
 
 import numpy as np
 import openpyxl
 import pandas as pd
-from sqlalchemy import MetaData, create_engine
+from sqlalchemy import MetaData, create_engine, inspect
 
 from adapter.comm.tools import process_column_labels
 
@@ -80,13 +79,16 @@ class Excel:
 
         if isinstance(data_object_names, list):
             data_object_names = set(data_object_names)
-            missings = data_object_names - all_input_objects
-            if len(missings) > 0:
+            missing = data_object_names - all_input_objects
+            if len(missing) > 0:
                 raise ValueError(
-                    f"{missings} not found in the input file {self.file_path}."
+                    f"{missing} not found in the input file {self.file_path}."
                 )
 
-        elif data_object_names is None or np.isnan(data_object_names):
+        elif data_object_names is None or (
+            # a blank cell read as NaN
+            isinstance(data_object_names, float) and np.isnan(data_object_names)
+        ):
             data_object_names = all_input_objects
 
         else:
@@ -103,27 +105,15 @@ class Excel:
             raise ValueError(f"An unsupported value provided for kwarg kind {kind}.")
         # get named ranges
         if kind in ["all", "ranges"]:
-            # set before the loop, so the error message below can always be built
-            name = None
             try:
                 for name in data_object_names & all_input_ranges:
                     dict_of_dfs[name] = self.get_named_data_object(name)
             except Exception as err:
-                msg = (
-                    "Failed to read input named range {}"
-                    " from input file {}. "
-                    "If the data contained in the table "
-                    "is needed in the analysis please attempt"
-                    " to rename the table/range using strings and numerals "
-                    "and/or further check the data range or table "
-                    "definition."
-                )
-                raise ValueError(msg.format(name, self.file_path)) from err
+                err.add_note(f"Raised while reading named ranges from {self.file_path}")
+                raise
 
         # get named tables
         if kind in ["all", "tables"]:
-            # set before the loop, so the error message below can always be built
-            table_name = None
             try:
                 for ws in self.wb.worksheets:
                     for table_name, table_range in ws.tables.items():
@@ -132,26 +122,23 @@ class Excel:
                                 ws[table_range], table_name
                             )
             except Exception as err:
-                msg = (
-                    "Failed to read input named table {}"
-                    " from input file {}. "
-                    "If the data contained in the table "
-                    "is needed in the analysis please attempt"
-                    " to rename the table/range using strings and numerals "
-                    "and/or further check the data range or table "
-                    "definition."
-                )
-                raise ValueError(msg.format(table_name, self.file_path)) from err
+                err.add_note(f"Raised while reading named tables from {self.file_path}")
+                raise
 
         if self.pre_existing_keys is not None:
             Debugger.check_for_duplicates(self.pre_existing_keys, dict_of_dfs.keys())
 
         for k, df in dict_of_dfs.items():
             # xlwings-based Excel class converted all numbers to float types.
-            # The code below maintains backward compatibility
+            # The code below maintains backward compatibility.
+            # Only numpy dtypes are numeric here; pandas extension dtypes, such
+            # as the str dtype of text columns in pandas 3, can't be passed to
+            # numpy and are left unchanged.
             df = df.astype(
                 {
-                    k: float if np.issubdtype(v, np.number) else v
+                    k: float
+                    if isinstance(v, np.dtype) and np.issubdtype(v, np.number)
+                    else v
                     for k, v in df.dtypes.items()
                 }
             )
@@ -195,7 +182,7 @@ class Excel:
         else:
             # pass a named range;
             # find the cells in the workbook
-            full_range = self.wb.defined_names[data_object_name]
+            full_range = self.wb.defined_names.get(data_object_name)
             if full_range is None:
                 raise ValueError(f'Range "{data_object_name}" not found in workbook.')
 
@@ -266,37 +253,41 @@ class Db:
             table_names: list
                 List of table names to load. Assuming the given tables always exist in the db file
                 Default: None = load all tables
-        Notes
-        -----
-        input file checking comment out for now because it crashes LCC. this section should be uncommented
-        once LCC fixes the issue.
         """
-        # if not os.path.exists(self.file_path):
-        #     # check if file exists
-        #     raise ImportError(f'Cannot find {self.file_path}')
         con_str = f"sqlite+pysqlite:///{self.file_path}"
         engine = create_engine(con_str)
-        metadata = MetaData()
-        metadata.reflect(bind=engine)
 
-        keys = metadata.tables.keys()
-        if len(keys) == 0:
-            # check database integrity
-            raise OSError(
-                f"0 table found in the database file! The input file: {self.file_path} may be unsupported or corrupted"
-            )
-        if self.pre_existing_keys is not None:
-            # check for duplicates in tables_names,
-            # if table_names == None, check for duplcates for all the tables
-            Debugger.check_for_duplicates(self.pre_existing_keys, table_names or keys)
-            # skip pre_existing_keys
-        if table_names is not None:
-            # only import given table names
-            keys = keys & set(table_names)
-        dict_of_dfs = {}
-        for t in keys:
-            dict_of_dfs[t] = pd.read_sql_table(f"{t}", con=con_str)
-        return dict_of_dfs
+        try:
+            metadata = MetaData()
+            metadata.reflect(bind=engine)
+
+            keys = metadata.tables.keys()
+            if len(keys) == 0:
+                # check database integrity
+                raise OSError(
+                    f"0 table found in the database file! The input file: {self.file_path} may be unsupported or corrupted"
+                )
+            if self.pre_existing_keys is not None:
+                # check for duplicates in tables_names,
+                # if table_names == None, check for duplicates for all the tables
+                Debugger.check_for_duplicates(
+                    self.pre_existing_keys, table_names or keys
+                )
+
+            if table_names is not None:
+                # only import given table names
+                keys = keys & set(table_names)
+
+            dict_of_dfs = {}
+            for t in keys:
+                dict_of_dfs[t] = pd.read_sql_table(t, con=engine)
+
+            return dict_of_dfs
+
+        finally:
+            # close the engine's pooled connections, so the db file isn't left open
+            # Even if a read error occurs.
+            engine.dispose()
 
 
 class Db_sqlalchemy:
@@ -345,22 +336,17 @@ class Db_sqlalchemy:
                 Default: None = load all tables
         """
 
-        try:
-            dict_of_dfs = {}
-            for table_name in table_names:
-                sql_string = f"SELECT * FROM {table_name}"
-                dict_of_dfs[table_name] = pd.read_sql(con=self.engine, sql=sql_string)
+        if table_names is None:
+            # load all tables in the database
+            table_names = inspect(self.engine).get_table_names()
 
-            if self.pre_existing_keys is not None:
-                Debugger.check_for_duplicates(
-                    self.pre_existing_keys, dict_of_dfs.keys()
-                )
+        dict_of_dfs = {}
+        for table_name in table_names:
+            sql_string = f"SELECT * FROM {table_name}"
+            dict_of_dfs[table_name] = pd.read_sql(con=self.engine, sql=sql_string)
 
-        except Exception as err:
-            traceback.print_exc()
-            msg = "Failed to read input tables from {}."
-            log.error(msg.format(self.file_path))
-            raise ValueError from err
+        if self.pre_existing_keys is not None:
+            Debugger.check_for_duplicates(self.pre_existing_keys, dict_of_dfs.keys())
 
         return dict_of_dfs
 
@@ -398,11 +384,6 @@ class Debugger:
                     log.error(msg.format(name))
                     raise ValueError(msg.format(name))
 
-        else:
-            try:
-                if pre_existing_keys is not None and table_names in pre_existing_keys:
-                    # log.error(msg.format(name))
-                    raise ValueError
-            except Exception:
-                msg = "Unexpected table_name ({}) format."
-                log.error(msg.format(table_names))
+        elif pre_existing_keys is not None and table_names in pre_existing_keys:
+            log.error(msg.format(table_names))
+            raise ValueError(msg.format(table_names))

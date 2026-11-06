@@ -18,10 +18,11 @@ def process_column_labels(list_of_labels):
     Returns:
 
         list_of_cleaned_labels: list
-            A list with cleaned lables
+            A list with cleaned labels
     """
     list_of_cleaned_labels = [
-        re.sub(" +", " ", lbl.strip()) if lbl is str else lbl for lbl in list_of_labels
+        re.sub(" +", " ", lbl.strip()) if isinstance(lbl, str) else lbl
+        for lbl in list_of_labels
     ]
 
     return list_of_cleaned_labels
@@ -36,6 +37,7 @@ def convert_network_drive_path(str_or_path, mapping=None):
     Convert network drive paths from those formatted for one OS into those formatted for another. (works for Windows,
     OSX, Linux)
     If a string that doesn't seem to represent a path in the other OS is given, it will be returned unchanged.
+    An absolute POSIX path is only converted if it starts with one of the mapped mount points.
 
     Parameters:
         str_or_path: str
@@ -84,9 +86,12 @@ def convert_network_drive_path(str_or_path, mapping=None):
             # create win path
         file_path = PureWindowsPath(str_or_path[str_or_path.index(":") + i :])
     else:
-        file_path = PurePosixPath(
-            str_or_path[get_mount_point_len(mapping, str_or_path) + 1 :]
-        )
+        mount_point_len = get_mount_point_len(mapping, str_or_path)
+        if mount_point_len == 0:
+            # an absolute path that isn't under a mapped mount point isn't a
+            # network drive path, so leave it unchanged
+            return str_or_path
+        file_path = PurePosixPath(str_or_path[mount_point_len + 1 :])
     if sys.platform == "win32":
         # convert to current system's mount point when mount point and sys not the same
         return str(PureWindowsPath(mapping[sys.platform]).joinpath(file_path))

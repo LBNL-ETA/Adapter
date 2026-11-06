@@ -1,6 +1,6 @@
 {
   "input_file": "test.csv",
-  "pandas_version": "2.3.3",
+  "pandas_version": "3.1.0",
   "rtol": 1e-09,
   "tables": {
     "test": {
@@ -11,7 +11,7 @@
       ],
       "dtypes": {
         "csv_col_1": "int64",
-        "csv_col_2": "object",
+        "csv_col_2": "str",
         "csv_col_3": "int64"
       },
       "index": [
