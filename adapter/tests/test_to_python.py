@@ -120,7 +120,7 @@ class ExcelTest:
 
     def test_load_range_error_names_the_file(self, tmp_path):
         """Excel.load() re-raises an error reading a named range, with a note naming
-        the file.
+        the range and the file.
         """
         wb = openpyxl.Workbook()
         # a named range on a sheet that doesn't exist
@@ -133,14 +133,19 @@ class ExcelTest:
         with pytest.raises(KeyError, match="Missing") as exc_info:
             Excel(path).load(kind="ranges")
 
-        assert any(path in note for note in exc_info.value.__notes__)
+        assert any(
+            "named range broken from" in note and path in note
+            for note in exc_info.value.__notes__
+        )
 
     def test_load_table_error_names_the_file(self, monkeypatch):
         """Excel.load() re-raises an error reading a named table, with a note naming
-        the file.
+        the table and the file.
         """
+        failed = []
 
         def fail(self, data_object, name):
+            failed.append(name)
             raise RuntimeError("cannot convert")
 
         monkeypatch.setattr(Excel, "convert_data_object_to_df", fail)
@@ -149,7 +154,9 @@ class ExcelTest:
             self.exl_loader.load(kind="tables")
 
         assert any(
-            self.exl_loader.file_path in note for note in exc_info.value.__notes__
+            f"named table {failed[0]} from" in note
+            and self.exl_loader.file_path in note
+            for note in exc_info.value.__notes__
         )
 
     def test_load_raises_for_names_not_in_file(self):

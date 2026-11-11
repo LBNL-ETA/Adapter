@@ -105,25 +105,30 @@ class Excel:
             raise ValueError(f"An unsupported value provided for kwarg kind {kind}.")
         # get named ranges
         if kind in ["all", "ranges"]:
-            try:
-                for name in data_object_names & all_input_ranges:
+            for name in data_object_names & all_input_ranges:
+                try:
                     dict_of_dfs[name] = self.get_named_data_object(name)
-            except Exception as err:
-                err.add_note(f"Raised while reading named ranges from {self.file_path}")
-                raise
+                except Exception as err:
+                    err.add_note(
+                        f"Raised while reading named range {name} from {self.file_path}"
+                    )
+                    raise
 
         # get named tables
         if kind in ["all", "tables"]:
-            try:
-                for ws in self.wb.worksheets:
-                    for table_name, table_range in ws.tables.items():
-                        if table_name in data_object_names:
+            for ws in self.wb.worksheets:
+                for table_name, table_range in ws.tables.items():
+                    if table_name in data_object_names:
+                        try:
                             dict_of_dfs[table_name] = self.convert_data_object_to_df(
                                 ws[table_range], table_name
                             )
-            except Exception as err:
-                err.add_note(f"Raised while reading named tables from {self.file_path}")
-                raise
+                        except Exception as err:
+                            err.add_note(
+                                f"Raised while reading named table {table_name} "
+                                f"from {self.file_path}"
+                            )
+                            raise
 
         if self.pre_existing_keys is not None:
             Debugger.check_for_duplicates(self.pre_existing_keys, dict_of_dfs.keys())
