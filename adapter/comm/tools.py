@@ -37,7 +37,8 @@ def convert_network_drive_path(str_or_path, mapping=None):
     Convert network drive paths from those formatted for one OS into those formatted for another. (works for Windows,
     OSX, Linux)
     If a string that doesn't seem to represent a path in the other OS is given, it will be returned unchanged.
-    An absolute POSIX path is only converted if it starts with one of the mapped mount points.
+    An absolute path is only converted if it starts with one of the mapped mount points (for Windows,
+    a mapped drive such as "X:"); other absolute paths, e.g. on a local "C:" drive, are returned unchanged.
 
     Parameters:
         str_or_path: str
@@ -78,6 +79,11 @@ def convert_network_drive_path(str_or_path, mapping=None):
     if os.getcwd() in str_or_path:
         # return if it's a local relative path
         return str_or_path
+    mount_point_len = get_mount_point_len(mapping, str_or_path)
+    if mount_point_len == 0:
+        # an absolute path that isn't on a mapped drive or under a mapped
+        # mount point isn't a network drive path, so leave it unchanged
+        return str_or_path
     if ":" in str_or_path:
         # create win path
         i = 1
@@ -86,15 +92,11 @@ def convert_network_drive_path(str_or_path, mapping=None):
             # create win path
         file_path = PureWindowsPath(str_or_path[str_or_path.index(":") + i :])
     else:
-        mount_point_len = get_mount_point_len(mapping, str_or_path)
-        if mount_point_len == 0:
-            # an absolute path that isn't under a mapped mount point isn't a
-            # network drive path, so leave it unchanged
-            return str_or_path
         file_path = PurePosixPath(str_or_path[mount_point_len + 1 :])
     if sys.platform == "win32":
-        # convert to current system's mount point when mount point and sys not the same
-        return str(PureWindowsPath(mapping[sys.platform]).joinpath(file_path))
+        # convert to current system's mount point when mount point and sys not the same.
+        # The trailing backslash roots the path at the drive ("X:\abc", not "X:abc").
+        return str(PureWindowsPath(mapping[sys.platform] + "\\").joinpath(file_path))
     elif sys.platform == "darwin" or sys.platform == "linux":
         return str(PurePosixPath(mapping[sys.platform]).joinpath(file_path))
     else:

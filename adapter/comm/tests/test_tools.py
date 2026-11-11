@@ -56,9 +56,9 @@ class Test:
         str_or_path = "output/file.txt"
         assert convert_network_drive_path(str_or_path) == str_or_path
 
-        # test convert_network_drive_path local_nonexists
+        # test convert_network_drive_path local_nonexists (not on a mapped drive)
         str_or_path = r"C:\some_folder\some_file.xlsx"
-        expected_path = "/Volumes/A/some_folder/some_file.xlsx"
+        expected_path = str_or_path  # C: isn't a mapped drive
         assert convert_network_drive_path(str_or_path) == expected_path
 
         # test convert_network_drive_path exists
@@ -77,23 +77,23 @@ class Test:
         to X:, and leaves relative and local paths unchanged.
         """
         str_or_path = "/Volumes/A/abc/c/d/1.xlsx"
-        assert convert_network_drive_path(str_or_path) == r"X:abc\c\d\1.xlsx"
+        assert convert_network_drive_path(str_or_path) == r"X:\abc\c\d\1.xlsx"
         str_or_path = "/media/b/xyz/c/d/1.xlsx"
-        assert convert_network_drive_path(str_or_path) == r"X:xyz\c\d\1.xlsx"
+        assert convert_network_drive_path(str_or_path) == r"X:\xyz\c\d\1.xlsx"
         str_or_path = r"X:\abc\def\hij\1.xlsx"
         assert convert_network_drive_path(str_or_path) == r"X:\abc\def\hij\1.xlsx"
         str_or_path = "/Volumes/A/abc/c/d/1.xlsx"
         # test backwards compatibility
         assert (
             convert_network_drive_path(str_or_path, mapping=[("X:", "/Volumes/A")])
-            == r"X:abc\c\d\1.xlsx"
+            == r"X:\abc\c\d\1.xlsx"
         )
         str_or_path = r"X:\abc\def\hij\1.xlsx"
         assert (
             convert_network_drive_path(str_or_path, mapping=[("X:", "/Volumes/A")])
             == r"X:\abc\def\hij\1.xlsx"
         )
-        path_a = r"A:some_folder\some_file.txt"
+        path_a = r"A:\some_folder\some_file.txt"
         path_b = "/Volumes/A/some_folder/some_file.txt"
         assert (
             convert_network_drive_path(path_b, mapping=[("A:", "/Volumes/A")]) == path_a
@@ -108,9 +108,9 @@ class Test:
         str_or_path = "output/file.txt"
         assert convert_network_drive_path(str_or_path) == str_or_path
 
-        # test convert_network_drive_path local_nonexists
+        # test convert_network_drive_path local_nonexists (not on a mapped drive)
         str_or_path = r"C:\some_folder\some_file.xlsx"
-        expected_path = r"X:some_folder\some_file.xlsx"
+        expected_path = str_or_path  # C: isn't a mapped drive
         assert convert_network_drive_path(str_or_path) == expected_path
 
         # test convert_network_drive_path exists
@@ -146,9 +146,9 @@ class Test:
         str_or_path = "output/file.txt"
         assert convert_network_drive_path(str_or_path) == str_or_path
 
-        # test convert_network_drive_path local_nonexists
+        # test convert_network_drive_path local_nonexists (not on a mapped drive)
         str_or_path = r"C:\some_folder\some_file.xlsx"
-        expected_path = "/media/b/some_folder/some_file.xlsx"
+        expected_path = str_or_path  # C: isn't a mapped drive
         assert convert_network_drive_path(str_or_path) == expected_path
 
         # test convert_network_drive_path exists
@@ -168,6 +168,21 @@ class Test:
         """
         path = "/nonexistent_adapter_folder/new_output/file.csv"
 
+        with patch("sys.platform", platform):
+            assert convert_network_drive_path(path) == path
+
+    @pytest.mark.parametrize("platform", ["darwin", "linux", "win32"])
+    @pytest.mark.parametrize(
+        "path",
+        [
+            r"C:\Users\someone\AppData\Local\Temp\new_output\file.csv",
+            "D:/data/new_output/file.csv",
+        ],
+    )
+    def test_convert_network_drive_path_keeps_unmapped_drive_path(self, platform, path):
+        """convert_network_drive_path() leaves an absolute Windows path on a drive that
+        isn't mapped (e.g. a local C: drive) unchanged, even if it doesn't exist yet.
+        """
         with patch("sys.platform", platform):
             assert convert_network_drive_path(path) == path
 
