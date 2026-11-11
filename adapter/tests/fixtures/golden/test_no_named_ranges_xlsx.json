@@ -1,6 +1,6 @@
 {
   "input_file": "test_no_named_ranges.xlsx",
-  "pandas_version": "2.3.3",
+  "pandas_version": "3.1.0",
   "rtol": 1e-09,
   "tables": {
     "sales_tax": {
@@ -74,7 +74,7 @@
         "Weight"
       ],
       "dtypes": {
-        "Equipment Class": "object",
+        "Equipment Class": "str",
         "Region": "int64",
         "Weight": "float64"
       },

@@ -72,6 +72,14 @@ class IO:
         else:
             self.os_mapping = os_mapping
 
+        if isinstance(path, os.PathLike):
+            path = os.fspath(path)
+        if path is not None and not isinstance(path, str):
+            raise TypeError(
+                f"Unsupported input path type {type(path).__name__}; "
+                "pass a str, an os.PathLike or None."
+            )
+
         path = convert_network_drive_path(path, mapping=os_mapping)
 
         self.input_path = path
@@ -240,12 +248,19 @@ class IO:
                 file_path = extra_files.loc[inx, self.la["inpath"]].strip()
 
                 table_names = extra_files.loc[inx, self.la["tbl_nam"]]
+                # blank cells are read as NaN; treat them as not given
+                if not isinstance(table_names, str) and pd.isna(table_names):
+                    table_names = None
 
                 if isinstance(table_names, str):
                     table_names = re.split(",", table_names)
                     table_names = [i.strip() for i in table_names]
 
                 qry_flags[file_path] = extra_files.loc[inx, self.la["query"]]
+                if not isinstance(qry_flags[file_path], str) and pd.isna(
+                    qry_flags[file_path]
+                ):
+                    qry_flags[file_path] = None
 
                 if (qry_flags[file_path] is not None) and isinstance(table_names, str):
                     qry_flags[file_path] = re.split(",", qry_flags[file_path])
@@ -337,6 +352,9 @@ class IO:
         if skip_writeout:
             outpath += "_will_not_be_used"
 
+        # db_path and db_conn, when a db gets written
+        db_res = {}
+
         if not skip_writeout:
             if not os.path.exists(outpath):
                 os.makedirs(outpath)
@@ -363,10 +381,12 @@ class IO:
                         close=close_db,
                     )
 
-                except Exception:
-                    msg = "Not able to create a db of tables that were read in from {}."
-
-                    log.error(msg.format(self.input_path))
+                except Exception as err:
+                    err.add_note(
+                        f"Raised while creating the run database for input file "
+                        f"{self.input_path}"
+                    )
+                    raise
 
         if set_first_col_as_index:
             dict_of_dfs = self.first_col_to_index(
@@ -387,9 +407,7 @@ class IO:
 
             for key in dict_of_dfs:
                 if any(key in tb_nm for tb_nm in to_numeric):
-                    dict_of_dfs[key] = dict_of_dfs[key].apply(
-                        pd.to_numeric, errors="ignore", axis=1
-                    )
+                    dict_of_dfs[key] = dict_of_dfs[key].apply(_to_numeric_if_possible)
 
         res = {}
         res["tables_as_dict_of_dfs"] = dict_of_dfs
@@ -397,8 +415,7 @@ class IO:
         res["outpath"] = outpath
         res["run_tag"] = run_tag
 
-        if not skip_writeout and create_db:
-            res.update(db_res)
+        res.update(db_res)
 
         if clean_labels:
             input_tables_list = res["tables_as_dict_of_dfs"]
@@ -461,6 +478,8 @@ class IO:
                 indicated using the query_only
                 flags, if applicable.
         """
+        if isinstance(file_path, os.PathLike):
+            file_path = os.fspath(file_path)
         file_path = convert_network_drive_path(file_path, mapping=self.os_mapping)
 
         if file_path is None:
@@ -474,29 +493,30 @@ class IO:
                 query_only = [i.strip() for i in query_only]
 
                 if table_names is None:
-                    if len(query_only) != 1:
-                        msg = (
-                            "All tables need to be loaded."
-                            "It is unclear which tables need to "
-                            "only be queried. Please provide a "
-                            "list of table names and query flags "
-                            "of the same length."
-                        )
-                        log.error(msg)
+                    msg = (
+                        f"Query Only flags {query_only} were given for {file_path} "
+                        "without table names. Please list the table names, "
+                        "with one flag per table."
+                    )
+                    log.error(msg)
+                    raise ValueError(msg)
 
-                    elif query_only[0] == "Y":
-                        # query all tables
-                        table_names_to_load = None
-                        table_names_for_conn = table_names
+                if len(query_only) != len(table_names):
+                    msg = (
+                        f"{len(query_only)} Query Only flags were given for "
+                        f"{len(table_names)} table names in {file_path}. "
+                        "Please give one flag per table."
+                    )
+                    log.error(msg)
+                    raise ValueError(msg)
 
-                else:
-                    # identify tables that require database connections
-                    inx = [i != "Y" for i in query_only]
-                    # load only these tables
-                    table_names_to_load = np.array(table_names)[inx].tolist()
-                    # others should be just connected to
-                    not_inx = [not i for i in inx]
-                    table_names_for_conn = np.array(table_names)[not_inx].tolist()
+                # identify tables that require database connections
+                inx = [i != "Y" for i in query_only]
+                # load only these tables
+                table_names_to_load = np.array(table_names)[inx].tolist()
+                # others should be just connected to
+                not_inx = [not i for i in inx]
+                table_names_for_conn = np.array(table_names)[not_inx].tolist()
 
             else:
                 table_names_to_load = table_names
@@ -551,9 +571,15 @@ class IO:
                     table_names=table_names_for_conn
                 )
 
+            else:
+                msg = "Unsupported input file type for {}."
+                log.error(msg.format(file_path))
+                raise ValueError(msg.format(file_path))
+
         else:
             msg = "Unsupported value ({}) provided as input file path."
             log.error(msg.format(file_path))
+            raise TypeError(msg.format(file_path))
 
         return dict_of_dfs
 
@@ -616,6 +642,10 @@ class IO:
         else:
             if flavor == "sqlite":
                 db_out_type = ".db"
+            else:
+                raise ValueError(
+                    f"Unsupported db flavor {flavor!r}; only 'sqlite' is implemented."
+                )
 
             if not os.path.exists(outpath):
                 os.makedirs(outpath)
@@ -625,21 +655,19 @@ class IO:
             db_con = sqlite3.connect(db_path)
 
             # write all input tables in the db
-            for table_name in dict_of_dfs:
-                try:
+            try:
+                for table_name in dict_of_dfs:
                     dict_of_dfs[table_name].to_sql(
                         name=table_name,
                         con=db_con,
                         if_exists="replace",
                         index=False,
                     )
-                except Exception as err:
-                    msg = "An error occurred when writting {} table to a db {}."
-                    log.error(msg.format(table_name, db_path))
-                    raise ValueError from err
-
-                msg = "Wrote tables in a database: {}."
-                log.info(msg.format(db_path))
+                    log.info(f"Wrote '{table_name}' into {db_path}.")
+            except BaseException:
+                # don't leave the db file open when writing fails
+                db_con.close()
+                raise
 
             if close:
                 db_con.close()
@@ -661,7 +689,7 @@ class IO:
         """Writes all dataframes from a dictionary of dataframes
         out into an existing database.
 
-        Paramters:
+        Parameters:
 
             type: str
                 String to indicate type of output
@@ -694,7 +722,7 @@ class IO:
                 'db_conn' - database connection
 
                 Set to None if passing the data, db
-                connection and run tag explicitely through
+                connection and run tag explicitly through
                 other kwargs. This functionality can
                 be used when the `load` method was not called.
 
@@ -821,7 +849,7 @@ class IO:
             log.info(msg.format(table_names))
 
         elif table_names is False:
-            pass
+            table_names = []
 
         else:
             msg = "Unsupported value {} passed to table_names kwarg."
@@ -850,7 +878,7 @@ class IO:
         Returns:
 
             list_of_cleaned_labels: list
-                A list with cleaned lables
+                A list with cleaned labels
         """
         list_of_labels = [str(x) for x in list_of_labels]
 
@@ -859,6 +887,15 @@ class IO:
         ]
 
         return list_of_cleaned_labels
+
+
+def _to_numeric_if_possible(column):
+    """Converts a column to a numeric dtype if all its values are numeric,
+    otherwise returns it unchanged."""
+    try:
+        return pd.to_numeric(column)
+    except ValueError, TypeError:
+        return column
 
 
 def to_pickle(obj, out_path):

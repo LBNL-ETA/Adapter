@@ -3,6 +3,7 @@ import gzip
 import json
 import logging
 import os
+import pathlib
 import pickle
 import re
 import shutil
@@ -254,9 +255,10 @@ class TestPickle:
 
 # Tests of the IO public API below run in a fresh temporary working
 # directory (in_tmp_path), which is where load() and write() put their
-# output. Paths passed to write() are kept under that directory (see
-# issue-log.md #22). Code paths with known bugs (issue-log.md) are
-# intentionally not tested here; their tests should come with the fixes.
+# output. Paths passed to write() are kept under temporary directories, so
+# the tests leave nothing behind.
+# Code paths with known, unfixed bugs are intentionally not tested here;
+# their tests should come with the fixes.
 
 
 def write_inputs_from_files(rows, file_name="inputs_from_files.csv"):
@@ -388,6 +390,15 @@ class TestLoadOutput:
 
         assert caplog.text == ""
 
+    def test_raises_when_db_cannot_be_created(self):
+        """load() raises the original error, with a note naming the input file, when
+        the run db can't be created (here: an unsupported db_flavor).
+        """
+        with pytest.raises(ValueError, match="Unsupported db flavor") as exc_info:
+            IO(TEST_XLSX).load(db_flavor="postgres")
+
+        assert any(TEST_XLSX in note for note in exc_info.value.__notes__)
+
     def test_long_timestamp_format(self):
         """load(ts_format="long") uses a `YYYY_MM_DD_HHh_MMm` timestamp in the run tag."""
         res = IO(TEST_XLSX).load(skip_writeout=True, ts_format="long")
@@ -470,6 +481,40 @@ class TestLoadInputsFromFiles:
 
         assert set(tables) == {"inputs_from_files", "xlsx_table1", "xlsx_table2"}
 
+    def test_blank_table_name_loads_all_tables_from_db(self):
+        """A blank `Table Name` for a db file loads all its tables."""
+        path = write_inputs_from_files([(TEST_DB, None, None)])
+
+        tables = IO(path).load(skip_writeout=True)["tables_as_dict_of_dfs"]
+
+        assert set(tables) == {"inputs_from_files", "table1", "table2", "table3"}
+
+    def test_query_only_flags_without_table_names_raise(self):
+        """`Query Only` flags with a blank `Table Name` raise ValueError."""
+        path = write_inputs_from_files([(TEST_DB, None, "Y")])
+
+        with pytest.raises(ValueError, match="without table names"):
+            IO(path).load(skip_writeout=True)
+
+    def test_query_only_flag_count_must_match_table_names(self):
+        """A different number of `Query Only` flags and table names raises ValueError."""
+        path = write_inputs_from_files([(TEST_DB, "table1, table2", "N")])
+
+        with pytest.raises(ValueError, match="one flag per table"):
+            IO(path).load(skip_writeout=True)
+
+    def test_duplicate_table_from_later_csv_raises(self):
+        """A CSV input whose table name was already loaded from an earlier input
+        raises ValueError instead of overwriting that table.
+        """
+        csv_path = os.path.join(INPUTS_DIR, "xlsx_table1.csv")
+        path = write_inputs_from_files(
+            [(TEST_XLSX, None, None), (csv_path, None, None)]
+        )
+
+        with pytest.raises(ValueError, match="xlsx_table1 was already read in"):
+            IO(path).load(skip_writeout=True)
+
     def test_inputs_from_files_table_is_returned(self):
         """The `inputs_from_files` table itself is returned with the loaded tables."""
         rows = [(TEST_DB, "table1", "N")]
@@ -538,12 +583,50 @@ class TestLoadOptions:
         # tables not listed are left as text
         assert_frame_equal(tables["other"], text_numbers)
 
+    def test_to_numeric_converts_numeric_columns_of_mixed_table(self):
+        """load(to_numeric=[...]) converts each fully numeric column of a listed table
+        and leaves its other columns unchanged.
+        """
+        mixed = pd.DataFrame({"a": ["1", "2"], "b": ["x", "y"]})
+        path = write_db("mixed.db", {"mixed": mixed})
+
+        tables = IO(path).load(skip_writeout=True, to_numeric=["mixed"])[
+            "tables_as_dict_of_dfs"
+        ]
+
+        assert pd.api.types.is_integer_dtype(tables["mixed"]["a"])
+        assert tables["mixed"]["a"].tolist() == [1, 2]
+        assert_frame_equal(
+            tables["mixed"][["b"]],
+            IO(path).load(skip_writeout=True)["tables_as_dict_of_dfs"]["mixed"][["b"]],
+        )
+
     def test_column_labels_are_cleaned_by_default(self):
         """load() strips column labels and collapses repeated spaces (clean_labels=True)."""
         # the Excel table's raw labels are ' label 1 ' and 'label 2 '
         tables = IO(TEST_LABELS_XLSX).load(skip_writeout=True)["tables_as_dict_of_dfs"]
 
         assert list(tables["Table1"].columns) == ["label 1", "label 2"]
+
+    def test_accepts_pathlib_path(self):
+        """IO accepts a pathlib.Path input and loads the same tables as for a str path."""
+        i_o = IO(pathlib.Path(TEST_DB))
+
+        tables = i_o.load(skip_writeout=True)["tables_as_dict_of_dfs"]
+
+        assert i_o.input_path == TEST_DB
+        expected = IO(TEST_DB).load(skip_writeout=True)["tables_as_dict_of_dfs"]
+        assert sorted(tables) == sorted(expected)
+        for name, df in expected.items():
+            assert_frame_equal(tables[name], df, obj=name)
+
+    def test_unsupported_file_extension_raises(self):
+        """load() raises ValueError naming the file when its extension isn't supported."""
+        with open("data.txt", "w") as f:
+            f.write("a\n1\n")
+
+        with pytest.raises(ValueError, match=r"Unsupported input file type.*data\.txt"):
+            IO(os.path.abspath("data.txt")).load(skip_writeout=True)
 
     def test_load_from_none_returns_no_tables(self):
         """IO(None).load() reads no input: it returns no tables, with the usual result keys."""
@@ -572,6 +655,15 @@ class TestWrite:
 
         written = pd.read_csv(os.path.join(outpath, "t_r1.csv"), index_col=0)
         assert_frame_equal(written, self.df)
+
+    def test_csv_to_new_folder_outside_cwd(self, tmp_path):
+        """write() creates and writes to a new folder outside the cwd, at the given path."""
+        # a sibling of the cwd (tmp_path), so it doesn't contain the cwd's path
+        outpath = str(tmp_path.parent / f"new_output_{tmp_path.name}")
+
+        IO(None).write(type="csv", data_as_dict_of_dfs={"t": self.df}, outpath=outpath)
+
+        assert os.listdir(outpath) == ["t_.csv"]
 
     def test_csv_defaults_to_cwd(self):
         """write() without a data_connection or outpath writes to the cwd."""
@@ -662,6 +754,11 @@ class TestHelpers:
         """IO.get_file_type() maps file extensions (and lbl.gov hosts) to input types."""
         assert IO(None).get_file_type(path) == file_type
 
+    def test_unsupported_path_type_raises(self):
+        """IO() raises TypeError for an input path that isn't a str, os.PathLike or None."""
+        with pytest.raises(TypeError, match="Unsupported input path type"):
+            IO(123)
+
     def test_os_mapping_list_of_tuples_is_converted(self):
         """IO accepts the legacy list-of-tuples os_mapping and converts it to a dict."""
         i_o = IO(None, os_mapping=[("A:", "/Volumes/A")])
@@ -678,6 +775,15 @@ class TestHelpers:
             "darwin": "/Volumes/A",
             "linux": "/media/b",
         }
+
+    def test_first_col_to_index_false_returns_unchanged_copies(self):
+        """IO.first_col_to_index(table_names=False) returns copies of the tables, unchanged."""
+        tables = {"t": pd.DataFrame({"a": [1, 2], "b": [3, 4]})}
+
+        res = IO(None).first_col_to_index(tables, table_names=False)
+
+        assert_frame_equal(res["t"], tables["t"])
+        assert res["t"] is not tables["t"]
 
     def test_first_col_to_index_raises_for_unsupported_table_names(self):
         """IO.first_col_to_index() raises ValueError for table_names other than a bool or list."""
@@ -700,16 +806,25 @@ class TestHelpers:
         assert_frame_equal(read_db_table(res["db_path"], "t"), df)
 
     def test_create_db_raises_when_a_table_cannot_be_written(self):
-        """IO.create_db() raises ValueError, caused by the original error, when a table
-        can't be written to sqlite.
+        """IO.create_db() raises the original error when a table can't be written to
+        sqlite, and closes the database connection.
         """
         # sqlite can't store a table with duplicate column labels
         df = pd.DataFrame([[1, 2]], columns=["a", "a"])
 
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(sqlite3.OperationalError, match="duplicate column name"):
             IO(None).create_db({"t": df}, run_tag="r1")
 
-        assert exc_info.value.__cause__ is not None
+    def test_create_db_raises_for_unsupported_flavor(self):
+        """IO.create_db() raises ValueError for a flavor other than sqlite, before
+        writing anything.
+        """
+        with pytest.raises(ValueError, match="Unsupported db flavor"):
+            IO(None).create_db(
+                {"t": pd.DataFrame({"a": [1]})}, run_tag="r1", flavor="postgres"
+            )
+
+        assert os.listdir(os.getcwd()) == []
 
     def test_create_db_skip_writeout(self):
         """IO.create_db(skip_writeout=True) writes nothing and returns placeholder values."""

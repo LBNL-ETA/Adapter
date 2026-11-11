@@ -2,18 +2,18 @@
 
 The `Adapter Python IO` software provides a convenient data table loader from various formats such as `xlsx`, `csv`, `db (sqlite database)`, and `sqlalchemy`. Its main feature is the ability to convert data tables identified in one main and optionally one or more additional input files into `database tables` and `Pandas DataFrames` for downstream usage in any compatible software.
 
-`Adapter` builds upon the existing Python packages that allow for the communication between `Python` and `MS Excel`, as well as `databases` and `csv` files. It provides inbuilt capabilities to specify the output location path, as well as a version identifier for a research code run.
+`Adapter` builds upon existing Python packages for reading `MS Excel` (`xlsx`) files, `databases` and `csv` files. It provides inbuilt capabilities to specify the output location path, as well as a version identifier for a research code run.
 
 In addition to the loading capability, an instance of the `Adapter` `IO` object has the write capability. If invoked, all loaded tables are written as either a single `database` or a set of `csv` files, or both.
 
 The purpose of this software is to support the development of research and analytical software through allowing for a simple multi-format IO with versioning and output path specification in the input data itself.
 
-The package is supported on `Windows` and `macOS`, as well as for `Linux` for the utilization without any `xlsx` inputs.
+The package is supported on `Windows`, `macOS` and `Linux`, including `xlsx` inputs. Reading `xlsx` files does not require `MS Excel` to be installed.
 
 
 ## Installation
 
-`adapterio` requires Python 3.12 or newer. Its dependencies are installed automatically.
+`adapterio` requires Python 3.14 or newer. Its dependencies are installed automatically.
 
 To install the package from GitHub:
 ```bash
@@ -95,7 +95,7 @@ res = i_o.load()
 
 where the `res` output is a dictionary with the same keys as in the example above (`data` dictionary).
 
-An another example especially useful for `Linux` users would be to provide several or all inputs as `csv` files through listing their paths in the main `csv` input file. The `Adapter` can then be used to load all inputs at once. This can be done as follows:
+Another example would be to provide several or all inputs as `csv` files through listing their paths in the main `csv` input file. The `Adapter` can then be used to load all inputs at once. This can be done as follows:
 ```python
 path = os.path.join(os.getcwd(), r"adapter/tests/inputs/inputs_from_files_vTest.csv")
 i_o = IO(path)
@@ -139,7 +139,7 @@ uv run pytest --cov --cov-report=term-missing      # with a coverage report
 - `adapter/tests/fixtures/golden/`: golden fixtures (see below).
 - `adapter/tests/conftest.py`: shared fixtures. `in_tmp_path` runs a test in a temporary working directory; `clean_output` removes the `output/` folders created by tests that must run from the repo root.
 
-Tests don't leave files in the repository. Known bugs, documented in [`issue-log.md`](issue-log.md), are intentionally not tested yet; their tests should come with the fixes.
+Any warning raised during a test (for example a deprecation or an unclosed database connection) makes it fail, as set by `filterwarnings` in `pyproject.toml`. Tests don't leave files in the repository. Known bugs that aren't fixed yet are intentionally not tested; their tests should come with the fixes.
 
 ### Golden fixtures
 

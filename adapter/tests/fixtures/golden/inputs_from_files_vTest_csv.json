@@ -1,6 +1,6 @@
 {
   "input_file": "inputs_from_files_vTest.csv",
-  "pandas_version": "2.3.3",
+  "pandas_version": "3.1.0",
   "rtol": 1e-09,
   "tables": {
     "inputs_from_files": {
@@ -10,9 +10,9 @@
         "Query Only"
       ],
       "dtypes": {
-        "File Path": "object",
-        "Table Name": "object",
-        "Query Only": "object"
+        "File Path": "str",
+        "Table Name": "str",
+        "Query Only": "str"
       },
       "index": [
         0,
@@ -43,8 +43,8 @@
         "Version"
       ],
       "dtypes": {
-        "Output Path": "object",
-        "Version": "object"
+        "Output Path": "str",
+        "Version": "str"
       },
       "index": [
         0
@@ -62,7 +62,7 @@
         "column2"
       ],
       "dtypes": {
-        "column1": "object",
+        "column1": "str",
         "column2": "int64"
       },
       "index": [
@@ -91,8 +91,8 @@
         "column_B"
       ],
       "dtypes": {
-        "column_A": "object",
-        "column_B": "object"
+        "column_A": "str",
+        "column_B": "str"
       },
       "index": [
         0,
@@ -117,7 +117,7 @@
       ],
       "dtypes": {
         "csv_col_1": "int64",
-        "csv_col_2": "object",
+        "csv_col_2": "str",
         "csv_col_3": "int64"
       },
       "index": [
@@ -149,8 +149,8 @@
         "nam_ran_col2"
       ],
       "dtypes": {
-        "nam_ran_col1": "object",
-        "nam_ran_col2": "object"
+        "nam_ran_col1": "str",
+        "nam_ran_col2": "str"
       },
       "index": [
         0,
@@ -200,7 +200,7 @@
         "colA"
       ],
       "dtypes": {
-        "colA": "object"
+        "colA": "str"
       },
       "index": [
         0,
@@ -247,7 +247,7 @@
       ],
       "dtypes": {
         "col_1": "float64",
-        "col_2": "object",
+        "col_2": "str",
         "col_3": "float64"
       },
       "index": [
@@ -281,7 +281,7 @@
       ],
       "dtypes": {
         "col_11": "float64",
-        "col_22": "object",
+        "col_22": "str",
         "col_33": "float64"
       },
       "index": [
